@@ -9,7 +9,6 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'electron',
-        'electron-squirrel-startup',
         'electron-updater'
       ]
     }

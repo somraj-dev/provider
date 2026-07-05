@@ -4,11 +4,12 @@
  * Creates the main application window and sets up IPC handlers.
  */
 import { app, BrowserWindow } from 'electron';
+import squirrelStartup from 'electron-squirrel-startup';
 import { createMainWindow } from './window';
 import { registerIpcHandlers } from './ipc';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) {
+if (squirrelStartup) {
   app.quit();
 }
 
