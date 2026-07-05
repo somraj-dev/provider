@@ -5,4 +5,13 @@ export default defineConfig({
     // https://vitejs.dev/config/shared-options.html#resolve-conditions
     conditions: ['node'],
   },
+  build: {
+    rollupOptions: {
+      external: [
+        'electron',
+        'electron-squirrel-startup',
+        'electron-updater'
+      ]
+    }
+  }
 });
