@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "description": "AxioVital Provider Desktop Application",
-  "main": "dist/main/index.js",
+  "author": "AxioVital Team",
+  "main": ".vite/build/index.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
