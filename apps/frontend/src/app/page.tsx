@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { 
   Bell, FileText, Search, User, Filter, Settings, Shield, Activity, 
-  Layers, MessageSquare, BookOpen, ChevronDown, RefreshCw, Maximize2, Print,
+  Layers, MessageSquare, BookOpen, ChevronDown, RefreshCw, Maximize2, Printer,
   Calendar, CheckSquare, HardDrive, Thermometer, Inbox, FileSpreadsheet, Eye
 } from 'lucide-react';
 
@@ -266,7 +266,7 @@ export default function App() {
             <Filter className="w-3 h-3" /> Recent <ChevronDown className="w-3 h-3" />
           </button>
           <button className="bg-[#002a46] hover:bg-[#00375a] border border-[#0d3455] rounded p-1"><Maximize2 className="w-3.5 h-3.5" /></button>
-          <button className="bg-[#002a46] hover:bg-[#00375a] border border-[#0d3455] rounded p-1"><Print className="w-3.5 h-3.5" /></button>
+          <button className="bg-[#002a46] hover:bg-[#00375a] border border-[#0d3455] rounded p-1"><Printer className="w-3.5 h-3.5" /></button>
           <span className="text-[10px] text-gray-300">3 minutes ago</span>
         </div>
       </div>
