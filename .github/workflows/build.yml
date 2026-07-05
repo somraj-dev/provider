@@ -32,10 +32,40 @@ jobs:
       - run: npm ci
       - run: npm run build:backend
 
-  # TODO: Add desktop build for each platform
-  # build-desktop:
-  #   name: Build Desktop
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-latest, windows-latest, macos-latest]
-  #   runs-on: ${{ matrix.os }}
+  build-desktop-windows:
+    name: Build Desktop Installer (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build Shared Packages
+        run: npm run build:packages
+
+      - name: Build Next.js Frontend
+        run: npm run build:frontend
+
+      # Electron Forge will use Vite to compile the desktop bundle and Squirrel.Windows to build the installer
+      - name: Build Desktop Installer
+        run: npm run build:desktop
+
+      - name: Upload Windows Squirrel Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: AxioVital-Provider-Windows-Squirrel-Installer
+          path: apps/desktop/out/make/squirrel.windows/x64/*.exe
+
+      - name: Upload Windows ZIP Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: AxioVital-Provider-Windows-ZIP-Installer
+          path: apps/desktop/out/make/zip/win32/x64/*.zip
+
