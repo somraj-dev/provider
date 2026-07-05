@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import Image from 'next/next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,7 +30,7 @@ import {
 interface TabItem {
   id: string;
   title: string;
-  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre';
+  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests';
 }
 
 export default function App() {
@@ -99,6 +99,27 @@ export default function App() {
   const [editFirstVisit, setEditFirstVisit] = useState('07/15/2004');
   const [editStatus, setEditStatus] = useState('Active');
 
+  // Reschedule appointments filter states
+  const [rsSearchBy, setRsSearchBy] = useState('Patient Name');
+  const [rsSearchText, setRsSearchText] = useState('');
+  const [rsRequestId, setRsRequestId] = useState('');
+  const [rsProvider, setRsProvider] = useState('All');
+  const [rsStatus, setRsStatus] = useState('All');
+  const [rsFromDate, setRsFromDate] = useState('');
+  const [rsToDate, setRsToDate] = useState('');
+
+  // Reschedule requests state table rows matching mockup exactly
+  const [rescheduleRequests, setRescheduleRequests] = useState([
+    { id: 'REQ-2025-001245', name: 'Rahul Patel', mrn: '1000245679', current: '28/05/2025, 10:30 AM', dept: 'Dr. P. Singh (Neurology)', requested: '30/05/2025, 11:00 AM', reason: 'Reschedule: Patient Request', requestedOn: '28/05/2025, 09:15 AM by Rahul Patel (Patient)', priority: 'Normal', status: 'Pending', priorityColor: 'bg-blue-50 text-blue-800 border-blue-200', statusColor: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+    { id: 'REQ-2025-001246', name: 'Maria Johnson', mrn: '1000245680', current: '28/05/2025, 11:00 AM', dept: 'Dr. S. Reddy (Cardiology)', requested: '31/05/2025, 09:30 AM', reason: 'Reschedule: Work Conflict', requestedOn: '28/05/2025, 09:20 AM by Maria Johnson (Patient)', priority: 'Normal', status: 'Pending', priorityColor: 'bg-blue-50 text-blue-800 border-blue-200', statusColor: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+    { id: 'REQ-2025-001247', name: 'David Lee', mrn: '1000245681', current: '28/05/2025, 03:00 PM', dept: 'Dr. K. Iyer (Pulmonology)', requested: '29/05/2025, 04:00 PM', reason: 'Reschedule: Personal Emergency', requestedOn: '28/05/2025, 09:35 AM by David Lee (Patient)', priority: 'High', status: 'Reviewing', priorityColor: 'bg-red-50 text-red-800 border-red-200', statusColor: 'bg-blue-100 text-blue-800 border-blue-200' },
+    { id: 'REQ-2025-001248', name: 'Lucia Garcia', mrn: '1000245682', current: '29/05/2025, 09:00 AM', dept: 'Dr. M. Desai (Oncology)', requested: '29/05/2025, 01:00 PM', reason: 'Reschedule: Travel', requestedOn: '28/05/2025, 10:05 AM by Lucia Garcia (Patient)', priority: 'Normal', status: 'Approved', priorityColor: 'bg-blue-50 text-blue-800 border-blue-200', statusColor: 'bg-green-100 text-green-800 border-green-200' },
+    { id: 'REQ-2025-001249', name: 'Michael Thomas', mrn: '1000245683', current: '29/05/2025, 11:30 AM', dept: 'Dr. N. Verma (Dermatology)', requested: '30/05/2025, 10:00 AM', reason: 'Reschedule: Schedule Conflict', requestedOn: '28/05/2025, 10:12 AM by Michael Thomas (Patient)', priority: 'Normal', status: 'Declined', priorityColor: 'bg-blue-50 text-blue-800 border-blue-200', statusColor: 'bg-red-100 text-red-800 border-red-200' },
+    { id: 'REQ-2025-001250', name: 'James Kim', mrn: '1000245684', current: '30/05/2025, 02:00 PM', dept: 'Dr. P. Nair (Diabetology)', requested: '02/06/2025, 11:00 AM', reason: 'Reschedule: Not Available', requestedOn: '28/05/2025, 10:25 AM by James Kim (Patient)', priority: 'Low', status: 'Pending', priorityColor: 'bg-green-50 text-green-800 border-green-200', statusColor: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+    { id: 'REQ-2025-001251', name: 'Elizabeth Brown', mrn: '1000245685', current: '30/05/2025, 04:00 PM', dept: 'Dr. R. Menon (Nephrology)', requested: '31/05/2025, 04:30 PM', reason: 'Reschedule: Family Function', requestedOn: '28/05/2025, 10:45 AM by Elizabeth Brown (Patient)', priority: 'Normal', status: 'Pending', priorityColor: 'bg-blue-50 text-blue-800 border-blue-200', statusColor: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+    { id: 'REQ-2025-001252', name: 'Charles White', mrn: '1000245686', current: '31/05/2025, 10:00 AM', dept: 'Dr. S. Malhotra (ENT)', requested: '02/06/2025, 09:00 AM', reason: 'Reschedule: Patient Request', requestedOn: '28/05/2025, 11:00 AM by Charles White (Patient)', priority: 'Normal', status: 'Pending', priorityColor: 'bg-blue-50 text-blue-800 border-blue-200', statusColor: 'bg-yellow-100 text-yellow-800 border-yellow-200' }
+  ]);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -117,7 +138,7 @@ export default function App() {
     setActiveTabId('patient-doe');
   };
 
-  const selectOrOpenTab = (type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre', title: string, id: string) => {
+  const selectOrOpenTab = (type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests', title: string, id: string) => {
     const exists = openTabs.find(t => t.id === id);
     if (!exists) {
       setOpenTabs([...openTabs, { id, title, type }]);
@@ -181,7 +202,7 @@ export default function App() {
     { mrn: '1000245683', uhid: 'AVX-000128', name: 'Thomas, Michael', ageGender: '33 Y / Male', dob: '07/06/1991', phone: '9876543215', visit: 'Outpatient', dept: 'Dermatology', physician: 'Dr. N. Verma', status: 'Completed', statusBg: 'bg-gray-100 text-gray-800', location: '—', admitted: '28/05/2025 11:30 AM' },
     { mrn: '1000245684', uhid: 'AVX-000129', name: 'Kim, James', ageGender: '27 Y / Male', dob: '23/08/1997', phone: '9876543216', visit: 'Inpatient', dept: 'Diabetology', physician: 'Dr. P. Nair', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: 'DIAB-01 / Bed 03', admitted: '27/05/2025 09:50 PM' },
     { mrn: '1000245685', uhid: 'AVX-000130', name: 'Brown, Elizabeth', ageGender: '48 Y / Female', dob: '02/04/1977', phone: '9876543217', visit: 'Inpatient', dept: 'Nephrology', physician: 'Dr. R. Menon', status: 'ICU', statusBg: 'bg-red-100 text-red-800', location: 'ICU-02 / Bed 01', admitted: '27/05/2025 05:25 PM' },
-    { mrn: '1000245686', uhid: 'AVX-000131', name: 'White, Charles', ageGender: '55 Y / Male', dob: '16/05/1970', phone: '9876543218', visit: 'Inpatient', dept: 'ENT', physician: 'Dr. S. Malhotra', status: 'Scheduled', statusBg: 'bg-yellow-100 text-yellow-800', location: '—', admitted: '29/05/2025 09:00 AM' },
+    { mrn: '1000245686', uhid: 'AVX-000131', name: 'White, Charles', ageGender: '55 Y / Male', dob: '16/05/1970', phone: '9876543218', visit: 'Inpatient', text: 'ENT', physician: 'Dr. S. Malhotra', status: 'Scheduled', statusBg: 'bg-yellow-100 text-yellow-800', location: '—', admitted: '29/05/2025 09:00 AM' },
     { mrn: '1000245687', uhid: 'AVX-000132', name: 'Davis, Patricia', ageGender: '36 Y / Female', dob: '11/12/1988', phone: '9876543219', visit: 'Outpatient', dept: 'Ophthalmology', physician: 'Dr. V. Bhatia', status: 'Registered', statusBg: 'bg-blue-100 text-blue-800', location: '—', admitted: '26/05/2025 04:20 PM' }
   ];
 
@@ -335,7 +356,15 @@ export default function App() {
       {/* Navigation Shortcut Row (Ribbon 2) */}
       <div className="bg-[#eef2f5] border-b border-[#bdcddc] px-3 py-1 flex gap-3 text-[#4f5f6f] items-center text-[10.5px]">
         <button className="flex items-center gap-1 hover:text-black">📊 Dashboard</button>
-        <button className="flex items-center gap-1 hover:text-black">📅 Scheduler</button>
+        
+        {/* Scheduler Shortcut Tab Trigger */}
+        <button 
+          onClick={() => selectOrOpenTab('RescheduleRequests', 'Appointment Reschedule Requests', 'reschedule-requests-tab')}
+          className="flex items-center gap-1 hover:text-black font-semibold text-[#002a46]"
+        >
+          📅 Scheduler
+        </button>
+        
         <button className="flex items-center gap-1 hover:text-black">💡 Clinical Decision Support</button>
         <button className="flex items-center gap-1 hover:text-black">🗂️ Order Sets</button>
         <button className="flex items-center gap-1 hover:text-black">🧬 Care Pathways</button>
@@ -361,6 +390,7 @@ export default function App() {
           {activeTab.type === 'EditPatientProfile' && 'Edit Patient Profile'}
           {activeTab.type === 'MedicalReport' && 'Medical Report Form'}
           {activeTab.type === 'HelpCentre' && 'Help Center'}
+          {activeTab.type === 'RescheduleRequests' && 'Appointment Reschedule Requests'}
         </span>
         
         <div className="flex items-center gap-2">
@@ -580,6 +610,7 @@ export default function App() {
                   {t.type === 'EditPatientProfile' && '✏️ '}
                   {t.type === 'MedicalReport' && '📄 '}
                   {t.type === 'HelpCentre' && '❓ '}
+                  {t.type === 'RescheduleRequests' && '📅 '}
                   {t.title}
                 </span>
                 {openTabs.length > 1 && (
@@ -1063,7 +1094,7 @@ export default function App() {
                     type="text"
                     placeholder="Enter Patient Name"
                     value={pdSearchText}
-                    onChange={(e) => setPdSearchText(e.target.value)}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
                   />
                 </div>
@@ -1967,7 +1998,7 @@ export default function App() {
                           type="text" 
                           value={editFax} 
                           onChange={(e) => setEditFax(e.target.value)} 
-                          className="w-full bg-white border border-[#bdcddc] rounded px-2 py-1 text-[10px] focus:outline-none"
+                          className="w-full bg-[#f1f5f9] border border-[#bdcddc] rounded px-2 py-1 text-[10px] focus:outline-none"
                         />
                       </div>
 
@@ -2441,6 +2472,191 @@ export default function App() {
                 </div>
 
               </div>
+            </div>
+          )}
+
+          {activeTab.type === 'RescheduleRequests' && (
+            <div className="flex flex-1 flex-col overflow-auto p-4 space-y-4 bg-[#f8f9fa] text-[11px] select-text">
+              
+              {/* Header Title & Controls */}
+              <div className="flex justify-between items-center bg-white border border-[#bdcddc] p-2 rounded-sm shadow-sm select-none">
+                <span className="font-bold text-xs text-[#002a46]">Appointment Reschedule Requests</span>
+                <div className="flex gap-2 items-center">
+                  <select className="bg-white border border-[#bdcddc] rounded px-1.5 py-0.5 text-[10px] focus:outline-none">
+                    <option>Export File</option>
+                  </select>
+                  <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2.5 py-1 rounded text-[10px] flex items-center gap-1 font-semibold text-gray-700">
+                    📥 Export
+                  </button>
+                  <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">•••</button>
+                </div>
+              </div>
+
+              {/* Status Summary KPI Cards Row */}
+              <div className="grid grid-cols-5 gap-3 select-none">
+                {[
+                  { label: 'Total Requests', value: '8', change: 'All time', icon: '👤', color: 'text-[#0f4471]' },
+                  { label: 'Pending', value: '5', change: '62.5%', icon: '⏱️', color: 'text-orange-600' },
+                  { label: 'Reviewing', value: '1', change: '12.5%', icon: 'ℹ️', color: 'text-blue-600' },
+                  { label: 'Approved', value: '1', change: '12.5%', icon: '✅', color: 'text-green-600' },
+                  { label: 'Declined', value: '1', change: '12.5%', icon: '❌', color: 'text-red-600' }
+                ].map((kpi, idx) => (
+                  <div key={idx} className="bg-white border border-[#bdcddc] p-3 rounded shadow-sm flex items-center gap-3">
+                    <span className={`text-xl ${kpi.color} p-2 bg-gray-50 rounded`}>{kpi.icon}</span>
+                    <div>
+                      <div className="text-gray-500 font-bold text-[9.5px]">{kpi.label}</div>
+                      <div className="text-lg font-bold text-gray-900 leading-tight">{kpi.value}</div>
+                      <div className="text-[9px] text-gray-400 font-semibold">{kpi.change}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Search Filters Row */}
+              <div className="bg-[#fafbfc] border border-[#bdcddc] p-3 rounded-sm shadow-sm grid grid-cols-6 gap-3 text-[10.5px] select-none">
+                <div className="space-y-1">
+                  <label className="text-gray-500 font-semibold">Search By</label>
+                  <select 
+                    value={rsSearchBy}
+                    onChange={(e) => setRsSearchBy(e.target.value)}
+                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
+                  >
+                    <option>Patient Name</option>
+                    <option>Request ID</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-gray-500 font-semibold">Search Text</label>
+                  <input
+                    type="text"
+                    placeholder="Enter Patient Name / MRN"
+                    value={rsSearchText}
+                    onChange={(e) => setRsSearchText(e.target.value)}
+                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-gray-500 font-semibold">Request ID</label>
+                  <input
+                    type="text"
+                    placeholder="Enter Request ID"
+                    value={rsRequestId}
+                    onChange={(e) => setRsRequestId(e.target.value)}
+                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-gray-500 font-semibold">Provider</label>
+                  <select 
+                    value={rsProvider}
+                    onChange={(e) => setRsProvider(e.target.value)}
+                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
+                  >
+                    <option>Select Provider</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-gray-500 font-semibold">Status</label>
+                  <select 
+                    value={rsStatus}
+                    onChange={(e) => setRsStatus(e.target.value)}
+                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
+                  >
+                    <option>All</option>
+                  </select>
+                </div>
+                <div className="space-y-1 flex flex-col justify-end">
+                  <div className="flex gap-2">
+                    <button className="flex-1 bg-white border border-[#bdcddc] hover:bg-gray-50 py-1 text-[10px] font-semibold rounded">
+                      More Filters
+                    </button>
+                    <button className="flex-1 bg-[#0f4471] hover:bg-[#0b3355] text-white py-1 text-[10px] font-bold rounded">
+                      🔍 Search
+                    </button>
+                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-1 text-[10px] font-semibold rounded">
+                      Reset
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Table */}
+              <div className="bg-white border border-[#bdcddc] rounded shadow-sm overflow-hidden flex flex-col">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-[10px]">
+                    <thead>
+                      <tr className="bg-gray-100 text-gray-700 font-bold border-b border-[#bdcddc] select-none">
+                        <th className="p-2.5 border-r border-[#bdcddc] w-[30px] text-center">
+                          <input type="checkbox" className="rounded-sm" />
+                        </th>
+                        <th className="p-2.5 border-r border-[#bdcddc]">Request ID</th>
+                        <th className="p-2.5 border-r border-[#bdcddc]">Patient Name<br/><span className="text-[9px] text-gray-400">MRN</span></th>
+                        <th className="p-2.5 border-r border-[#bdcddc]">Current Appointment<br/><span className="text-[9px] text-gray-400">Date & Time</span></th>
+                        <th className="p-2.5 border-r border-[#bdcddc]">Provider<br/><span className="text-[9px] text-gray-400">Department</span></th>
+                        <th className="p-2.5 border-r border-[#bdcddc]">Requested New Date & Time</th>
+                        <th className="p-2.5 border-r border-[#bdcddc]">Request Type<br/><span className="text-[9px] text-gray-400">Reason</span></th>
+                        <th className="p-2.5 border-r border-[#bdcddc]">Requested On<br/><span className="text-[9px] text-gray-400">Requested By</span></th>
+                        <th className="p-2.5 border-r border-[#bdcddc]">Priority</th>
+                        <th className="p-2.5 border-r border-[#bdcddc]">Status</th>
+                        <th className="p-2.5 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rescheduleRequests.map((row, idx) => (
+                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50/50">
+                          <td className="p-2.5 border-r border-gray-200 text-center select-none">
+                            <input type="checkbox" className="rounded-sm" />
+                          </td>
+                          <td className="p-2.5 border-r border-gray-200 font-bold text-gray-700">{row.id}</td>
+                          <td className="p-2.5 border-r border-gray-200">
+                            <div className="font-bold text-[#0d7a86] cursor-pointer hover:underline" onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.toUpperCase()}`, 'patient-doe')}>{row.name}</div>
+                            <div className="text-[9px] text-gray-500 font-mono">{row.mrn}</div>
+                          </td>
+                          <td className="p-2.5 border-r border-gray-200 font-semibold">{row.current}</td>
+                          <td className="p-2.5 border-r border-gray-200">{row.dept}</td>
+                          <td className="p-2.5 border-r border-gray-200 text-blue-900 font-bold">{row.requested}</td>
+                          <td className="p-2.5 border-r border-gray-200">{row.reason}</td>
+                          <td className="p-2.5 border-r border-gray-200 text-gray-500">{row.requestedOn}</td>
+                          <td className="p-2.5 border-r border-gray-200">
+                            <span className={`px-2 py-0.5 rounded-sm font-bold text-[9px] border ${row.priorityColor}`}>
+                              {row.priority}
+                            </span>
+                          </td>
+                          <td className="p-2.5 border-r border-gray-200">
+                            <span className={`px-2.5 py-0.5 rounded-sm font-bold text-[9px] border ${row.statusColor}`}>
+                              {row.status}
+                            </span>
+                          </td>
+                          <td className="p-2.5 text-center select-none">
+                            <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">•••</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="bg-[#fafbfc] border-t border-[#bdcddc] p-2 flex justify-between items-center text-[10px] select-none">
+                  <div className="flex items-center gap-1.5">
+                    <span>Show</span>
+                    <select className="bg-white border border-[#bdcddc] rounded px-1.5 py-0.5">
+                      <option>25</option>
+                      <option>50</option>
+                    </select>
+                    <span>entries</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button className="px-1.5 py-0.5 hover:bg-gray-100 rounded text-gray-400">❮</button>
+                    <button className="px-2 py-0.5 bg-[#0f4471] text-white font-bold rounded">1</button>
+                    <button className="px-2 py-0.5 hover:bg-gray-100 rounded">2</button>
+                    <button className="px-1.5 py-0.5 hover:bg-gray-100 rounded">❯</button>
+                  </div>
+                  <div className="text-gray-500">
+                    Showing 1 to 8 of 8 entries
+                  </div>
+                </div>
+              </div>
+
             </div>
           )}
         </div>
