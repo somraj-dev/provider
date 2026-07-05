@@ -373,9 +373,39 @@ export default function App() {
           
           <button className="bg-[#00223b] border border-[#0d3455] hover:bg-[#002e50] rounded px-1.5 py-0.5 text-[10px]"><Maximize2 className="w-2.5 h-2.5" /></button>
           
-          {/* Printer Icon binds to Medical Report Form */}
+          {/* Printer Icon downloads Medical Report locally */}
           <button 
-            onClick={() => selectOrOpenTab('MedicalReport', 'Medical Report: JOHN DOE', 'medical-report-doe')}
+            onClick={() => {
+              const content = `MEDICAL REPORT\n\n` +
+                `Name: ${editFirstName} ${editMiddleInitial} ${editLastName}\n` +
+                `Date: 05/28/2025\n` +
+                `When did problem start?: 11/25/2004\n` +
+                `Describe Problem: Nasal polyps, Allergic rhinitis, Acute sinusitis\n` +
+                `Cause: Gradual onset\n` +
+                `Require Surgery: No\n\n` +
+                `PAST MEDICAL HISTORY:\n` +
+                `- Breathing Problems: Yes\n` +
+                `- Stroke: No\n` +
+                `- Depression: No\n` +
+                `- Heart Problems: No\n` +
+                `- Diabetes: No\n\n` +
+                `ALLERGIES:\n` +
+                `- Latex: No\n` +
+                `- Iodine: Yes\n` +
+                `- Bromine: No\n` +
+                `- Other: Penicillin\n\n` +
+                `Religious/Cultural Views: No\n` +
+                `Additional Comments: None\n`;
+              const blob = new Blob([content], { type: 'text/plain' });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `Medical_Report_${editLastName}_${editFirstName}.txt`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            }}
             className="bg-[#00223b] border border-[#0d3455] hover:bg-[#002e50] rounded px-1.5 py-0.5 text-[10px]"
           >
             <Printer className="w-2.5 h-2.5 text-white" />
