@@ -43,7 +43,7 @@ export default function App() {
     setPassword('');
   };
 
-  // Mock data matching the layout image
+  // Mock data matching the layout image exactly 1:1
   const orders = [
     { name: 'JAMES, WILLIAM', type: 'CBC with Differential', action: 'Order', date: '05/28/17 08:30', detail: 'Routine blood test', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 08:30', stop: '05/28/2017 08:30', stopType: 'Physician Stop', status: 'Open' },
     { name: 'JAMES, WILLIAM', type: 'Comprehensive Metabolic Panel', action: 'Order', date: '05/28/17 08:30', detail: 'Kidney & liver function', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 08:30', stop: '05/28/2017 08:30', stopType: 'Physician Stop', status: 'Open' },
@@ -63,6 +63,14 @@ export default function App() {
     { name: 'THOMAS, MICHAEL', type: 'Surgery Consult', action: 'Order', date: '05/28/17 12:30', detail: 'Surgical evaluation', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 12:30', stop: '05/28/2017 12:30', stopType: 'Physician Stop', status: 'Open' },
     { name: 'ANDERSON, SUSAN', type: 'Lipid Panel', action: 'Order', date: '05/28/17 13:00', detail: 'Cholesterol check', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 13:00', stop: '05/28/2017 13:00', stopType: 'Physician Stop', status: 'Open' },
     { name: 'ANDERSON, SUSAN', type: 'Nutrition Consult', action: 'Order', date: '05/28/17 13:00', detail: 'Dietary counseling', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 13:00', stop: '05/28/2017 13:00', stopType: 'Physician Stop', status: 'Open' },
+    { name: 'MILLER, ROBERT', type: 'Pulmonary Function Test', action: 'Order', date: '05/28/17 13:30', detail: 'COPD evaluation', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 13:30', stop: '05/28/2017 13:30', stopType: 'Physician Stop', status: 'Open' },
+    { name: 'MILLER, ROBERT', type: 'Respiratory Therapy Eval', action: 'Order', date: '05/28/17 13:30', detail: 'Breathing assessment', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 13:30', stop: '05/28/2017 13:30', stopType: 'Physician Stop', status: 'Open' },
+    { name: 'DAVIS, PATRICIA', type: 'DEXA Scan', action: 'Order', date: '05/28/17 14:00', detail: 'Bone density', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 14:00', stop: '05/28/2017 14:00', stopType: 'Physician Stop', status: 'Open' },
+    { name: 'DAVIS, PATRICIA', type: 'Vitamin D Level', action: 'Order', date: '05/28/17 14:00', detail: 'Bone health', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 14:00', stop: '05/28/2017 14:00', stopType: 'Physician Stop', status: 'Open' },
+    { name: 'WHITE, CHARLES', type: 'Sleep Study', action: 'Order', date: '05/28/17 14:30', detail: 'Sleep apnea evaluation', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 14:30', stop: '05/28/2017 14:30', stopType: 'Physician Stop', status: 'Open' },
+    { name: 'WHITE, CHARLES', type: 'ENT Consult', action: 'Order', date: '05/28/17 14:30', detail: 'Snoring and fatigue', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 14:30', stop: '05/28/2017 14:30', stopType: 'Physician Stop', status: 'Open' },
+    { name: 'WILSON, BETTY', type: 'Mammogram Screening', action: 'Order', date: '05/28/17 15:00', detail: 'Breast cancer screening', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 15:00', stop: '05/28/2017 15:00', stopType: 'Physician Stop', status: 'Open' },
+    { name: 'WILSON, BETTY', type: 'Ob/Gyn Annual Exam', action: 'Order', date: '05/28/17 15:00', detail: 'Routine exam', comment: 'AXIO, MD', provider: 'AXIO, MD', start: '05/28/2017 15:00', stop: '05/28/2017 15:00', stopType: 'Physician Stop', status: 'Open' }
   ];
 
   const filteredOrders = orders.filter(
