@@ -52,7 +52,7 @@ axiovital-provider/
 
 ```bash
 # 1. Clone the repository
-git clone <repository-url>
+git clone somraj-dev/provider
 cd axiovital-provider
 
 # 2. Install dependencies
