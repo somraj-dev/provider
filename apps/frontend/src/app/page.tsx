@@ -540,7 +540,7 @@ export default function App() {
                     </div>
                     <div className="grid grid-cols-2 gap-x-8 gap-y-0.5 text-[11px] text-gray-200">
                       <div><span className="text-gray-400 font-medium">MRN:</span> 1000245678</div>
-                      <div><span className="text-gray-400 font-medium">FIN:</span> 2000456789</div>
+                      <div><span className="text-gray-400 font-medium">Axio-ID:</span> AXSL06-S1L2V3</div>
                       <div><span className="text-gray-400 font-medium">Gender:</span> Male</div>
                       <div><span className="text-gray-400 font-medium">Age:</span> 45Y 8M</div>
                       <div className="col-span-2"><span className="text-gray-400 font-medium">Allergies:</span> Penicillin, Iodine</div>
@@ -1201,7 +1201,7 @@ export default function App() {
                     <div className="grid grid-cols-[1fr_1.8fr_1fr] gap-x-8 gap-y-1.5 text-[9.5px] text-gray-200">
                       <div className="space-y-1">
                         <div><span className="text-gray-400 font-semibold inline-block w-[50px]">MRN:</span> 1000245678</div>
-                        <div><span className="text-gray-400 font-semibold inline-block w-[50px]">FIN:</span> 2000456789</div>
+                        <div><span className="text-gray-400 font-semibold inline-block w-[50px]">Axio-ID:</span> AXSL06-S1L2V3</div>
                         <div><span className="text-gray-400 font-semibold inline-block w-[50px]">DOB:</span> 03/12/1979 (45Y)</div>
                         <div><span className="text-gray-400 font-semibold inline-block w-[50px]">Gender:</span> Male</div>
                       </div>
