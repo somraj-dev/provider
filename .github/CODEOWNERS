@@ -1,0 +1,27 @@
+# CODEOWNERS
+# These owners will be requested for review on PRs
+
+# Global
+* @axiovital/core-team
+
+# Frontend
+apps/frontend/ @axiovital/frontend-team
+
+# Backend
+apps/backend/ @axiovital/backend-team
+
+# AI Service
+apps/ai-service/ @axiovital/ai-team
+
+# Desktop
+apps/desktop/ @axiovital/desktop-team
+
+# Infrastructure
+infrastructure/ @axiovital/devops-team
+docker-compose.yml @axiovital/devops-team
+
+# Shared Packages
+packages/ @axiovital/core-team
+
+# Documentation
+docs/ @axiovital/core-team

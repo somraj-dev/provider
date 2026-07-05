@@ -1,0 +1,8 @@
+# AxioVital Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: axiovital
+  labels:
+    app.kubernetes.io/name: axiovital
+    app.kubernetes.io/part-of: axiovital-provider

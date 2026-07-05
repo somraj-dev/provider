@@ -1,0 +1,13 @@
+# PostgreSQL Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: axiovital
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi  # TODO: Adjust for production
+  # storageClassName: standard  # TODO: Use appropriate storage class

@@ -1,0 +1,40 @@
+# ============================================
+# Prometheus Configuration (Placeholder)
+# ============================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Backend (NestJS)
+  - job_name: 'backend'
+    static_configs:
+      - targets: ['backend:4000']
+    metrics_path: /metrics
+    # TODO: Configure actual metrics endpoint
+
+  # AI Service (FastAPI)
+  - job_name: 'ai-service'
+    static_configs:
+      - targets: ['ai-service:8000']
+    metrics_path: /metrics
+    # TODO: Configure actual metrics endpoint
+
+  # PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    # TODO: Deploy postgres-exporter
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    # TODO: Deploy redis-exporter
+
+  # Node Exporter
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    # TODO: Deploy node-exporter

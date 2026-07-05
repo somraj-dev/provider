@@ -1,0 +1,46 @@
+# AxioVital OpenSearch Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensearch
+  namespace: axiovital
+  labels:
+    app: opensearch
+    app.kubernetes.io/part-of: axiovital-provider
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opensearch
+  template:
+    metadata:
+      labels:
+        app: opensearch
+    spec:
+      containers:
+        - name: opensearch
+          image: opensearchproject/opensearch:2
+          ports:
+            - containerPort: 9200
+            - containerPort: 9600
+          env:
+            - name: discovery.type
+              value: "single-node"
+            - name: DISABLE_SECURITY_PLUGIN
+              value: "true"
+            - name: OPENSEARCH_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+          volumeMounts:
+            - name: opensearch-storage
+              mountPath: /usr/share/opensearch/data
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+      volumes:
+        - name: opensearch-storage
+          persistentVolumeClaim:
+            claimName: opensearch-pvc

@@ -1,0 +1,37 @@
+# AxioVital Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: axiovital
+  labels:
+    app: backend
+    app.kubernetes.io/part-of: axiovital-provider
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: axiovital/backend:latest  # TODO: Use real registry
+          ports:
+            - containerPort: 4000
+          envFrom:
+            - configMapRef:
+                name: axiovital-config
+            - secretRef:
+                name: axiovital-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          # TODO: Add readiness and liveness probes
