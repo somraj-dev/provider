@@ -373,38 +373,168 @@ export default function App() {
           
           <button className="bg-[#00223b] border border-[#0d3455] hover:bg-[#002e50] rounded px-1.5 py-0.5 text-[10px]"><Maximize2 className="w-2.5 h-2.5" /></button>
           
-          {/* Printer Icon downloads Medical Report locally */}
+          {/* Printer Icon prints / saves Medical Report directly to PDF */}
           <button 
             onClick={() => {
-              const content = `MEDICAL REPORT\n\n` +
-                `Name: ${editFirstName} ${editMiddleInitial} ${editLastName}\n` +
-                `Date: 05/28/2025\n` +
-                `When did problem start?: 11/25/2004\n` +
-                `Describe Problem: Nasal polyps, Allergic rhinitis, Acute sinusitis\n` +
-                `Cause: Gradual onset\n` +
-                `Require Surgery: No\n\n` +
-                `PAST MEDICAL HISTORY:\n` +
-                `- Breathing Problems: Yes\n` +
-                `- Stroke: No\n` +
-                `- Depression: No\n` +
-                `- Heart Problems: No\n` +
-                `- Diabetes: No\n\n` +
-                `ALLERGIES:\n` +
-                `- Latex: No\n` +
-                `- Iodine: Yes\n` +
-                `- Bromine: No\n` +
-                `- Other: Penicillin\n\n` +
-                `Religious/Cultural Views: No\n` +
-                `Additional Comments: None\n`;
-              const blob = new Blob([content], { type: 'text/plain' });
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `Medical_Report_${editLastName}_${editFirstName}.txt`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              URL.revokeObjectURL(url);
+              // Create temporary container for print layout
+              const printFrame = document.createElement('div');
+              printFrame.id = 'print-report-frame';
+              printFrame.innerHTML = `
+                <div style="width: 800px; padding: 40px; font-family: serif; color: #333; line-height: 1.6; font-size: 13px; background: white;">
+                  <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="font-size: 28px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 10px; font-family: sans-serif; text-transform: uppercase;">Medical Report</h1>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 80px 1fr 60px 180px; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 15px;">
+                    <span style="font-weight: bold;">Name:</span>
+                    <span style="border-bottom: 1px solid #666; font-weight: bold;">${editFirstName} ${editMiddleInitial} ${editLastName}</span>
+                    <span style="font-weight: bold; padding-left: 10px;">Date:</span>
+                    <span style="border-bottom: 1px solid #666;">05/28/2025</span>
+
+                    <span style="font-weight: bold; grid-column: span 2;">When did your problem start?:</span>
+                    <span style="border-bottom: 1px solid #666; grid-column: span 2;">11/25/2004</span>
+
+                    <span style="font-weight: bold; grid-column: span 2;">Describe Problem:</span>
+                    <span style="border-bottom: 1px solid #666; grid-column: span 2;">Nasal polyps, Allergic rhinitis, Acute sinusitis</span>
+                  </div>
+
+                  <div style="margin-bottom: 20px;">
+                    <div style="font-weight: bold; margin-bottom: 8px;">Cause of Current Problem:</div>
+                    <div style="display: flex; gap: 20px;">
+                      <label><input type="checkbox" disabled /> Car Accident</label>
+                      <label><input type="checkbox" disabled /> Work injury</label>
+                      <label><input type="checkbox" checked disabled /> Gradual onset</label>
+                      <label><input type="checkbox" disabled /> Other</label>
+                    </div>
+                  </div>
+
+                  <div style="margin-bottom: 20px;">
+                    <div style="font-weight: bold; margin-bottom: 8px;">Did this Problem require Surgery:</div>
+                    <div style="display: flex; gap: 20px;">
+                      <label><input type="checkbox" checked disabled /> No</label>
+                      <label><input type="checkbox" disabled /> Yes</label>
+                      <span style="color: #666;">Yes Date of Surgery: ______________________</span>
+                    </div>
+                  </div>
+
+                  <div style="border: 1px solid #666; padding: 15px; margin-bottom: 20px;">
+                    <div style="font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 12px;">Past Medical History (Do you have a history of the following problems?)</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                      <label><input type="checkbox" checked disabled /> Breathing Problems</label>
+                      <label><input type="checkbox" disabled /> Stroke</label>
+                      <label><input type="checkbox" disabled /> Depression</label>
+                      <label><input type="checkbox" disabled /> Pregnant</label>
+                      <label><input type="checkbox" disabled /> Bone/joint Problems</label>
+                      <label><input type="checkbox" disabled /> Bowel/Bladder</label>
+                      <label><input type="checkbox" disabled /> Heart Problems</label>
+                      <label><input type="checkbox" disabled /> Kidney Problems</label>
+                      <label><input type="checkbox" disabled /> History of heavy alcohol use</label>
+                      <label><input type="checkbox" disabled /> Current Wound/Skin Problems</label>
+                      <label><input type="checkbox" disabled /> Gallbladder/Liver</label>
+                      <label><input type="checkbox" disabled /> Drug use</label>
+                      <label><input type="checkbox" disabled /> Pacemaker</label>
+                      <label><input type="checkbox" disabled /> Electrical implants</label>
+                      <label><input type="checkbox" disabled /> Smoking</label>
+                      <label><input type="checkbox" disabled /> Tumor/Cancer</label>
+                      <label><input type="checkbox" disabled /> Anxiety attacks</label>
+                      <label><input type="checkbox" disabled /> Headaches</label>
+                      <label><input type="checkbox" disabled /> Diabetes</label>
+                      <label><input type="checkbox" disabled /> Sleep Apnea</label>
+                    </div>
+                  </div>
+
+                  <div style="border: 1px solid #666; padding: 15px; margin-bottom: 20px;">
+                    <div style="font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between;">
+                      <span>Surgeries/Hospitalizations</span>
+                      <label style="font-weight: normal;"><input type="checkbox" checked disabled /> No Surgeries</label>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 8px; border-bottom: 1px solid #ccc; font-weight: bold; text-align: center; padding-bottom: 4px; margin-bottom: 8px;">
+                      <span>Surgeries/Hospitalizations</span>
+                      <span>Year</span>
+                      <span>Complications</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 8px; text-align: center;">
+                      <span>—</span>
+                      <span>—</span>
+                      <span>—</span>
+                    </div>
+                  </div>
+
+                  <div style="border: 1px solid #666; padding: 15px; margin-bottom: 20px;">
+                    <div style="font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between;">
+                      <span>Medications</span>
+                      <label style="font-weight: normal;"><input type="checkbox" checked disabled /> No Medication</label>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 8px; border-bottom: 1px solid #ccc; font-weight: bold; text-align: center; padding-bottom: 4px; margin-bottom: 8px;">
+                      <span>Medication(s)</span>
+                      <span>Dose</span>
+                      <span>Reason for Medication</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 8px; text-align: center;">
+                      <span>—</span>
+                      <span>—</span>
+                      <span>—</span>
+                    </div>
+                  </div>
+
+                  <div style="border: 1px solid #666; padding: 15px; margin-bottom: 20px;">
+                    <div style="font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between;">
+                      <span>Allergies</span>
+                      <label style="font-weight: normal;"><input type="checkbox" disabled /> No Known allergies</label>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 10px;">
+                      <div style="display: flex; gap: 5px;"><span style="font-weight: bold;">Latex</span><label><input type="radio" disabled /> Yes</label><label><input type="radio" checked disabled /> No</label></div>
+                      <div style="display: flex; gap: 5px;"><span style="font-weight: bold; color: #b91c1c;">Iodine</span><label><input type="radio" checked disabled /> Yes</label><label><input type="radio" disabled /> No</label></div>
+                      <div style="display: flex; gap: 5px;"><span style="font-weight: bold;">Bromine</span><label><input type="radio" disabled /> Yes</label><label><input type="radio" checked disabled /> No</label></div>
+                    </div>
+                    <div style="display: flex; gap: 8px; border-top: 1px solid #eee; pt: 8px;">
+                      <span style="font-weight: bold;">Other:</span>
+                      <span style="border-bottom: 1px solid #666; flex: 1;">Penicillin (Severe Hives)</span>
+                    </div>
+                  </div>
+
+                  <div style="margin-top: 20px; font-size: 12px;">
+                    <div style="margin-bottom: 10px;">
+                      <span style="font-weight: bold;">Do you have any religious/cultural views that will affect your treatment?</span>
+                      <label style="margin-left: 10px;"><input type="checkbox" checked disabled /> No</label>
+                      <label style="margin-left: 10px;"><input type="checkbox" disabled /> Yes</label>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                      <span style="font-weight: bold;">Additional comment (Reading or Memory Problem):</span>
+                      <span style="border-bottom: 1px solid #666; flex: 1;"></span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 80px 1fr 60px 200px; gap: 15px; margin-top: 30px;">
+                      <span style="font-weight: bold;">Signature:</span>
+                      <span style="border-bottom: 1px solid #666;"></span>
+                      <span style="font-weight: bold; padding-left: 10px;">Date:</span>
+                      <span style="border-bottom: 1px solid #666;"></span>
+                    </div>
+                  </div>
+                </div>
+              `;
+
+              // Apply custom print styles temporarily
+              const printStyle = document.createElement('style');
+              printStyle.id = 'print-report-style';
+              printStyle.innerHTML = `
+                @media print {
+                  body > * { display: none !important; }
+                  html, body { background: white !important; margin: 0 !important; padding: 0 !important; }
+                  #print-report-frame { display: block !important; position: absolute; left: 0; top: 0; width: 100%; }
+                }
+                @media screen {
+                  #print-report-frame { display: none !important; }
+                }
+              `;
+
+              document.body.appendChild(printStyle);
+              document.body.appendChild(printFrame);
+              
+              window.print();
+
+              // Cleanup after printing
+              document.body.removeChild(printFrame);
+              document.body.removeChild(printStyle);
             }}
             className="bg-[#00223b] border border-[#0d3455] hover:bg-[#002e50] rounded px-1.5 py-0.5 text-[10px]"
           >
