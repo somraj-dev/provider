@@ -32,7 +32,7 @@ export function createMainWindow(): BrowserWindow {
     const devUrl = process.env.ELECTRON_DEV_URL || MAIN_WINDOW_VITE_DEV_SERVER_URL;
     mainWindow.loadURL(devUrl);
   } else {
-    // Production: load from built files
+    // Production: load the Next.js static export from the renderer directory
     mainWindow.loadFile(
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
     );
@@ -45,3 +45,4 @@ export function createMainWindow(): BrowserWindow {
 
   return mainWindow;
 }
+

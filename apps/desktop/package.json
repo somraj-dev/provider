@@ -8,7 +8,8 @@
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
+    "make": "npm run copy-frontend && electron-forge make",
+    "copy-frontend": "node scripts/copy-frontend.js",
     "lint": "eslint src/"
   },
   "devDependencies": {
