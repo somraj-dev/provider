@@ -164,6 +164,10 @@ export default function App() {
   const [admitInsIdVal, setAdmitInsIdVal] = useState('');
   const [admitPolicyId, setAdmitPolicyId] = useState('');
 
+  // Reschedule popup modal state variables
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [selectedRescheduleReq, setSelectedRescheduleReq] = useState<any>(null);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -1577,7 +1581,7 @@ export default function App() {
 
                 {/* Sub Tab Navigation Ribbon */}
                 <div className="flex border-b border-[#bdcddc] gap-1 text-[10.5px]">
-                  {['Demographics', 'Insurance', 'Contacts', 'Clinical', 'Allergies', 'Medications', 'Documents', 'Visit History', 'Notes'].map((t) => (
+                  {['Demographics', 'Insurance', 'Contacts', 'Clinical', 'Visit History', 'Notes'].map((t) => (
                     <button
                       key={t}
                       onClick={() => setProfileTab(t)}
@@ -1763,6 +1767,477 @@ export default function App() {
                         <span className="text-gray-500 font-medium">Insurance ID</span>
                         <span className="text-gray-900">{editInsuranceId}</span>
                       </div>
+                    </div>
+
+                  </div>
+                )}
+
+                {profileTab === 'Insurance' && (
+                  <div className="flex-1 space-y-4 text-gray-800 text-[10.5px]">
+                    
+                    {/* Header */}
+                    <div className="flex justify-between items-center select-none">
+                      <div>
+                        <h3 className="font-bold text-sm text-[#0f4471]">Insurance</h3>
+                        <p className="text-gray-500 text-[9.5px]">View patient's insurance history and current coverage details.</p>
+                      </div>
+                      <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1.5 rounded shadow-sm flex items-center gap-1 text-[9.5px]">
+                        ➕ Add New Insurance
+                      </button>
+                    </div>
+
+                    {/* Sub-navigation Menu Ribbon */}
+                    <div className="flex gap-4 border-b border-gray-150 pb-1.5 select-none font-semibold text-[10px]">
+                      <button className="text-[#0f4471] border-b-2 border-[#0f4471] pb-1">Insurance History</button>
+                      <button className="text-gray-500 hover:text-gray-700 pb-1">Coverage Summary</button>
+                      <button className="text-gray-500 hover:text-gray-700 pb-1">Authorizations</button>
+                    </div>
+
+
+
+                    {/* History Timeline block */}
+                    <div className="space-y-3">
+                      <div className="font-bold text-[11px] text-gray-700 select-none">
+                        Insurance History Timeline
+                        <p className="text-gray-400 font-normal text-[9px] mt-0.5">Complete history of patient's insurance coverage from earliest to current.</p>
+                      </div>
+
+                      <div className="relative border-l-2 border-gray-200 pl-4 ml-2.5 space-y-4">
+                        
+                        {/* Timeline Item 3 (Active) */}
+                        <div className="relative">
+                          <span className="absolute -left-[27.5px] top-0 w-5 h-5 rounded-full bg-green-500 text-white font-bold text-[10px] flex items-center justify-center select-none border-2 border-white">3</span>
+                          
+                          <div className="bg-[#f0fdf4]/30 border border-green-200 rounded p-3 shadow-sm grid grid-cols-[160px_1fr_1.2fr_auto] gap-4">
+                            <div className="bg-gradient-to-r from-red-400 to-pink-500 rounded p-2 text-white font-sans flex flex-col justify-between h-[90px] shadow-sm select-none border border-red-300">
+                              <div className="flex justify-between items-start text-[8px]">
+                                <span className="font-bold">XYZ Insurance Company</span>
+                                <span>ABC Brokerage</span>
+                              </div>
+                              <div className="font-mono text-[10px] font-bold text-center tracking-wider">X12356632</div>
+                              <div className="flex justify-between items-end text-[7px] text-gray-100">
+                                <div>
+                                  <div>EFFECTIVE DATE</div>
+                                  <div>06 Jun 2017</div>
+                                </div>
+                                <div>
+                                  <div>EXPIRY DATE</div>
+                                  <div>06 Jun 2018</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-bold text-gray-900 text-[11px]">XYZ Insurance Company</h4>
+                                <span className="bg-green-100 text-green-800 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase select-none">Active</span>
+                              </div>
+                              <p className="text-gray-500 text-[9px]">ABC Brokerage</p>
+                              <p className="text-gray-500 text-[9px]">123 First Avenue, Calgary, AB</p>
+                              <div className="grid grid-cols-3 gap-2 pt-1 text-[9px]">
+                                <div><span className="text-gray-400">Policy Number</span><div className="font-semibold">X12356632</div></div>
+                                <div><span className="text-gray-400">Effective Date</span><div className="font-semibold">06 Jun 2017</div></div>
+                                <div><span className="text-gray-400">Expiry Date</span><div className="font-semibold">06 Jun 2018</div></div>
+                              </div>
+                              <div className="grid grid-cols-3 gap-2 text-[9px]">
+                                <div><span className="text-gray-400">Insured</span><div className="font-semibold">John Doe (Self)</div></div>
+                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
+                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[9.5px]">
+                              <div><span className="text-gray-400 block">Insurance Type</span><span className="font-semibold">Motor Vehicle Liability</span></div>
+                              <div><span className="text-gray-400 block">Insured Number</span><span className="font-semibold">—</span></div>
+                              <div><span className="text-gray-400 block">Group Number</span><span className="font-semibold">—</span></div>
+                              <div><span className="text-gray-400 block">Plan / Coverage</span><span className="font-semibold">Liability Insurance</span></div>
+                            </div>
+
+                            <div className="flex flex-col justify-center items-end select-none">
+                              <div className="flex border border-gray-200 rounded overflow-hidden">
+                                <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
+                                <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Timeline Item 2 (Expired) */}
+                        <div className="relative">
+                          <span className="absolute -left-[27.5px] top-0 w-5 h-5 rounded-full bg-gray-400 text-white font-bold text-[10px] flex items-center justify-center select-none border-2 border-white">2</span>
+                          
+                          <div className="bg-white border border-gray-200 rounded p-3 shadow-sm grid grid-cols-[160px_1fr_1.2fr_auto] gap-4">
+                            <div className="bg-gradient-to-r from-blue-400 to-indigo-500 rounded p-2 text-white font-sans flex flex-col justify-between h-[90px] shadow-sm select-none border border-blue-300">
+                              <div className="flex justify-between items-start text-[8px]">
+                                <span className="font-bold">HealthFirst Insurance</span>
+                                <span>HealthFirst Network</span>
+                              </div>
+                              <div className="font-mono text-[10px] font-bold text-center tracking-wider">HF7894562</div>
+                              <div className="flex justify-between items-end text-[7px] text-gray-100">
+                                <div>
+                                  <div>EFFECTIVE DATE</div>
+                                  <div>01 Jan 2015</div>
+                                </div>
+                                <div>
+                                  <div>EXPIRY DATE</div>
+                                  <div>31 Dec 2016</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-bold text-gray-900 text-[11px]">HealthFirst Insurance</h4>
+                                <span className="bg-gray-100 text-gray-800 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase select-none">Expired</span>
+                              </div>
+                              <p className="text-gray-500 text-[9px]">HealthFirst Network</p>
+                              <p className="text-gray-500 text-[9px]">456 Health Blvd, Calgary, AB</p>
+                              <div className="grid grid-cols-3 gap-2 pt-1 text-[9px]">
+                                <div><span className="text-gray-400">Policy Number</span><div className="font-semibold">HF7894562</div></div>
+                                <div><span className="text-gray-400">Effective Date</span><div className="font-semibold">01 Jan 2015</div></div>
+                                <div><span className="text-gray-400">Expiry Date</span><div className="font-semibold">31 Dec 2016</div></div>
+                              </div>
+                              <div className="grid grid-cols-3 gap-2 text-[9px]">
+                                <div><span className="text-gray-400">Insured</span><div className="font-semibold">John Doe (Self)</div></div>
+                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
+                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[9.5px]">
+                              <div><span className="text-gray-400 block">Insurance Type</span><span className="font-semibold">Health Insurance</span></div>
+                              <div><span className="text-gray-400 block">Insured Number</span><span className="font-semibold">—</span></div>
+                              <div><span className="text-gray-400 block">Group Number</span><span className="font-semibold">HF-20215</span></div>
+                              <div><span className="text-gray-400 block">Plan / Coverage</span><span className="font-semibold">Family Health Plan</span></div>
+                            </div>
+
+                            <div className="flex flex-col justify-center items-end select-none">
+                              <div className="flex border border-gray-200 rounded overflow-hidden">
+                                <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
+                                <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Timeline Item 1 (Expired) */}
+                        <div className="relative">
+                          <span className="absolute -left-[27.5px] top-0 w-5 h-5 rounded-full bg-gray-400 text-white font-bold text-[10px] flex items-center justify-center select-none border-2 border-white">1</span>
+                          
+                          <div className="bg-white border border-gray-200 rounded p-3 shadow-sm grid grid-cols-[160px_1fr_1.2fr_auto] gap-4">
+                            <div className="bg-gradient-to-r from-yellow-400 to-amber-500 rounded p-2 text-white font-sans flex flex-col justify-between h-[90px] shadow-sm select-none border border-yellow-300">
+                              <div className="flex justify-between items-start text-[8px]">
+                                <span className="font-bold">SecureLife Insurance</span>
+                                <span>SecureLife Group</span>
+                              </div>
+                              <div className="font-mono text-[10px] font-bold text-center tracking-wider">SL45678901</div>
+                              <div className="flex justify-between items-end text-[7px] text-gray-100">
+                                <div>
+                                  <div>EFFECTIVE DATE</div>
+                                  <div>10 Mar 2012</div>
+                                </div>
+                                <div>
+                                  <div>EXPIRY DATE</div>
+                                  <div>31 Dec 2014</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-bold text-gray-900 text-[11px]">SecureLife Insurance</h4>
+                                <span className="bg-gray-100 text-gray-800 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase select-none">Expired</span>
+                              </div>
+                              <p className="text-gray-500 text-[9px]">SecureLife Group</p>
+                              <p className="text-gray-500 text-[9px]">789 Secure Way, Calgary, AB</p>
+                              <div className="grid grid-cols-3 gap-2 pt-1 text-[9px]">
+                                <div><span className="text-gray-400">Policy Number</span><div className="font-semibold">SL45678901</div></div>
+                                <div><span className="text-gray-400">Effective Date</span><div className="font-semibold">10 Mar 2012</div></div>
+                                <div><span className="text-gray-400">Expiry Date</span><div className="font-semibold">31 Dec 2014</div></div>
+                              </div>
+                              <div className="grid grid-cols-3 gap-2 text-[9px]">
+                                <div><span className="text-gray-400">Insured</span><div className="font-semibold">John Doe (Self)</div></div>
+                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
+                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[9.5px]">
+                              <div><span className="text-gray-400 block">Insurance Type</span><span className="font-semibold">Health Insurance</span></div>
+                              <div><span className="text-gray-400 block">Insured Number</span><span className="font-semibold">—</span></div>
+                              <div><span className="text-gray-400 block">Group Number</span><span className="font-semibold">SL-12012</span></div>
+                              <div><span className="text-gray-400 block">Plan / Coverage</span><span className="font-semibold">Basic Health Plan</span></div>
+                            </div>
+
+                            <div className="flex flex-col justify-center items-end select-none">
+                              <div className="flex border border-gray-200 rounded overflow-hidden">
+                                <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
+                                <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    {/* Footer Info Notice */}
+                    <div className="bg-[#eff6ff] border border-[#bfdbfe] rounded p-2 text-blue-800 text-[9.5px] flex items-center gap-2 select-none">
+                      <span className="text-[10px]">ℹ️</span>
+                      <span>Insurance history is displayed from oldest to newest. The most recent active insurance is shown at the top.</span>
+                    </div>
+
+                  </div>
+                )}
+
+                {profileTab === 'Clinical' && (
+                  <div className="flex-1 space-y-4 text-gray-800 text-[10.5px]">
+                    
+                    {/* Header */}
+                    <div className="flex justify-between items-center select-none">
+                      <div>
+                        <h3 className="font-bold text-sm text-[#0f4471]">Clinical History & Health Journey</h3>
+                        <p className="text-gray-500 text-[9.5px]">Complete chronological logs of clinics and hospitals visited during the patient's health journey.</p>
+                      </div>
+                      <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1.5 rounded shadow-sm flex items-center gap-1 text-[9.5px]">
+                        🔍 Filter History
+                      </button>
+                    </div>
+
+                    {/* Timeline Container */}
+                    <div className="relative border-l-2 border-gray-200 pl-6 ml-14 space-y-6">
+                      
+                      {/* Timeline Item 1 */}
+                      <div className="relative">
+                        {/* Left absolute date */}
+                        <div className="absolute -left-[95px] top-1 text-right w-[75px] select-none">
+                          <div className="font-bold text-gray-900 text-[9.5px]">2 days ago</div>
+                          <div className="text-gray-400 text-[9px] mt-0.5">28 May 2025</div>
+                        </div>
+                        {/* Dot marker */}
+                        <span className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-[#0d7a86] border-2 border-white shadow-sm flex items-center justify-center"></span>
+                        
+                        {/* Content Card */}
+                        <div className="bg-white border border-[#e2e8f0] hover:border-gray-300 rounded p-3.5 shadow-sm grid grid-cols-[80px_1.6fr_1fr_1fr_1.2fr_auto] gap-4 items-center">
+                          <div className="relative overflow-hidden rounded border border-gray-200 h-14 w-14 flex items-center justify-center bg-gray-50">
+                            <img src="/rockyview_hospital.png" alt="Rockyview Hospital" className="h-full w-full object-cover" />
+                          </div>
+                          
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-bold text-gray-900 text-[11px]">Rockyview General Hospital</h4>
+                              <span className="bg-green-150 text-green-800 text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase">Hospital</span>
+                            </div>
+                            <p className="text-gray-400 text-[9px] mt-0.5">7007 14 St SW, Calgary, AB T2R 1P8</p>
+                            <p className="text-gray-500 font-semibold text-[9px] mt-1">Department: Cardiology  |  Dr. P. Singh (Cardiologist)</p>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">Visit Type</span>
+                            <span className="font-semibold text-gray-800">Outpatient Visit</span>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">Reason</span>
+                            <span className="font-semibold text-gray-800">Chest Pain Follow-up</span>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">MRN / Visit No.</span>
+                            <span className="font-mono text-gray-800 font-bold">RGH-2025-001245</span>
+                          </div>
+
+                          <div className="flex border border-gray-200 rounded overflow-hidden select-none">
+                            <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
+                            <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Timeline Item 2 */}
+                      <div className="relative">
+                        {/* Left absolute date */}
+                        <div className="absolute -left-[95px] top-1 text-right w-[75px] select-none">
+                          <div className="font-semibold text-gray-500 text-[9.5px]">12 May 2025</div>
+                        </div>
+                        {/* Dot marker */}
+                        <span className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-white border-2 border-gray-300 shadow-sm flex items-center justify-center"></span>
+                        
+                        {/* Content Card */}
+                        <div className="bg-white border border-[#e2e8f0] hover:border-gray-300 rounded p-3.5 shadow-sm grid grid-cols-[80px_1.6fr_1fr_1fr_1.2fr_auto] gap-4 items-center">
+                          <div className="relative overflow-hidden rounded border border-gray-200 h-14 w-14 flex items-center justify-center bg-gray-50">
+                            <img src="/sunridge_clinic.png" alt="Sunridge Clinic" className="h-full w-full object-cover" />
+                          </div>
+                          
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-bold text-gray-900 text-[11px]">Sunridge Medical Clinic</h4>
+                              <span className="bg-blue-50 text-blue-800 text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase">Clinic</span>
+                            </div>
+                            <p className="text-gray-400 text-[9px] mt-0.5">2555 32 Ave NE, Calgary, AB T1Y 6J7</p>
+                            <p className="text-gray-500 font-semibold text-[9px] mt-1">Provider: Dr. A. Mehta (Family Physician)</p>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">Visit Type</span>
+                            <span className="font-semibold text-gray-800">Clinic Visit</span>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">Reason</span>
+                            <span className="font-semibold text-gray-800">Regular Checkup</span>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">MRN / Visit No.</span>
+                            <span className="font-mono text-gray-800 font-bold">SMC-2025-000987</span>
+                          </div>
+
+                          <div className="flex border border-gray-200 rounded overflow-hidden select-none">
+                            <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
+                            <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Timeline Item 3 */}
+                      <div className="relative">
+                        {/* Left absolute date */}
+                        <div className="absolute -left-[95px] top-1 text-right w-[75px] select-none">
+                          <div className="font-semibold text-gray-500 text-[9.5px]">22 Apr 2025</div>
+                        </div>
+                        {/* Dot marker */}
+                        <span className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-white border-2 border-gray-300 shadow-sm flex items-center justify-center"></span>
+                        
+                        {/* Content Card */}
+                        <div className="bg-white border border-[#e2e8f0] hover:border-gray-300 rounded p-3.5 shadow-sm grid grid-cols-[80px_1.6fr_1fr_1fr_1.2fr_auto] gap-4 items-center">
+                          <div className="relative overflow-hidden rounded border border-gray-200 h-14 w-14 flex items-center justify-center bg-gray-50">
+                            <img src="/foothills_centre.png" alt="Foothills Centre" className="h-full w-full object-cover" />
+                          </div>
+                          
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-bold text-gray-900 text-[11px]">Foothills Medical Centre</h4>
+                              <span className="bg-green-150 text-green-800 text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase">Hospital</span>
+                            </div>
+                            <p className="text-gray-400 text-[9px] mt-0.5">1403 29 St NW, Calgary, AB T2N 2T9</p>
+                            <p className="text-gray-500 font-semibold text-[9px] mt-1">Department: Emergency  |  Dr. R. Wilson (ER Physician)</p>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">Visit Type</span>
+                            <span className="font-semibold text-gray-800">Emergency Visit</span>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">Reason</span>
+                            <span className="font-semibold text-gray-800">Shortness of Breath</span>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">MRN / Visit No.</span>
+                            <span className="font-mono text-gray-800 font-bold">FMC-2025-000762</span>
+                          </div>
+
+                          <div className="flex border border-gray-200 rounded overflow-hidden select-none">
+                            <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
+                            <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Timeline Item 4 */}
+                      <div className="relative">
+                        {/* Left absolute date */}
+                        <div className="absolute -left-[95px] top-1 text-right w-[75px] select-none">
+                          <div className="font-semibold text-gray-500 text-[9.5px]">05 Feb 2025</div>
+                        </div>
+                        {/* Dot marker */}
+                        <span className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-white border-2 border-gray-300 shadow-sm flex items-center justify-center"></span>
+                        
+                        {/* Content Card */}
+                        <div className="bg-white border border-[#e2e8f0] hover:border-gray-300 rounded p-3.5 shadow-sm grid grid-cols-[80px_1.6fr_1fr_1fr_1.2fr_auto] gap-4 items-center">
+                          <div className="relative overflow-hidden rounded border border-gray-200 h-14 w-14 flex items-center justify-center bg-gray-50">
+                            <img src="/rockyview_hospital.png" alt="Edmonton Hospital" className="h-full w-full object-cover" />
+                          </div>
+                          
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-bold text-gray-900 text-[11px]">Edmonton General Hospital</h4>
+                              <span className="bg-green-150 text-green-800 text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase">Hospital</span>
+                            </div>
+                            <p className="text-gray-400 text-[9px] mt-0.5">11111 Jasper Ave, Edmonton, AB T5K 0L4</p>
+                            <p className="text-gray-500 font-semibold text-[9px] mt-1">Department: Pulmonology  |  Dr. S. Verma (Pulmonologist)</p>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">Visit Type</span>
+                            <span className="font-semibold text-gray-800">Outpatient Visit</span>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">Reason</span>
+                            <span className="font-semibold text-gray-800">Asthma Management</span>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">MRN / Visit No.</span>
+                            <span className="font-mono text-gray-800 font-bold">EGH-2025-000531</span>
+                          </div>
+
+                          <div className="flex border border-gray-200 rounded overflow-hidden select-none">
+                            <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
+                            <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Timeline Item 5 */}
+                      <div className="relative">
+                        {/* Left absolute date */}
+                        <div className="absolute -left-[95px] top-1 text-right w-[75px] select-none">
+                          <div className="font-semibold text-gray-500 text-[9.5px]">18 Dec 2024</div>
+                        </div>
+                        {/* Dot marker */}
+                        <span className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-white border-2 border-gray-300 shadow-sm flex items-center justify-center"></span>
+                        
+                        {/* Content Card */}
+                        <div className="bg-white border border-[#e2e8f0] hover:border-gray-300 rounded p-3.5 shadow-sm grid grid-cols-[80px_1.6fr_1fr_1fr_1.2fr_auto] gap-4 items-center">
+                          <div className="relative overflow-hidden rounded border border-gray-200 h-14 w-14 flex items-center justify-center bg-gray-50">
+                            <img src="/sunridge_clinic.png" alt="HealthPlus Clinic" className="h-full w-full object-cover" />
+                          </div>
+                          
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-bold text-gray-900 text-[11px]">HealthPlus Clinic Downtown</h4>
+                              <span className="bg-blue-50 text-blue-800 text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase">Clinic</span>
+                            </div>
+                            <p className="text-gray-400 text-[9px] mt-0.5">999 Burrard St, Vancouver, BC V6Z 2R9</p>
+                            <p className="text-gray-500 font-semibold text-[9px] mt-1">Provider: Dr. K. Lee (General Practitioner)</p>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">Visit Type</span>
+                            <span className="font-semibold text-gray-800">Clinic Visit</span>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">Reason</span>
+                            <span className="font-semibold text-gray-800">Flu Symptoms</span>
+                          </div>
+
+                          <div className="text-[9.5px]">
+                            <span className="text-gray-400 block">MRN / Visit No.</span>
+                            <span className="font-mono text-gray-800 font-bold">HPC-2024-000321</span>
+                          </div>
+
+                          <div className="flex border border-gray-200 rounded overflow-hidden select-none">
+                            <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
+                            <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
 
                   </div>
@@ -2734,12 +3209,19 @@ export default function App() {
                     </thead>
                     <tbody>
                       {rescheduleRequests.map((row, idx) => (
-                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50/50">
-                          <td className="p-2.5 border-r border-gray-200 text-center select-none">
+                        <tr 
+                          key={idx} 
+                          className="border-b border-gray-100 hover:bg-gray-50/50 cursor-pointer"
+                          onClick={() => {
+                            setSelectedRescheduleReq(row);
+                            setShowRescheduleModal(true);
+                          }}
+                        >
+                          <td className="p-2.5 border-r border-gray-200 text-center select-none" onClick={(e) => e.stopPropagation()}>
                             <input type="checkbox" className="rounded-sm" />
                           </td>
                           <td className="p-2.5 border-r border-gray-200 font-bold text-gray-700">{row.id}</td>
-                          <td className="p-2.5 border-r border-gray-200">
+                          <td className="p-2.5 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
                             <div className="font-bold text-[#0d7a86] cursor-pointer hover:underline" onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.toUpperCase()}`, 'patient-doe')}>{row.name}</div>
                             <div className="text-[9px] text-gray-500 font-mono">{row.mrn}</div>
                           </td>
@@ -2758,8 +3240,16 @@ export default function App() {
                               {row.status}
                             </span>
                           </td>
-                          <td className="p-2.5 text-center select-none">
-                            <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">•••</button>
+                          <td className="p-2.5 text-center select-none" onClick={(e) => e.stopPropagation()}>
+                            <button 
+                              onClick={() => {
+                                setSelectedRescheduleReq(row);
+                                setShowRescheduleModal(true);
+                              }}
+                              className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-0.5 rounded text-[9.5px] text-[#0f4471] font-bold"
+                            >
+                              Reschedule
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -3511,6 +4001,291 @@ export default function App() {
         <span>PROD</span>
         <span>05/28/2025 03:45 PM</span>
       </div>
+
+     {/* Reschedule Modal Overlay */}
+      {showRescheduleModal && selectedRescheduleReq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs select-none">
+          <div className="bg-[#f1f5f9] w-[1100px] h-[650px] rounded-lg shadow-2xl border border-[#bdcddc] flex flex-col overflow-hidden text-[10.5px]">
+            
+            {/* Modal Title Banner */}
+            <div className="bg-[#0f4471] text-white px-4 py-2.5 flex justify-between items-center select-none">
+              <span className="font-bold text-xs flex items-center gap-1.5">📅 Reschedule Appointment: {selectedRescheduleReq.name}</span>
+              <button 
+                onClick={() => {
+                  setShowRescheduleModal(false);
+                  setSelectedRescheduleReq(null);
+                }} 
+                className="hover:bg-white/10 rounded px-2 py-0.5 font-bold transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Scrollable Workspace */}
+            <div className="flex-1 p-4 grid grid-cols-[260px_1fr_260px] gap-4 overflow-auto">
+              
+              {/* Column 1: Patient & Current Info Card */}
+              <div className="space-y-3">
+                <div className="bg-white border border-[#cbd5e1] rounded-md p-3.5 shadow-sm space-y-3">
+                  <h4 className="font-bold text-[#0f4471] border-b pb-1">1. Patient & Current Appointment Information</h4>
+                  
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-gray-400 block text-[9px] uppercase font-bold">Patient Name</span>
+                      <span className="font-bold text-blue-900 text-[11px]">{selectedRescheduleReq.name}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-gray-400 block text-[9px] uppercase font-bold">ABHA-ID</span>
+                      <span className="font-mono font-bold text-gray-800">{selectedRescheduleReq.mrn}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-gray-400 block text-[9px] uppercase font-bold">DOB / Age</span>
+                      <span className="font-semibold text-gray-800">22/07/1986 (38 Y)</span>
+                    </div>
+
+                    <div>
+                      <span className="text-gray-400 block text-[9px] uppercase font-bold">Phone</span>
+                      <span className="font-semibold text-gray-800">9876543211</span>
+                    </div>
+
+                    <div>
+                      <span className="text-gray-400 block text-[9px] uppercase font-bold">Email</span>
+                      <span className="font-semibold text-gray-800 text-[10px] break-all">{selectedRescheduleReq.name.toLowerCase().replace(' ', '.')}@email.com</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-[#cbd5e1] rounded-md p-3.5 shadow-sm space-y-2">
+                  <h4 className="font-bold text-[#0f4471] border-b pb-1">Current Appointment</h4>
+                  
+                  <div className="grid grid-cols-[85px_1fr] gap-y-1.5 text-gray-700">
+                    <span className="text-gray-400">Appointment ID</span>
+                    <span className="font-mono font-bold">APT-2025-000678</span>
+                    
+                    <span className="text-gray-400">Date & Time</span>
+                    <span className="font-bold">{selectedRescheduleReq.current}</span>
+                    
+                    <span className="text-gray-400">Provider</span>
+                    <span className="font-semibold text-gray-900">{selectedRescheduleReq.dept.split(' (')[0]}</span>
+                    
+                    <span className="text-gray-400">Department</span>
+                    <span className="font-semibold">{selectedRescheduleReq.dept.split('(')[1]?.replace(')', '') || 'General'}</span>
+
+                    <span className="text-gray-400">Location / Unit</span>
+                    <span className="font-semibold">NEU-02 / Bed 05</span>
+
+                    <span className="text-gray-400">Visit Type</span>
+                    <span className="font-semibold">Follow-up Visit</span>
+
+                    <span className="text-gray-400">Status</span>
+                    <span className="bg-orange-100 text-orange-800 text-[8.5px] px-1.5 rounded-sm font-bold w-fit">Scheduled</span>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-[#cbd5e1] rounded-md p-3 shadow-sm space-y-2.5">
+                  <div className="space-y-1">
+                    <label className="text-gray-500 font-bold block">Reschedule Reason (Select)</label>
+                    <select className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none">
+                      <option>Patient Request</option>
+                      <option>Provider Conflict</option>
+                      <option>Equipment Failure</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-gray-500 font-bold block">Reason Details (Optional)</label>
+                    <textarea 
+                      className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] h-[55px] resize-none focus:outline-none"
+                      defaultValue="Patient is not available at current time. Requesting to reschedule."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 2: New Slot Grid Calendar Selector */}
+              <div className="bg-white border border-[#cbd5e1] rounded-md p-3.5 shadow-sm flex flex-col overflow-hidden">
+                <h4 className="font-bold text-[#0f4471] border-b pb-1.5 mb-2.5">2. Select New Appointment Slot</h4>
+                
+                {/* Form Selection Ribbon */}
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="space-y-0.5">
+                    <label className="text-gray-400 text-[9px] uppercase font-bold">Provider</label>
+                    <select className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none font-semibold">
+                      <option>{selectedRescheduleReq.dept}</option>
+                    </select>
+                  </div>
+                  <div className="space-y-0.5">
+                    <label className="text-gray-400 text-[9px] uppercase font-bold">Visit Type</label>
+                    <select className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none font-semibold">
+                      <option>Follow-up Visit</option>
+                      <option>Consultation Visit</option>
+                    </select>
+                  </div>
+                  <div className="space-y-0.5">
+                    <label className="text-gray-400 text-[9px] uppercase font-bold">Location / Unit</label>
+                    <select className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none font-semibold">
+                      <option>NEU-02 / Bed 05</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Calendar Slot selector */}
+                <div className="flex-1 flex flex-col overflow-hidden border border-gray-200 rounded">
+                  {/* Date range header */}
+                  <div className="bg-[#cbd8e3]/30 px-3 py-1.5 border-b border-gray-200 flex justify-between items-center select-none">
+                    <button className="hover:bg-gray-150 px-1 py-0.5 rounded text-gray-500">❮</button>
+                    <span className="font-bold text-gray-700">📅 26 May – 01 Jun 2025</span>
+                    <div className="flex border border-gray-300 rounded overflow-hidden text-[9px]">
+                      <button className="bg-[#0f4471] text-white px-2 py-0.5 font-bold">Day View</button>
+                      <button className="bg-white hover:bg-gray-50 px-2 py-0.5 text-gray-600 font-semibold border-l border-gray-300">Week View</button>
+                    </div>
+                    <button className="hover:bg-gray-150 px-1 py-0.5 rounded text-gray-500">❯</button>
+                  </div>
+
+                  {/* Calendar columns grid */}
+                  <div className="flex-1 overflow-y-auto grid grid-cols-[60px_repeat(5,1fr)] text-center divide-x divide-gray-100 text-[9.5px]">
+                    
+                    {/* Time labels column */}
+                    <div className="divide-y divide-gray-100 font-bold bg-gray-50/50 text-gray-500 py-1 select-none">
+                      <div className="h-[28px]" />
+                      {['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'].map((t, idx) => (
+                        <div key={idx} className="h-[34px] flex items-center justify-center border-t border-gray-200">{t}</div>
+                      ))}
+                    </div>
+
+                    {/* Date Slot Columns */}
+                    {[
+                      { day: 'Wed 28 May', slots: { '9:00 AM': 'green', '10:00 AM': 'green', '11:00 AM': 'green', '2:00 PM': 'green', '3:00 PM': 'green', '4:00 PM': 'green' } },
+                      { day: 'Thu 29 May', slots: { '8:30 AM': 'green', '9:30 AM': 'green', '10:30 AM': 'blue', '11:30 AM': 'green', '12:30 PM': 'gray', '1:30 PM': 'gray', '2:30 PM': 'green', '3:30 PM': 'green', '4:30 PM': 'green' } },
+                      { day: 'Fri 30 May', slots: { '9:00 AM': 'green', '10:00 AM': 'green', '11:00 AM': 'gray', '12:00 PM': 'gray', '1:00 PM': 'green', '2:00 PM': 'green', '3:00 PM': 'green', '4:00 PM': 'green' } },
+                      { day: 'Sat 31 May', slots: { '9:30 AM': 'green', '10:30 AM': 'green', '11:30 AM': 'green', '12:30 PM': 'green', '1:30 PM': 'green', '2:30 PM': 'green', '3:30 PM': 'green', '4:30 PM': 'green' } },
+                      { day: 'Sun 01 Jun', slots: { '10:00 AM': 'green', '11:00 AM': 'green', '12:00 PM': 'gray' } }
+                    ].map((col, idx) => (
+                      <div key={idx} className="flex flex-col">
+                        <div className="h-[28px] font-bold text-gray-700 bg-gray-50 flex items-center justify-center border-b border-gray-200 select-none">{col.day}</div>
+                        
+                        <div className="flex-1 py-1 space-y-1 px-1">
+                          {Object.entries(col.slots).map(([time, type], slotIdx) => {
+                            let style = 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 cursor-pointer';
+                            if (type === 'blue') style = 'bg-blue-600 border-blue-700 text-white font-bold cursor-pointer';
+                            if (type === 'gray') style = 'bg-gray-150 border-gray-200 text-gray-400 select-none cursor-not-allowed';
+                            return (
+                              <button key={slotIdx} className={`w-full py-0.8 border text-[8.5px] rounded-sm font-semibold transition-all ${style}`}>
+                                {time}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Slot selection legend footer */}
+                  <div className="bg-gray-50 border-t border-gray-200 px-3 py-1 flex gap-4 text-[9px] text-gray-500 font-bold select-none">
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-green-100 border border-green-300 rounded-sm"></span> Available</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-gray-200 border border-gray-300 rounded-sm"></span> Booked</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-white border border-gray-300 rounded-sm"></span> Unavailable</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 3: Request details and Action History sidebar */}
+              <div className="space-y-3">
+                <div className="bg-white border border-[#cbd5e1] rounded-md p-3 shadow-sm space-y-2.5">
+                  <h4 className="font-bold text-[#0f4471] border-b pb-1 flex justify-between items-center">
+                    <span>Appointment Request Details</span>
+                  </h4>
+                  
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between border-b pb-0.5">
+                      <span className="text-gray-400">Request ID</span>
+                      <span className="font-mono font-bold text-gray-800">{selectedRescheduleReq.id}</span>
+                    </div>
+
+                    <div className="flex justify-between border-b pb-0.5">
+                      <span className="text-gray-400">Requested On</span>
+                      <span className="font-semibold">{selectedRescheduleReq.requestedOn.split(' by ')[0]}</span>
+                    </div>
+
+                    <div className="flex justify-between border-b pb-0.5 flex-col">
+                      <span className="text-gray-400">Requested By</span>
+                      <span className="font-semibold text-gray-900">{selectedRescheduleReq.requestedOn.split(' by ')[1] || 'Patient'}</span>
+                    </div>
+
+                    <div className="flex justify-between border-b pb-0.5">
+                      <span className="text-gray-400">Request Type</span>
+                      <span className="font-semibold text-gray-800">Reschedule</span>
+                    </div>
+
+                    <div className="flex justify-between border-b pb-0.5">
+                      <span className="text-gray-400">Priority</span>
+                      <span className={`px-1.5 rounded-sm font-bold text-[8.5px] border ${selectedRescheduleReq.priorityColor}`}>{selectedRescheduleReq.priority}</span>
+                    </div>
+
+                    <div className="flex justify-between border-b pb-0.5">
+                      <span className="text-gray-400">Status</span>
+                      <span className={`px-1.5 rounded-sm font-bold text-[8.5px] border ${selectedRescheduleReq.statusColor}`}>{selectedRescheduleReq.status}</span>
+                    </div>
+
+                    <div className="flex flex-col pt-1">
+                      <span className="text-gray-400 block font-semibold text-[9px]">Notes</span>
+                      <p className="text-gray-700 italic text-[9.5px] leading-tight">Patient requested to change the appointment time.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-[#cbd5e1] rounded-md p-3 shadow-sm flex-1 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <div className="font-bold text-[#0f4471] border-b pb-1 flex justify-between items-center">
+                      <span>Appointment History</span>
+                      <span className="text-blue-600 hover:underline text-[9px] cursor-pointer">View All</span>
+                    </div>
+                    
+                    <div className="space-y-3 mt-1.5">
+                      <div className="relative pl-3 border-l-2 border-green-500">
+                        <div className="font-bold text-gray-800 text-[9.5px]">Scheduled</div>
+                        <div className="text-gray-400 text-[9px]">20/05/2025, 11:20 AM</div>
+                        <p className="text-gray-500 text-[8.5px] mt-0.5">Original appointment scheduled.</p>
+                      </div>
+
+                      <div className="relative pl-3 border-l-2 border-amber-500">
+                        <div className="font-bold text-gray-800 text-[9.5px]">Reschedule Requested</div>
+                        <div className="text-gray-400 text-[9px]">{selectedRescheduleReq.requestedOn.split(' by ')[0]}</div>
+                        <p className="text-gray-500 text-[8.5px] mt-0.5">Patient requested to reschedule.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Controls Ribbon */}
+            <div className="bg-white border-t border-[#cbd5e1] p-3 flex justify-end gap-2 select-none">
+              <button 
+                onClick={() => {
+                  setShowRescheduleModal(false);
+                  setSelectedRescheduleReq(null);
+                }} 
+                className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold px-4 py-1.5 rounded transition-all"
+              >
+                Cancel Request
+              </button>
+              <button 
+                onClick={() => {
+                  setShowRescheduleModal(false);
+                  setSelectedRescheduleReq(null);
+                }} 
+                className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-4 py-1.5 rounded shadow-sm transition-all"
+              >
+                Review & Confirm →
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
