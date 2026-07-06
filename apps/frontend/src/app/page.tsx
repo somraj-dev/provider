@@ -30,7 +30,7 @@ import {
 interface TabItem {
   id: string;
   title: string;
-  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList';
+  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools';
 }
 
 export default function App() {
@@ -48,12 +48,34 @@ export default function App() {
 
   // Sidebar navigation paths for Analytics
   const [analyticsMenu, setAnalyticsMenu] = useState('Overview');
+  const [expandedAnalyticsSections, setExpandedAnalyticsSections] = useState<Record<string, boolean>>({
+    Dashboards: true,
+    Clinical: true,
+    Operational: true,
+    Financial: true,
+    CustomReports: true,
+    DataManagement: true,
+  });
 
   // Patient Directory Search State
   const [pdSearchBy, setPdSearchBy] = useState('Name');
   const [pdSearchText, setPdSearchText] = useState('');
   const [pdMrn, setPdMrn] = useState('');
   const [pdUhid, setPdUhid] = useState('');
+  const [oracleComponents, setOracleComponents] = useState<Record<string, boolean>>({
+    Imaging: true,
+    IpmRepository: false,
+    LinkManager: true,
+    MSOfficeHtmlConverterSupport: false,
+    OracleDocumentsFolders: false,
+    PDFWatermark: false,
+    PortalVCRHelper: true,
+    RedwoodUI: true,
+    SESCrawlerExport: true,
+    SharedLinks: true,
+    SiebelEcmIntegration: false,
+    SiebelFilter: false
+  });
   const [pdDob, setPdDob] = useState('');
   const [pdPhone, setPdPhone] = useState('');
 
@@ -186,7 +208,7 @@ export default function App() {
     setActiveTabId('patient-doe');
   };
 
-  const selectOrOpenTab = (type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList', title: string, id: string) => {
+  const selectOrOpenTab = (type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools', title: string, id: string) => {
     if (type === 'AdmitPatient') {
       const now = new Date();
       const dd = String(now.getDate()).padStart(2, '0');
@@ -282,6 +304,223 @@ export default function App() {
     { priority: 'Low', priorityColor: 'text-blue-600', icon: '🛡️', name: 'Protocol Update', patient: '—', mrn: '—', category: 'Updates', message: 'Diabetes Management Protocol updated', dateTime: '27/05/2025 05:45 PM', status: 'Read', statusColor: 'text-gray-500' },
     { priority: 'Medium', priorityColor: 'text-orange-600', icon: '📅', name: 'Schedule Change', patient: 'Brown, Elizabeth', mrn: '1000245685', category: 'Reminders', message: 'Appointment rescheduled to 01/06/2025 10:00 AM', dateTime: '27/05/2025 05:00 PM', status: 'Unread', statusColor: 'text-red-600 font-bold' }
   ];
+
+  if (activeTab.type === 'DeveloperTools') {
+    return (
+      <div className="w-screen h-screen bg-[#fafbfc] text-[#333333] text-[10.5px] font-sans flex flex-col select-none overflow-hidden h-full">
+        {/* Banner Header with Logo and Search */}
+        <div 
+          className="h-[36px] bg-gradient-to-r from-[#003366] via-[#005599] to-[#003366] text-white flex justify-between items-center px-2 select-none border-b border-[#002244]"
+          style={{ backgroundImage: 'linear-gradient(to right, #00305a 0%, #005aa7 50%, #00305a 100%)' }}
+        >
+          <div className="flex items-center gap-2">
+            {/* Oracle WebCenter Content Logo text styling */}
+            <span className="font-extrabold text-[13px] tracking-tight text-white flex items-center">
+              <span className="text-[#ff0000] font-black mr-1 text-[14px]">ORACLE</span> WebCenter Content
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-[10px]">
+            <div className="flex items-center gap-1.5 text-white/80">
+              <span className="cursor-pointer hover:underline">Logout</span>
+              <span>|</span>
+              <span className="cursor-pointer hover:underline">Help</span>
+              <span>|</span>
+              <span className="cursor-pointer hover:underline">Refresh Page</span>
+            </div>
+            
+            {/* Quick Search */}
+            <div className="flex items-center bg-white border border-[#555555] rounded-sm text-black h-[20px] px-1">
+              <select className="bg-transparent border-none text-[9.5px] font-semibold focus:outline-none pr-1">
+                <option>Quick Search</option>
+              </select>
+              <input type="text" className="bg-transparent border-none text-[10px] w-[140px] focus:outline-none px-1" placeholder="" />
+              <button className="text-blue-900 font-bold text-[12px] pl-1">▶</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Top Tab Bar Row */}
+        <div className="bg-[#cbd8e3] border-b border-[#bdcddc] px-2 py-0.5 flex gap-1 text-[#002a46] font-bold text-[10px] select-none h-[22px] items-center">
+          <button 
+            onClick={() => selectOrOpenTab('PatientProfile', 'Patient Profile: JOHN DOE', 'patient-doe')}
+            className="hover:bg-blue-100/50 px-2 py-0.5 rounded text-[#0f4471] font-semibold flex items-center gap-1"
+          >
+            ❮ Return to AxioVital
+          </button>
+          <div className="h-3 w-[1px] bg-gray-400 mx-1" />
+          <button className="bg-white border-t border-x border-[#bdcddc] px-3 py-0.5 rounded-t-sm">Search</button>
+          <button className="hover:bg-[#cbd8e3] px-3 py-0.5">New Check-In</button>
+        </div>
+
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Sidebar navigation panel */}
+          <div className="w-[220px] bg-[#f0f4f8] border-r border-[#bdcddc] flex flex-col select-none text-[10.5px]">
+            <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
+              <div className="p-1 space-y-1">
+                
+                {/* My Content Server */}
+                <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]">
+                  <span>➕</span> <span>My Content Server</span>
+                </div>
+
+                {/* Browse Content */}
+                <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]">
+                  <span>➕</span> <span>Browse Content</span>
+                </div>
+
+                {/* Search */}
+                <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]">
+                  <span>➕</span> <span>Search</span>
+                </div>
+
+                {/* Content Management */}
+                <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]">
+                  <span>➕</span> <span>Content Management</span>
+                </div>
+
+                {/* Administration */}
+                <div className="pt-1">
+                  <div className="flex items-center gap-1 p-1 font-bold text-[#003366]">
+                    <span>➖</span> <span>Administration</span>
+                  </div>
+                  
+                  <div className="pl-3 space-y-0.5 text-[#333333]">
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>➕</span> <span>Log Files</span>
+                    </div>
+
+                    <div className="pl-4 space-y-0.5 border-l border-gray-300">
+                      <div className="p-1 text-blue-900 font-bold bg-[#cbd8e3]/50 border-y border-[#bdcddc]/50">
+                        📄 Component Manager
+                      </div>
+                      <div className="p-1 hover:text-blue-900 cursor-pointer">📄 General Configuration</div>
+                      <div className="p-1 hover:text-blue-900 cursor-pointer">📄 Content Security</div>
+                      <div className="p-1 hover:text-blue-900 cursor-pointer">📄 Internet Configuration</div>
+                    </div>
+
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>➕</span> <span>Refinery Administration</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>➕</span> <span>Scheduled Jobs Administration</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>➕</span> <span>Admin Server</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>📄</span> <span>Environment Packager</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>📄</span> <span>Localization</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>📄</span> <span>DataStoreDesign SQL Generation</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>➕</span> <span>FrameworkFolders Configuration</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>➕</span> <span>Imaging Migration Administration</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>➕</span> <span>Folders Retention Administration</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>➕</span> <span>SmartContent</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                      <span>➕</span> <span>Site Studio Administration</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          {/* Right Content Panel - Component list form */}
+          <div className="flex-1 overflow-y-auto p-4 bg-white select-text">
+            <div className="max-w-[900px] mx-auto space-y-4">
+              <div className="border border-blue-900/30 rounded-sm overflow-hidden bg-white shadow-sm">
+                
+                {/* Header Title Section */}
+                <div className="bg-gradient-to-r from-[#003366] to-[#005599] text-white p-2 font-bold text-xs flex justify-between items-center select-none">
+                  <span>Administration - Component Manager Configuration Settings</span>
+                  <button className="bg-white text-blue-900 border border-[#bdcddc] hover:bg-gray-50 px-3 py-0.5 rounded-sm text-[10px] font-bold">
+                    Save Changes
+                  </button>
+                </div>
+
+                <div className="p-4 space-y-4 text-[11px] text-[#333333]">
+                  
+                  {/* Informational description */}
+                  <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-sm text-blue-900 leading-relaxed select-none">
+                    Select or deselect the options below to activate or deactivate the respective configuration elements across this environment. After making changes, click the "Save Changes" button to apply settings.
+                  </div>
+
+                  <div className="space-y-4 mt-2">
+                    {[
+                      { key: 'Imaging', name: 'Imaging', desc: 'This Component acts as the interface for any IPM Documents checked into Content Server and tools such as ADF Viewer use functionality and services provided by this component.' },
+                      { key: 'IpmRepository', name: 'IpmRepository', desc: 'The IpmRepository component adds functionality to the content server to allow Oracle WebCenter Content: Imaging to store documents and metadata in the content server.' },
+                      { key: 'LinkManager', name: 'LinkManager', desc: 'This component extracts URL links of indexed documents, evaluates, filters and parses the URLs according to a pattern engine and then stores the results in a database table. Since the link extraction happens during the indexing cycle, only the links of released documents are managed.' },
+                      { key: 'MSOfficeHtmlConverterSupport', name: 'MSOfficeHtmlConverterSupport', desc: 'The MSOfficeHTMLConverter component requires the IBR be running on MS Windows and MS Office installed with IBR. This component allows the Inbound Refinery to convert native MS Office formats (Word, Excel, Powerpoint and Visio) to HTML using the Office application.' },
+                      { key: 'OracleDocumentsFolders', name: 'OracleDocumentsFolders', desc: 'This component enables Content Server to seamlessly integrate with Oracle Content and Experience Cloud. It allows user to store and retrieve documents stored in Oracle Content and Experience Cloud. It also provides the ability to copy content stored in the Content Server to Oracle Content and Experience Cloud.' },
+                      { key: 'PDFWatermark', name: 'PDFWatermark', desc: 'PDFWatermark enables watermarks to be applied to PDF files generated by the Inbound Refinery\'s PDFConverter component and returned to the Content Server. Existing PDF files, already residing on the Content Server can also be watermarked. Dynamic watermarks are generated on-the-fly and can contain variable information.' },
+                      { key: 'PortalVCRHelper', name: 'PortalVCRHelper', desc: 'PortalVCRHelper is used to integrate SiteStudio into WebCenter Portal\'s Content Presenter component. PortalVCRHelper should be enabled in order to surface SiteStudio content within WebCenter Portal.' },
+                      { key: 'RedwoodUI', name: 'RedwoodUI', desc: 'This component offers a modern, configurable user interface built with Oracle Redwood design principles. RedwoodUI requires that FrameworkFolders be installed and enabled.' },
+                      { key: 'SESCrawlerExport', name: 'SESCrawlerExport', desc: 'The SESCrawlerExport component adds functionality to the content server to allow it to be searched via the Oracle SES.' },
+                      { key: 'SharedLinks', name: 'SharedLinks', desc: 'This component supports sharing and managing public links on folders and files. Guest users can use public links to access folders and files without authentication.' },
+                      { key: 'SiebelEcmIntegration', name: 'SiebelEcmIntegration', desc: 'This component is a required part of the Siebel Adapter for Oracle WebCenter Content. It allows Siebel CRM users to store and retrieve Siebel business entity attached documents managed in the Content Server repository. The SiebelIntegrationSearchDisplay component also needs to be enabled for this component to function correctly.' },
+                      { key: 'SiebelFilter', name: 'SiebelFilter', desc: '[OPTIONAL] This component is an optional part of the Siebel Adapter for Oracle WebCenter Content. It enables filtering of attachments based on criteria before indexing.' }
+                    ].map((comp) => (
+                      <div key={comp.key} className="flex gap-2.5 items-start hover:bg-gray-50 p-2 rounded-sm border-b border-gray-100 pb-3 transition-colors">
+                        <input 
+                          type="checkbox" 
+                          checked={oracleComponents[comp.key] || false}
+                          onChange={(e) => {
+                            setOracleComponents(prev => ({
+                              ...prev,
+                              [comp.key]: e.target.checked
+                            }));
+                          }}
+                          className="mt-0.5 rounded-sm w-3.5 h-3.5 border-gray-300 text-blue-900 focus:ring-blue-900 cursor-pointer" 
+                          id={`ora-comp-${comp.key}`} 
+                        />
+                        <div className="space-y-1">
+                          <label htmlFor={`ora-comp-${comp.key}`} className="font-bold text-blue-900 cursor-pointer hover:underline text-[11px] block">{comp.name}</label>
+                          <p className="text-gray-600 text-[10px] leading-relaxed">{comp.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4 select-none border-t border-gray-100">
+                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 text-gray-700 font-bold px-4 py-1.5 rounded-sm text-[10px] transition-all">
+                      Reset Configuration
+                    </button>
+                    <button className="bg-blue-900 hover:bg-blue-950 text-white font-bold px-4 py-1.5 rounded-sm text-[10px] shadow-sm transition-all">
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-[#f0f4f8] text-[#1c2833] text-[11px] font-sans overflow-hidden select-none">
@@ -446,7 +685,12 @@ export default function App() {
             </div>
             <div className="border-t border-[#e2e2e2] my-0.5"></div>
             <div className="py-0.5">
-              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Toggle Developer Tools</div>
+              <div 
+                onClick={() => selectOrOpenTab('DeveloperTools', 'Developer Tools & System Settings', 'dev-tools-tab')}
+                className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]"
+              >
+                Toggle Developer Tools
+              </div>
               <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Open Process Explorer</div>
             </div>
             <div className="border-t border-[#e2e2e2] my-0.5"></div>
@@ -467,47 +711,47 @@ export default function App() {
           onClick={() => selectOrOpenTab('MessageCenter', 'General Messages: JOHN DOE', 'msg-doe')}
           className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm font-semibold"
         >
-          💬 Message Center
+          Message Center
         </button>
         <button 
           onClick={() => selectOrOpenTab('PatientList', 'Patient List', 'patient-list-tab')}
           className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm font-semibold text-[#0d7a86]"
         >
-          👥 Patient List
+          Patient List
         </button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">🔄 Physician Handoff</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">📋 Care Workflow</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">📈 Quality Measures</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">🛡️ MyExperience</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">📄 Reports</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">💡 UpToDate</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">🎗️ AxioCard</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">📚 Protocol Library</button>
+        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Physician Handoff</button>
+        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Care Workflow</button>
+        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Quality Measures</button>
+        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">MyExperience</button>
+        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Reports</button>
+        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">UpToDate</button>
+        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">AxioCard</button>
+        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Protocol Library</button>
       </div>
 
       {/* Navigation Shortcut Row (Ribbon 2) */}
       <div className="bg-[#eef2f5] border-b border-[#bdcddc] px-3 py-1 flex gap-3 text-[#4f5f6f] items-center text-[10.5px]">
-        <button className="flex items-center gap-1 hover:text-black">📊 Dashboard</button>
+        <button className="flex items-center gap-1 hover:text-black">Dashboard</button>
         
         {/* Scheduler Shortcut Tab Trigger */}
         <button 
           onClick={() => selectOrOpenTab('RescheduleRequests', 'Appointment Reschedule Requests', 'reschedule-requests-tab')}
           className="flex items-center gap-1 hover:text-black font-semibold text-[#002a46]"
         >
-          📅 Scheduler
+          Scheduler
         </button>
         
-        <button className="flex items-center gap-1 hover:text-black">💡 Clinical Decision Support</button>
-        <button className="flex items-center gap-1 hover:text-black">🗂️ Order Sets</button>
-        <button className="flex items-center gap-1 hover:text-black">🧬 Care Pathways</button>
-        <button className="flex items-center gap-1 hover:text-black">🧪 Labs</button>
-        <button className="flex items-center gap-1 hover:text-black">👁️ Imaging</button>
-        <button className="flex items-center gap-1 hover:text-black">💊 Pharmacy</button>
+        <button className="flex items-center gap-1 hover:text-black">Clinical Decision Support</button>
+        <button className="flex items-center gap-1 hover:text-black">Order Sets</button>
+        <button className="flex items-center gap-1 hover:text-black">Care Pathways</button>
+        <button className="flex items-center gap-1 hover:text-black">Labs</button>
+        <button className="flex items-center gap-1 hover:text-black">Imaging</button>
+        <button className="flex items-center gap-1 hover:text-black">Pharmacy</button>
         <button 
           onClick={() => selectOrOpenTab('Analytics', 'Analytics Overview', 'analytics-overview')}
           className="flex items-center gap-1 hover:text-black font-semibold"
         >
-          📈 Analytics
+          Analytics
         </button>
       </div>
 
@@ -526,6 +770,7 @@ export default function App() {
           {activeTab.type === 'AdmitPatient' && 'Admit Patient'}
           {activeTab.type === 'ReferralTransfer' && 'Referral & Transfer Management'}
           {activeTab.type === 'DischargeList' && 'Patient Discharge List'}
+          {(activeTab.type as string) === 'DeveloperTools' && 'Developer Configuration & System Administration'}
         </span>
         
         <div className="flex items-center gap-2">
@@ -722,33 +967,42 @@ export default function App() {
       <div className="flex flex-1 overflow-hidden flex-col">
         
         {/* Chrome-Style Tab bar */}
-        <div className="bg-[#cbd8e3] border-b border-[#bdcddc] flex items-end px-2 pt-1.5 gap-1 select-none">
-          {openTabs.map((t) => {
+        <div 
+          className="bg-[#cbd8e3] border-b border-[#bdcddc] flex items-end px-2 pt-1.5 gap-1 overflow-x-auto select-none whitespace-nowrap [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {openTabs.map((t, idx) => {
             const isActive = t.id === activeTabId;
             return (
               <div
                 key={t.id}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('text/plain', idx.toString());
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const fromIdx = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                  if (isNaN(fromIdx) || fromIdx === idx) return;
+                  const updatedTabs = [...openTabs];
+                  const [removed] = updatedTabs.splice(fromIdx, 1);
+                  updatedTabs.splice(idx, 0, removed);
+                  setOpenTabs(updatedTabs);
+                }}
                 onClick={() => setActiveTabId(t.id)}
-                className={`group relative flex items-center h-7 px-3 text-[10.5px] cursor-pointer rounded-t-md border-t border-x transition-all duration-150 ${
+                className={`group relative flex items-center h-7 px-3 text-[10.5px] cursor-pointer rounded-t-md border-t border-x transition-all duration-150 flex-shrink-0 ${
                   isActive 
                     ? 'bg-white border-[#bdcddc] font-bold text-gray-800 z-10' 
                     : 'bg-[#b6c7d6] hover:bg-[#c2d1dd] border-transparent text-gray-600'
                 }`}
                 style={{ width: '220px' }}
               >
-                <span className="truncate pr-4 flex-1">
-                  {t.type === 'MessageCenter' && '📬 '}
-                  {t.type === 'Analytics' && '📈 '}
-                  {t.type === 'PatientList' && '👥 '}
-                  {t.type === 'Notifications' && '🔔 '}
-                  {t.type === 'PatientProfile' && '👤 '}
-                  {t.type === 'EditPatientProfile' && '✏️ '}
-                  {t.type === 'MedicalReport' && '📄 '}
-                  {t.type === 'HelpCentre' && '❓ '}
-                  {t.type === 'RescheduleRequests' && '📅 '}
-                  {t.type === 'AdmitPatient' && '🏥 '}
-                  {t.type === 'ReferralTransfer' && '🔗 '}
-                  {t.type === 'DischargeList' && '🚪 '}
+                <span className="truncate pr-4 flex-1 pointer-events-none">
                   {t.title}
                 </span>
                 {openTabs.length > 1 && (
@@ -942,90 +1196,123 @@ export default function App() {
                   Analytics
                 </div>
 
-                <ScrollArea className="flex-1 text-gray-700">
+                <div 
+                  className="flex-1 overflow-y-auto text-gray-700 [&::-webkit-scrollbar]:hidden"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
                   <div className="p-1 space-y-2">
                     <div>
-                      <div className="font-bold p-1 bg-[#cbd8e3]/40 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer">
+                      <div 
+                        onClick={() => setExpandedAnalyticsSections(prev => ({ ...prev, Dashboards: !prev.Dashboards }))}
+                        className="font-bold p-1 bg-[#cbd8e3]/40 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer select-none"
+                      >
                         <span>🗂️ Dashboards</span>
-                        <span>▼</span>
+                        <span>{expandedAnalyticsSections.Dashboards ? '▼' : '▲'}</span>
                       </div>
-                      <div className="mt-0.5 space-y-0.5">
-                        <button 
-                          onClick={() => setAnalyticsMenu('Overview')}
-                          className={`w-full text-left p-1 rounded-sm px-2 ${analyticsMenu === 'Overview' ? 'bg-[#007cc0] text-white font-bold' : 'hover:bg-blue-100/30'}`}
-                        >
-                          Overview
-                        </button>
-                        <button className="w-full text-left p-1 hover:bg-blue-100/30 rounded-sm px-2">Patient Population</button>
-                        <button className="w-full text-left p-1 hover:bg-blue-100/30 rounded-sm px-2">Quality Measures</button>
-                        <button className="w-full text-left p-1 hover:bg-blue-100/30 rounded-sm px-2">Operational Metrics</button>
-                        <button className="w-full text-left p-1 hover:bg-blue-100/30 rounded-sm px-2">Financial Performance</button>
-                      </div>
+                      {expandedAnalyticsSections.Dashboards && (
+                        <div className="mt-0.5 space-y-0.5">
+                          <button 
+                            onClick={() => setAnalyticsMenu('Overview')}
+                            className={`w-full text-left p-1 rounded-sm px-2 ${analyticsMenu === 'Overview' ? 'bg-[#007cc0] text-white font-bold' : 'hover:bg-blue-100/30'}`}
+                          >
+                            Overview
+                          </button>
+                          <button className="w-full text-left p-1 hover:bg-blue-100/30 rounded-sm px-2">Patient Population</button>
+                          <button className="w-full text-left p-1 hover:bg-blue-100/30 rounded-sm px-2">Quality Measures</button>
+                          <button className="w-full text-left p-1 hover:bg-blue-100/30 rounded-sm px-2">Operational Metrics</button>
+                          <button className="w-full text-left p-1 hover:bg-blue-100/30 rounded-sm px-2">Financial Performance</button>
+                        </div>
+                      )}
                     </div>
 
                     <div>
-                      <div className="font-bold p-1 bg-[#cbd8e3]/20 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer">
+                      <div 
+                        onClick={() => setExpandedAnalyticsSections(prev => ({ ...prev, Clinical: !prev.Clinical }))}
+                        className="font-bold p-1 bg-[#cbd8e3]/20 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer select-none"
+                      >
                         <span>🗂️ Clinical Analytics</span>
-                        <span>▲</span>
+                        <span>{expandedAnalyticsSections.Clinical ? '▼' : '▲'}</span>
                       </div>
-                      <div className="pl-2 mt-0.5 space-y-0.5 text-gray-600">
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Quality Measures</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Chronic Conditions</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Utilization</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Patient Outcomes</button>
-                      </div>
+                      {expandedAnalyticsSections.Clinical && (
+                        <div className="pl-2 mt-0.5 space-y-0.5 text-gray-600">
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Quality Measures</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Chronic Conditions</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Utilization</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Patient Outcomes</button>
+                        </div>
+                      )}
                     </div>
 
                     <div>
-                      <div className="font-bold p-1 bg-[#cbd8e3]/20 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer">
+                      <div 
+                        onClick={() => setExpandedAnalyticsSections(prev => ({ ...prev, Operational: !prev.Operational }))}
+                        className="font-bold p-1 bg-[#cbd8e3]/20 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer select-none"
+                      >
                         <span>🗂️ Operational Analytics</span>
-                        <span>▲</span>
+                        <span>{expandedAnalyticsSections.Operational ? '▼' : '▲'}</span>
                       </div>
-                      <div className="pl-2 mt-0.5 space-y-0.5 text-gray-600">
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Provider Productivity</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Scheduling</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Care Workflow</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Resource Utilization</button>
-                      </div>
+                      {expandedAnalyticsSections.Operational && (
+                        <div className="pl-2 mt-0.5 space-y-0.5 text-gray-600">
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Provider Productivity</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Scheduling</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Care Workflow</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Resource Utilization</button>
+                        </div>
+                      )}
                     </div>
 
                     <div>
-                      <div className="font-bold p-1 bg-[#cbd8e3]/20 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer">
+                      <div 
+                        onClick={() => setExpandedAnalyticsSections(prev => ({ ...prev, Financial: !prev.Financial }))}
+                        className="font-bold p-1 bg-[#cbd8e3]/20 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer select-none"
+                      >
                         <span>🗂️ Financial Analytics</span>
-                        <span>▲</span>
+                        <span>{expandedAnalyticsSections.Financial ? '▼' : '▲'}</span>
                       </div>
-                      <div className="pl-2 mt-0.5 space-y-0.5 text-gray-600">
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Payer Mix</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Revenue Cycle</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Cost Analysis</button>
-                      </div>
+                      {expandedAnalyticsSections.Financial && (
+                        <div className="pl-2 mt-0.5 space-y-0.5 text-gray-600">
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Payer Mix</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Revenue Cycle</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Cost Analysis</button>
+                        </div>
+                      )}
                     </div>
 
                     <div>
-                      <div className="font-bold p-1 bg-[#cbd8e3]/20 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer">
+                      <div 
+                        onClick={() => setExpandedAnalyticsSections(prev => ({ ...prev, CustomReports: !prev.CustomReports }))}
+                        className="font-bold p-1 bg-[#cbd8e3]/20 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer select-none"
+                      >
                         <span>🗂️ Custom Reports</span>
-                        <span>▲</span>
+                        <span>{expandedAnalyticsSections.CustomReports ? '▼' : '▲'}</span>
                       </div>
-                      <div className="pl-2 mt-0.5 space-y-0.5 text-gray-600">
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Saved Reports</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Report Builder</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Scheduled Reports</button>
-                      </div>
+                      {expandedAnalyticsSections.CustomReports && (
+                        <div className="pl-2 mt-0.5 space-y-0.5 text-gray-600">
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Saved Reports</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Report Builder</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Scheduled Reports</button>
+                        </div>
+                      )}
                     </div>
 
                     <div>
-                      <div className="font-bold p-1 bg-[#cbd8e3]/20 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer">
+                      <div 
+                        onClick={() => setExpandedAnalyticsSections(prev => ({ ...prev, DataManagement: !prev.DataManagement }))}
+                        className="font-bold p-1 bg-[#cbd8e3]/20 border-b border-[#bdcddc]/50 flex justify-between items-center cursor-pointer select-none"
+                      >
                         <span>🗂️ Data Management</span>
-                        <span>▲</span>
+                        <span>{expandedAnalyticsSections.DataManagement ? '▼' : '▲'}</span>
                       </div>
-                      <div className="pl-2 mt-0.5 space-y-0.5 text-gray-600">
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Data Extracts</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Data Quality</button>
-                        <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Definitions</button>
-                      </div>
+                      {expandedAnalyticsSections.DataManagement && (
+                        <div className="pl-2 mt-0.5 space-y-0.5 text-gray-600">
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Data Extracts</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Data Quality</button>
+                          <button className="w-full text-left p-0.5 hover:bg-blue-100/30 rounded-sm">Definitions</button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </ScrollArea>
+                </div>
               </div>
 
               {/* Right Pane: Analytics Dashboard Overview */}
@@ -3983,6 +4270,91 @@ export default function App() {
                   </div>
                   <div className="text-gray-500">
                     Showing 1 to 4 of 4 entries
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(activeTab.type as string) === 'DeveloperTools' && (
+            <div className="flex-1 overflow-hidden bg-[#fafbfc] text-[#333333] text-[11px] flex select-none">
+              {/* Left sidebar admin options list */}
+              <div className="w-[200px] bg-[#dbe6ef] border-r border-[#bdcddc] flex flex-col">
+                <div className="bg-[#789cbb] text-white font-bold p-1.5">
+                  Administration
+                </div>
+                <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
+                  <div className="p-1 space-y-1">
+                    <div className="font-bold p-1 border-b border-[#bdcddc]/50 flex items-center gap-1">
+                      📁 Content Server
+                    </div>
+                    <div className="pl-3 space-y-0.5">
+                      <div className="p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">My Content Server</div>
+                      <div className="p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">Browse Content</div>
+                      <div className="p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">Search Logs</div>
+                      <div className="p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">Content Management</div>
+                    </div>
+                    
+                    <div className="font-bold p-1 border-b border-[#bdcddc]/50 flex items-center gap-1 pt-2">
+                      ⚙️ Administration
+                    </div>
+                    <div className="pl-3 space-y-0.5">
+                      <div className="p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">Log Files</div>
+                      <div className="p-1 hover:bg-[#cbd8e3] rounded cursor-pointer text-blue-900 font-bold bg-white border border-[#bdcddc]">Component Manager</div>
+                      <div className="p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">General Configuration</div>
+                      <div className="p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">Content Security</div>
+                      <div className="p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">Internet Configuration</div>
+                      <div className="p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">Localization Settings</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Settings Configuration Form */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white select-text">
+                <div className="border border-[#bdcddc] rounded shadow-sm overflow-hidden bg-white">
+                  <div className="bg-[#cbd8e3]/40 border-b border-[#bdcddc] p-2 font-bold text-xs text-[#002a46] flex justify-between items-center select-none">
+                    <span>Component Manager - Core Application Settings</span>
+                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-0.5 rounded text-[10px] text-gray-700">Refresh Settings</button>
+                  </div>
+                  
+                  <div className="p-4 space-y-4">
+                    <div className="text-[10.5px] text-gray-600 leading-relaxed border-b pb-2 select-none">
+                      Enable or disable application components, toggle system debugging properties, and activate edge development libraries. Select components to register in this runtime workstation's execution manifest.
+                    </div>
+
+                    <div className="space-y-3">
+                      {[
+                        { name: 'Imaging', desc: 'Acts as the interface for document ingestion, file preview, and tools such as medical imagery viewers.', checked: true },
+                        { name: 'IpmRepository', desc: 'Adds functionality to the metadata layer allowing Oracle WebCenter Content integration.', checked: false },
+                        { name: 'LinkManager', desc: 'Extracts URL links, parses relative paths, and maintains local cache directories.', checked: true },
+                        { name: 'MSOfficeHtmlConverterSupport', desc: 'Allows conversion of native Microsoft Office file formats to clean static HTML display frames.', checked: false },
+                        { name: 'OracleDocumentsFolders', desc: 'Enables external folder sync systems to cloud repositories for diagnostic reports.', checked: false },
+                        { name: 'PDFWatermark', desc: 'Adds PDF watermark rendering for printed documents.', checked: false },
+                        { name: 'PortalVCRHelper', desc: 'Integrates Content Portal modules into core view pipelines.', checked: true },
+                        { name: 'RedwoodUI', desc: 'Offers a modern, premium design system aesthetic layout matching the Oracle Redwood principle patterns.', checked: true },
+                        { name: 'SESCrawlerExport', desc: 'Enables XML data extraction pipelines.', checked: true },
+                        { name: 'SharedLinks', desc: 'Allows creating links to folder paths to share patient resources.', checked: true },
+                        { name: 'SiebelEcmIntegration', desc: 'Provides integration links with Siebel enterprise database schemas.', checked: false }
+                      ].map((item, idx) => (
+                        <div key={idx} className="flex gap-2 items-start hover:bg-gray-50/50 p-1.5 rounded transition-all">
+                          <input type="checkbox" defaultChecked={item.checked} className="mt-0.5 rounded-sm" id={`comp-${idx}`} />
+                          <div className="space-y-0.5">
+                            <label htmlFor={`comp-${idx}`} className="font-bold text-blue-900 cursor-pointer hover:underline">{item.name}</label>
+                            <p className="text-gray-600 text-[10px] leading-snug">{item.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2 select-none">
+                      <button className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold px-4 py-1.5 rounded transition-all">
+                        Reset Defaults
+                      </button>
+                      <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-4 py-1.5 rounded shadow-sm transition-all">
+                        Save Configuration
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
