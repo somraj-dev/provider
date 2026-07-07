@@ -19,6 +19,8 @@ import {
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -30,8 +32,72 @@ import {
 interface TabItem {
   id: string;
   title: string;
-  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools';
+  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home';
 }
+
+const CHART_OPTIONS = [
+  "All Results",
+  "Advance Care Planning View",
+  "Activities of Daily Living",
+  "Ambulatory View",
+  "Anesthesiology View",
+  "Anti-Coagulation",
+  "Assessments View",
+  "Delivery Record",
+  "Diabetic Flowsheet",
+  "Diagnostics View",
+  "Dialysis View",
+  "Early Warning Alerts Flowsheet",
+  "Education View",
+  "Forms View",
+  "Infection Control View",
+  "Lab View",
+  "LinesTubesDrains",
+  "Mental Health View",
+  "Microbiology Other View",
+  "Obstetrics View",
+  "Orthopedic View",
+  "Pain View",
+  "Respiratory View",
+  "Quick View",
+  "Transfusion View",
+  "Trauma View",
+  "Vitals View"
+];
+
+const getChartDataForSelection = (baseData: any[], selection: string, chartKey: string) => {
+  if (!selection || selection === 'Quick View' || selection === 'All Results') {
+    return baseData;
+  }
+  
+  let hash = 0;
+  for (let i = 0; i < selection.length; i++) {
+    hash = selection.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  return baseData.map((d, index) => {
+    const val = d[chartKey];
+    if (typeof val !== 'number') return d;
+    
+    const factor = 0.2 + Math.abs((Math.sin(index + hash) * 1.3));
+    let newVal = val * factor;
+    
+    if (chartKey === 'success') {
+      newVal = Math.min(100, Math.max(0, newVal));
+    } else if (chartKey === 'status') {
+      newVal = Math.max(1, Math.round(newVal));
+    } else if (chartKey === 'resp') {
+      newVal = parseFloat(newVal.toFixed(2));
+    } else {
+      newVal = Math.round(newVal);
+    }
+    
+    return {
+      ...d,
+      [chartKey]: newVal
+    };
+  });
+};
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -39,6 +105,18 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const [chartSelections, setChartSelections] = useState<Record<string, string>>({
+    dns: 'Quick View',
+    conn: 'Quick View',
+    secure: 'Quick View',
+    req: 'Quick View',
+    resp: 'Quick View',
+    total: 'Quick View',
+    status: 'Quick View',
+    success: 'Quick View',
+  });
+  const [openDropdownChart, setOpenDropdownChart] = useState<string | null>(null);
   
   // Chrome browser style tabs state
   const [openTabs, setOpenTabs] = useState<TabItem[]>([
@@ -208,7 +286,7 @@ export default function App() {
     setActiveTabId('patient-doe');
   };
 
-  const selectOrOpenTab = (type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools', title: string, id: string) => {
+  const selectOrOpenTab = (type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home', title: string, id: string) => {
     if (type === 'AdmitPatient') {
       const now = new Date();
       const dd = String(now.getDate()).padStart(2, '0');
@@ -224,10 +302,13 @@ export default function App() {
       const strTime = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
       setAdmitTimeVal(strTime);
     }
-    const exists = openTabs.find(t => t.id === id);
-    if (!exists) {
-      setOpenTabs([...openTabs, { id, title, type }]);
-    }
+    setOpenTabs(prev => {
+      const exists = prev.find(t => t.id === id);
+      if (!exists) {
+        return [...prev, { id, title, type }];
+      }
+      return prev;
+    });
     setActiveTabId(id);
   };
 
@@ -305,6 +386,525 @@ export default function App() {
     { priority: 'Medium', priorityColor: 'text-orange-600', icon: '📅', name: 'Schedule Change', patient: 'Brown, Elizabeth', mrn: '1000245685', category: 'Reminders', message: 'Appointment rescheduled to 01/06/2025 10:00 AM', dateTime: '27/05/2025 05:00 PM', status: 'Unread', statusColor: 'text-red-600 font-bold' }
   ];
 
+  // Mock Orders Data matching the Orders tab mockup exactly
+  const mockOrdersData = [
+    { patientName: 'JAMES, WILLIAM', orderPlanName: 'CBC with Differential', action: 'Order', detailsDate: '05/28/17 08:30', detailsDesc: 'Routine blood test', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 08:30', stopDate: '05/28/2017 08:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'JAMES, WILLIAM', orderPlanName: 'Comprehensive Metabolic Panel', action: 'Order', detailsDate: '05/28/17 08:30', detailsDesc: 'Kidney & liver function', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 08:30', stopDate: '05/28/2017 08:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'PATEL, RAHUL', orderPlanName: 'MRI Brain W/O Contrast', action: 'Order', detailsDate: '05/28/17 09:15', detailsDesc: 'Headache evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 09:15', stopDate: '05/28/2017 09:15', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'PATEL, RAHUL', orderPlanName: 'Neurology Consult', action: 'Order', detailsDate: '05/28/17 09:15', detailsDesc: 'Neuro assessment', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 09:15', stopDate: '05/28/2017 09:15', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'JOHNSON, MARIA', orderPlanName: 'PT Evaluation', action: 'Order', detailsDate: '05/28/17 10:00', detailsDesc: 'Post-op rehab', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:00', stopDate: '05/28/2017 10:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'JOHNSON, MARIA', orderPlanName: 'Pain Management Consult', action: 'Order', detailsDate: '05/28/17 10:00', detailsDesc: 'Pain control', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:00', stopDate: '05/28/2017 10:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'LEE, DAVID', orderPlanName: 'Chest X-Ray', action: 'Order', detailsDate: '05/28/17 10:30', detailsDesc: 'Cough and fever', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:30', stopDate: '05/28/2017 10:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'LEE, DAVID', orderPlanName: 'Sputum Culture', action: 'Order', detailsDate: '05/28/17 10:30', detailsDesc: 'Infection workup', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:30', stopDate: '05/28/2017 10:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'GARCIA, LUCIA', orderPlanName: 'Echocardiogram', action: 'Order', detailsDate: '05/28/17 11:00', detailsDesc: 'Cardiac evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:00', stopDate: '05/28/2017 11:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'GARCIA, LUCIA', orderPlanName: 'Cardiology Consult', action: 'Order', detailsDate: '05/28/17 11:00', detailsDesc: 'Heart failure eval', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:00', stopDate: '05/28/2017 11:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'KIM, JAMES', orderPlanName: 'Hemoglobin A1C', action: 'Order', detailsDate: '05/28/17 11:30', detailsDesc: 'Diabetes monitoring', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:30', stopDate: '05/28/2017 11:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'KIM, JAMES', orderPlanName: 'Diabetes Education', action: 'Order', detailsDate: '05/28/17 11:30', detailsDesc: 'Patient education', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:30', stopDate: '05/28/2017 11:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'BROWN, ELIZABETH', orderPlanName: 'Urinalysis', action: 'Order', detailsDate: '05/28/17 12:00', detailsDesc: 'UTI symptoms', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:00', stopDate: '05/28/2017 12:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'BROWN, ELIZABETH', orderPlanName: 'Urine Culture', action: 'Order', detailsDate: '05/28/17 12:00', detailsDesc: 'Confirm infection', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:00', stopDate: '05/28/2017 12:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'THOMAS, MICHAEL', orderPlanName: 'CT Abdomen & Pelvis', action: 'Order', detailsDate: '05/28/17 12:30', detailsDesc: 'Abdominal pain', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:30', stopDate: '05/28/2017 12:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'THOMAS, MICHAEL', orderPlanName: 'Surgery Consult', action: 'Order', detailsDate: '05/28/17 12:30', detailsDesc: 'Surgical evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:30', stopDate: '05/28/2017 12:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'ANDERSON, SUSAN', orderPlanName: 'Lipid Panel', action: 'Order', detailsDate: '05/28/17 13:00', detailsDesc: 'Cholesterol check', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:00', stopDate: '05/28/2017 13:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'ANDERSON, SUSAN', orderPlanName: 'Nutrition Consult', action: 'Order', detailsDate: '05/28/17 13:00', detailsDesc: 'Dietary counseling', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:00', stopDate: '05/28/2017 13:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'MILLER, ROBERT', orderPlanName: 'Pulmonary Function Test', action: 'Order', detailsDate: '05/28/17 13:30', detailsDesc: 'COPD evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:30', stopDate: '05/28/2017 13:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'MILLER, ROBERT', orderPlanName: 'Respiratory Therapy Eval', action: 'Order', detailsDate: '05/28/17 13:30', detailsDesc: 'Breathing assessment', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:30', stopDate: '05/28/2017 13:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'DAVIS, PATRICIA', orderPlanName: 'DEXA Scan', action: 'Order', detailsDate: '05/28/17 14:00', detailsDesc: 'Bone density', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:00', stopDate: '05/28/2017 14:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'DAVIS, PATRICIA', orderPlanName: 'Vitamin D Level', action: 'Order', detailsDate: '05/28/17 14:00', detailsDesc: 'Bone health', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:00', stopDate: '05/28/2017 14:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'WHITE, CHARLES', orderPlanName: 'Sleep Study', action: 'Order', detailsDate: '05/28/17 14:30', detailsDesc: 'Sleep apnea evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:30', stopDate: '05/28/2017 14:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'WHITE, CHARLES', orderPlanName: 'ENT Consult', action: 'Order', detailsDate: '05/28/17 14:30', detailsDesc: 'Snoring and fatigue', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:30', stopDate: '05/28/2017 14:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'WILSON, BETTY', orderPlanName: 'Mammogram Screening', action: 'Order', detailsDate: '05/28/17 15:00', detailsDesc: 'Breast cancer screening', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 15:00', stopDate: '05/28/2017 15:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'WILSON, BETTY', orderPlanName: 'Ob/Gyn Annual Exam', action: 'Order', detailsDate: '05/28/17 15:00', detailsDesc: 'Routine exam', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 15:00', stopDate: '05/28/2017 15:00', stopType: 'Physician Stop', status: 'Open' }
+  ];
+
+  // Mock charts data for Home tab metric line graphs
+  const mockChartData = [
+    { time: '08:00', dns: 50, conn: 330, secure: 220, req: 1500, resp: 0.1, total: 1800, status: 1, success: 100 },
+    { time: '08:05', dns: 10, conn: 330, secure: 225, req: 180, resp: 1.0, total: 600, status: 1, success: 100 },
+    { time: '08:10', dns: 40, conn: 330, secure: 220, req: 180, resp: 0.1, total: 600, status: 1, success: 100 },
+    { time: '08:15', dns: 15, conn: 330, secure: 225, req: 1400, resp: 0.1, total: 1700, status: 1, success: 100 },
+    { time: '08:20', dns: 45, conn: 360, secure: 250, req: 180, resp: 0.1, total: 600, status: 1, success: 100 },
+    { time: '08:25', dns: 20, conn: 360, secure: 250, req: 1700, resp: 0.1, total: 2100, status: 1, success: 100 },
+    { time: '08:30', dns: 55, conn: 360, secure: 250, req: 180, resp: 1.0, total: 600, status: 1, success: 100 },
+    { time: '08:35', dns: 25, conn: 330, secure: 220, req: 1500, resp: 0.1, total: 1800, status: 1, success: 100 },
+    { time: '08:40', dns: 50, conn: 330, secure: 225, req: 180, resp: 0.1, total: 600, status: 1, success: 100 },
+    { time: '08:45', dns: 30, conn: 360, secure: 250, req: 1800, resp: 1.0, total: 2100, status: 1, success: 100 },
+    { time: '08:50', dns: 45, conn: 360, secure: 250, req: 180, resp: 0.1, total: 600, status: 1, success: 100 },
+    { time: '08:55', dns: 35, conn: 360, secure: 250, req: 1400, resp: 0.1, total: 1700, status: 1, success: 100 }
+  ];
+
+  // F10 Person Search popup states
+  const [showPersonSearch, setShowPersonSearch] = useState(false);
+  const [showPrescriptionRenewal, setShowPrescriptionRenewal] = useState(false);
+  const [prescriptionSearchTo, setPrescriptionSearchTo] = useState('');
+  const [prescriptions, setPrescriptions] = useState<Array<{ medication: string, dose: string, frequency: string, reason: string, quantity: string }>>([
+    { medication: '', dose: '', frequency: '', reason: '', quantity: '' }
+  ]);
+
+  const addPrescriptionRow = () => {
+    setPrescriptions(prev => [...prev, { medication: '', dose: '', frequency: '', reason: '', quantity: '' }]);
+  };
+
+  const updatePrescriptionRow = (index: number, field: string, value: string) => {
+    setPrescriptions(prev => prev.map((p, i) => i === index ? { ...p, [field]: value } : p));
+  };
+
+  const handlePrescriptionSubmit = () => {
+    setShowPrescriptionRenewal(false);
+    if (psSelectedPersonIndex !== null && psResults[psSelectedPersonIndex]) {
+      const p = psResults[psSelectedPersonIndex];
+      const tabTitle = `Patient Profile: ${p.name.toUpperCase()}`;
+      const tabId = `patient-${p.mrn}`;
+      selectOrOpenTab('PatientProfile', tabTitle, tabId);
+
+      // Create temporary container for print layout
+      const printFrame = document.createElement('div');
+      printFrame.id = 'print-slip-frame';
+
+      printFrame.innerHTML = `
+        <div style="width: 700px; margin: 0 auto; padding: 30px; font-family: 'Arial', sans-serif; color: #1c2833; background: white; font-size: 12px; line-height: 1.4;">
+          <!-- Top Link / Header Info -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <div style="font-family: 'Georgia', serif; font-size: 11px; color: #555;">
+              <span style="font-size: 20px; font-weight: bold; color: black; display: block; margin-bottom: 2px;">AIIMS, New Delhi</span>
+              <span style="font-size: 13px; display: block; margin-bottom: 10px;">Ansari Nagar, New Delhi</span>
+              <span style="font-size: 18px; font-weight: bold; color: black; display: block;">Appointment Slip</span>
+            </div>
+            <div style="font-size: 9px; color: #555; text-align: right; max-width: 320px; word-break: break-all;">
+              https://ors.gov.in/copp/print.jsp?orskey=HZMI-4X2F-LHVH-3CI7-CFZ...
+            </div>
+          </div>
+
+          <!-- Appointment No / Barcode & QR Code Section -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px;">
+            <div>
+              <div style="font-size: 11px; font-weight: bold; color: #555; margin-bottom: 4px;">Appointment No.</div>
+              <div style="font-size: 18px; font-weight: bold; color: black; margin-bottom: 6px;">2019112602369</div>
+              <!-- Barcode SVG -->
+              <svg width="220" height="40" viewBox="0 0 220 40">
+                <rect x="0" y="0" width="4" height="40" fill="black"/>
+                <rect x="6" y="0" width="2" height="40" fill="black"/>
+                <rect x="10" y="0" width="6" height="40" fill="black"/>
+                <rect x="18" y="0" width="2" height="40" fill="black"/>
+                <rect x="22" y="0" width="4" height="40" fill="black"/>
+                <rect x="28" y="0" width="8" height="40" fill="black"/>
+                <rect x="38" y="0" width="2" height="40" fill="black"/>
+                <rect x="42" y="0" width="4" height="40" fill="black"/>
+                <rect x="48" y="0" width="6" height="40" fill="black"/>
+                <rect x="56" y="0" width="2" height="40" fill="black"/>
+                <rect x="60" y="0" width="8" height="40" fill="black"/>
+                <rect x="70" y="0" width="4" height="40" fill="black"/>
+                <rect x="76" y="0" width="2" height="40" fill="black"/>
+                <rect x="80" y="0" width="6" height="40" fill="black"/>
+                <rect x="88" y="0" width="4" height="40" fill="black"/>
+                <rect x="94" y="0" width="8" height="40" fill="black"/>
+                <rect x="104" y="0" width="2" height="40" fill="black"/>
+                <rect x="108" y="0" width="6" height="40" fill="black"/>
+                <rect x="116" y="0" width="4" height="40" fill="black"/>
+                <rect x="122" y="0" width="2" height="40" fill="black"/>
+                <rect x="126" y="0" width="8" height="40" fill="black"/>
+                <rect x="136" y="0" width="4" height="40" fill="black"/>
+                <rect x="142" y="0" width="6" height="40" fill="black"/>
+                <rect x="150" y="0" width="2" height="40" fill="black"/>
+                <rect x="154" y="0" width="8" height="40" fill="black"/>
+                <rect x="164" y="0" width="4" height="40" fill="black"/>
+                <rect x="170" y="0" width="2" height="40" fill="black"/>
+                <rect x="174" y="0" width="6" height="40" fill="black"/>
+                <rect x="182" y="0" width="4" height="40" fill="black"/>
+                <rect x="188" y="0" width="8" height="40" fill="black"/>
+                <rect x="198" y="0" width="2" height="40" fill="black"/>
+                <rect x="202" y="0" width="4" height="40" fill="black"/>
+                <rect x="208" y="0" width="6" height="40" fill="black"/>
+                <rect x="216" y="0" width="4" height="40" fill="black"/>
+              </svg>
+            </div>
+            <div>
+              <!-- Custom High-Quality QR Code Grid -->
+              <svg width="85" height="85" viewBox="0 0 29 29" style="shape-rendering: crispEdges;">
+                <rect width="29" height="29" fill="white"/>
+                <!-- Top-left finder pattern -->
+                <rect x="0" y="0" width="7" height="7" fill="black"/>
+                <rect x="1" y="1" width="5" height="5" fill="white"/>
+                <rect x="2" y="2" width="3" height="3" fill="black"/>
+                <!-- Top-right finder pattern -->
+                <rect x="22" y="0" width="7" height="7" fill="black"/>
+                <rect x="23" y="1" width="5" height="5" fill="white"/>
+                <rect x="24" y="2" width="3" height="3" fill="black"/>
+                <!-- Bottom-left finder pattern -->
+                <rect x="0" y="22" width="7" height="7" fill="black"/>
+                <rect x="1" y="23" width="5" height="5" fill="white"/>
+                <rect x="2" y="24" width="3" height="3" fill="black"/>
+                <!-- Alignment pattern -->
+                <rect x="20" y="20" width="5" height="5" fill="black"/>
+                <rect x="21" y="21" width="3" height="3" fill="white"/>
+                <rect x="22" y="22" width="1" height="1" fill="black"/>
+                <!-- Mock QR data modules -->
+                <rect x="8" y="1" width="1" height="2" fill="black"/>
+                <rect x="10" y="0" width="2" height="1" fill="black"/>
+                <rect x="13" y="1" width="2" height="2" fill="black"/>
+                <rect x="17" y="0" width="1" height="3" fill="black"/>
+                <rect x="19" y="1" width="2" height="1" fill="black"/>
+                <rect x="8" y="4" width="3" height="1" fill="black"/>
+                <rect x="12" y="3" width="1" height="3" fill="black"/>
+                <rect x="15" y="4" width="2" height="1" fill="black"/>
+                <rect x="18" y="3" width="1" height="2" fill="black"/>
+                <rect x="20" y="5" width="1" height="1" fill="black"/>
+                <rect x="9" y="8" width="1" height="3" fill="black"/>
+                <rect x="11" y="9" width="2" height="1" fill="black"/>
+                <rect x="14" y="7" width="1" height="2" fill="black"/>
+                <rect x="16" y="8" width="3" height="1" fill="black"/>
+                <rect x="20" y="7" width="2" height="2" fill="black"/>
+                <rect x="23" y="8" width="1" height="3" fill="black"/>
+                <rect x="25" y="9" width="3" height="1" fill="black"/>
+                <rect x="0" y="10" width="2" height="1" fill="black"/>
+                <rect x="3" y="9" width="1" height="2" fill="black"/>
+                <rect x="5" y="11" width="3" height="1" fill="black"/>
+                <rect x="10" y="12" width="2" height="2" fill="black"/>
+                <rect x="13" y="11" width="1" height="1" fill="black"/>
+                <rect x="15" y="10" width="2" height="3" fill="black"/>
+                <rect x="18" y="11" width="1" height="2" fill="black"/>
+                <rect x="20" y="10" width="1" height="1" fill="black"/>
+                <rect x="26" y="11" width="2" height="2" fill="black"/>
+                <rect x="1" y="13" width="3" height="1" fill="black"/>
+                <rect x="5" y="14" width="1" height="2" fill="black"/>
+                <rect x="8" y="13" width="2" height="1" fill="black"/>
+                <rect x="11" y="15" width="3" height="1" fill="black"/>
+                <rect x="15" y="14" width="1" height="1" fill="black"/>
+                <rect x="17" y="13" width="2" height="2" fill="black"/>
+                <rect x="20" y="14" width="3" height="1" fill="black"/>
+                <rect x="24" y="13" width="1" height="3" fill="black"/>
+                <rect x="0" y="17" width="1" height="3" fill="black"/>
+                <rect x="2" y="16" width="3" height="1" fill="black"/>
+                <rect x="6" y="17" width="2" height="2" fill="black"/>
+                <rect x="9" y="16" width="1" height="1" fill="black"/>
+                <rect x="11" y="18" width="2" height="1" fill="black"/>
+                <rect x="14" y="17" width="1" height="3" fill="black"/>
+                <rect x="16" y="16" width="3" height="1" fill="black"/>
+                <rect x="20" y="17" width="2" height="1" fill="black"/>
+                <rect x="23" y="18" width="1" height="2" fill="black"/>
+                <rect x="26" y="16" width="3" height="1" fill="black"/>
+                <rect x="8" y="20" width="2" height="2" fill="black"/>
+                <rect x="11" y="21" width="1" height="3" fill="black"/>
+                <rect x="13" y="20" width="3" height="1" fill="black"/>
+                <rect x="17" y="21" width="1" height="1" fill="black"/>
+                <rect x="19" y="20" width="2" height="3" fill="black"/>
+                <rect x="9" y="24" width="1" height="2" fill="black"/>
+                <rect x="12" y="25" width="3" height="1" fill="black"/>
+                <rect x="16" y="24" width="1" height="3" fill="black"/>
+                <rect x="18" y="26" width="2" height="1" fill="black"/>
+                <rect x="8" y="28" width="3" height="1" fill="black"/>
+                <rect x="12" y="27" width="1" height="2" fill="black"/>
+                <rect x="14" y="28" width="2" height="1" fill="black"/>
+                <rect x="17" y="27" width="1" height="2" fill="black"/>
+                <rect x="19" y="28" width="2" height="1" fill="black"/>
+              </svg>
+            </div>
+          </div>
+
+          <hr style="border: none; border-top: 2px solid #333; margin: 15px 0 20px 0;"/>
+
+          <!-- Department Box with Avatar -->
+          <div style="display: flex; border: 2px solid #b91c1c; padding: 0; margin-bottom: 25px; min-height: 120px; align-items: stretch;">
+            <div style="flex: 1; padding: 25px 20px; display: flex; align-items: center; justify-content: flex-start;">
+              <span style="font-size: 22px; font-weight: bold; color: #0ea5e9; font-family: 'Arial Black', sans-serif;">DEPARTMENT NAME : ORTHOPEDICS</span>
+            </div>
+            <div style="width: 140px; border-left: 2px solid #b91c1c; display: flex; align-items: center; justify-content: center; background-color: #fafafa; overflow: hidden; padding: 5px;">
+              <img src="/sharda_devi.png" alt="Patient Avatar" style="max-width: 100%; max-height: 100%; object-fit: contain;"/>
+            </div>
+          </div>
+
+          <hr style="border: none; border-top: 2px solid #333; margin: 20px 0 20px 0;"/>
+
+          <!-- Details Grid Table -->
+          <table style="width: 100%; border-collapse: collapse; font-size: 11.5px; border: 1.5px solid #d1d5db;">
+            <tr>
+              <td style="width: 25%; padding: 10px; border: 1px solid #d1d5db; background-color: #f9fafb; font-weight: bold; color: #374151;">APPOINTMENT NO.</td>
+              <td style="width: 25%; padding: 10px; border: 1px solid #d1d5db; font-weight: bold; color: black;">2019112602369</td>
+              <td style="width: 25%; padding: 10px; border: 1px solid #d1d5db; background-color: #f9fafb; font-weight: bold; color: #374151;">APPOINTMENT DATE</td>
+              <td style="width: 25%; padding: 10px; border: 1px solid #d1d5db; font-weight: bold; color: black;">26/12/2019 (8:00 AM-9:00 AM)</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #d1d5db; background-color: #f9fafb; font-weight: bold; color: #374151;">PATIENT'S NAME</td>
+              <td colspan="3" style="padding: 10px; border: 1px solid #d1d5db; font-weight: bold; color: black;">Miss. Sharda Devi</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #d1d5db; background-color: #f9fafb; font-weight: bold; color: #374151;">GENDER</td>
+              <td style="padding: 10px; border: 1px solid #d1d5db; color: black;">Female</td>
+              <td style="padding: 10px; border: 1px solid #d1d5db; background-color: #f9fafb; font-weight: bold; color: #374151;">AGE</td>
+              <td style="padding: 10px; border: 1px solid #d1d5db; color: black;">52 years</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #d1d5db; background-color: #f9fafb; font-weight: bold; color: #374151;">CONTACT DETAILS</td>
+              <td style="padding: 10px; border: 1px solid #d1d5db; color: black; line-height: 1.5;">
+                Mobile No. : XXXXXXXX698<br/>
+                E-Mail Id : <span style="color: #0ea5e9; cursor: pointer; text-decoration: underline;">NA@</span>
+              </td>
+              <td style="padding: 10px; border: 1px solid #d1d5db; background-color: #f9fafb; font-weight: bold; color: #374151;">REQUEST MODE (REQUEST DATE)</td>
+              <td style="padding: 10px; border: 1px solid #d1d5db; color: black;">WEB (26/11/2019 09:28 AM)</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #d1d5db; background-color: #f9fafb; font-weight: bold; color: #374151;">UHID</td>
+              <td colspan="3" style="padding: 10px; border: 1px solid #d1d5db; color: black;">104917098</td>
+            </tr>
+          </table>
+
+          <!-- Bottom Footer -->
+          <div style="display: flex; justify-content: space-between; font-size: 10px; color: #666; margin-top: 40px; border-top: 1px dashed #ccc; padding-top: 8px;">
+            <span>1 of 2</span>
+            <span>26-11-2019, 09:42</span>
+          </div>
+        </div>
+      `;
+
+      // Preload image to ensure it is rendered on paper/pdf before printing dialog triggers
+      const img = document.createElement('img');
+      img.src = '/sharda_devi.png';
+
+      const executePrint = () => {
+        const printStyle = document.createElement('style');
+        printStyle.id = 'print-slip-style';
+        printStyle.innerHTML = `
+          @media print {
+            body > * { display: none !important; }
+            html, body { background: white !important; margin: 0 !important; padding: 0 !important; }
+            #print-slip-frame { display: block !important; position: absolute; left: 0; top: 0; width: 100%; }
+          }
+          @media screen {
+            #print-slip-frame { display: none !important; }
+          }
+        `;
+
+        document.body.appendChild(printStyle);
+        document.body.appendChild(printFrame);
+        
+        window.print();
+
+        // Cleanup
+        document.body.removeChild(printFrame);
+        const styleNode = document.getElementById('print-slip-style');
+        if (styleNode) styleNode.parentNode?.removeChild(styleNode);
+      };
+
+      img.onload = executePrint;
+      img.onerror = executePrint; // Print anyway if loading fails
+    }
+  };
+  const [devSidebarExpanded, setDevSidebarExpanded] = useState<Record<string, boolean>>({
+    MyContentServer: false,
+    BrowseContent: false,
+    Search: false,
+    ContentManagement: false,
+    Administration: true,
+    LogFiles: true,
+    RefineryAdministration: false,
+    ScheduledJobsAdministration: false,
+    AdminServer: false,
+    FrameworkFolders: false,
+    ImagingMigration: false,
+    FoldersRetention: false,
+    SmartContent: false,
+    SiteStudio: false
+  });
+  const [psActiveTab, setPsActiveTab] = useState<'Person' | 'Guarantor'>('Person');
+  const [psLastName, setPsLastName] = useState('');
+  const [psFirstName, setPsFirstName] = useState('');
+  const [psBirthDate, setPsBirthDate] = useState('');
+  const [psPhoneNumber, setPsPhoneNumber] = useState('');
+  const [psPersonIdentifier, setPsPersonIdentifier] = useState('');
+  const [psEncounterIdentifier, setPsEncounterIdentifier] = useState('');
+  const [psAssumeWildcards, setPsAssumeWildcards] = useState(true);
+  
+  // Results states
+  const [psResults, setPsResults] = useState<any[]>([]);
+  const [psSelectedPersonIndex, setPsSelectedPersonIndex] = useState<number | null>(null);
+
+  // Ref to always capture the latest selectOrOpenTab function without re-registering event listener
+  const selectOrOpenTabRef = React.useRef(selectOrOpenTab);
+  React.useEffect(() => {
+    selectOrOpenTabRef.current = selectOrOpenTab;
+  }, [selectOrOpenTab]);
+
+  // Keyboard shortcut listener for F10 and Ctrl + S
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F10') {
+        e.preventDefault();
+        setShowPersonSearch(prev => !prev);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        selectOrOpenTabRef.current('RescheduleRequests', 'Appointment Reschedule Requests', 'reschedule-requests-tab');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handlePsSearch = () => {
+    let filtered = [...patientDirectoryData];
+    if (psLastName) {
+      filtered = filtered.filter(p => p.name.toLowerCase().includes(psLastName.toLowerCase()));
+    }
+    if (psFirstName) {
+      filtered = filtered.filter(p => p.name.toLowerCase().includes(psFirstName.toLowerCase()));
+    }
+    if (psBirthDate) {
+      filtered = filtered.filter(p => p.dob.includes(psBirthDate));
+    }
+    if (psPhoneNumber) {
+      filtered = filtered.filter(p => p.phone.includes(psPhoneNumber));
+    }
+    if (psPersonIdentifier) {
+      filtered = filtered.filter(p => p.mrn.includes(psPersonIdentifier) || p.uhid.includes(psPersonIdentifier));
+    }
+    setPsResults(filtered);
+    setPsSelectedPersonIndex(filtered.length > 0 ? 0 : null);
+  };
+
+  const handlePsClear = () => {
+    setPsLastName('');
+    setPsFirstName('');
+    setPsBirthDate('');
+    setPsPhoneNumber('');
+    setPsPersonIdentifier('');
+    setPsEncounterIdentifier('');
+    setPsResults([]);
+    setPsSelectedPersonIndex(null);
+  };
+
+  const psMockEncounters: Record<string, any[]> = {
+    '1000245678': [
+      { encounter: 'ENC-40291', facility: 'AxioVital Main Campus', type: 'Inpatient', dateOfService: '28/05/2025', resource: 'Dr. R. Sharma (Cardiology)', guarantor: 'Self Pay', dischargeDate: '—' },
+      { encounter: 'ENC-39810', facility: 'AxioVital Main Campus', type: 'Outpatient', dateOfService: '12/04/2025', resource: 'Dr. R. Sharma (Cardiology)', guarantor: 'Blue Cross / Blue Shield', dischargeDate: '12/04/2025' }
+    ],
+    '1000245679': [
+      { encounter: 'ENC-40302', facility: 'AxioVital North Clinic', type: 'Inpatient', dateOfService: '28/05/2025', resource: 'Dr. P. Singh (Neurology)', guarantor: 'Medicare', dischargeDate: '—' }
+    ],
+    '1000245680': [
+      { encounter: 'ENC-40315', facility: 'AxioVital Main Campus', type: 'Outpatient', dateOfService: '28/05/2025', resource: 'Dr. K. Iyer (General Medicine)', guarantor: 'Aetna', dischargeDate: '28/05/2025' }
+    ]
+  };
+
+  const getSelectedPersonEncounters = () => {
+    if (psSelectedPersonIndex === null || !psResults[psSelectedPersonIndex]) return [];
+    const person = psResults[psSelectedPersonIndex];
+    return psMockEncounters[person.mrn] || [
+      { encounter: 'ENC-40112', facility: 'AxioVital Main Campus', type: person.visit || 'Outpatient', dateOfService: person.admitted?.split(' ')[0] || '28/05/2025', resource: person.physician || 'Dr. Herman Stewart', guarantor: 'Blue Cross / Blue Shield', dischargeDate: '—' }
+    ];
+  };
+
+  const handlePsSelect = () => {
+    if (psSelectedPersonIndex !== null && psResults[psSelectedPersonIndex]) {
+      setShowPersonSearch(false);
+      setShowPrescriptionRenewal(true);
+    }
+  };
+
+  if ((activeTab.type as string) === 'Home') {
+    return (
+      <div className="w-screen h-screen bg-[#f4f7f6] text-[#333333] text-[10.5px] font-sans flex flex-col select-none overflow-hidden">
+        {/* Header Banner */}
+        <div 
+          className="h-[36px] bg-gradient-to-r from-[#003366] via-[#005599] to-[#003366] text-white flex justify-between items-center px-3 select-none border-b border-[#002244]"
+          style={{ backgroundImage: 'linear-gradient(to right, #00305a 0%, #005aa7 50%, #00305a 100%)' }}
+        >
+          <span className="font-extrabold text-[13px] tracking-tight text-white flex items-center">
+            AxioVital Home Portal
+          </span>
+          <button 
+            onClick={() => selectOrOpenTab('PatientProfile', 'Patient Profile: JOHN DOE', 'patient-doe')}
+            className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold px-3 py-1 rounded-sm text-[10px] transition-colors"
+          >
+            ❮ Return to AxioVital
+          </button>
+        </div>
+
+        {/* Content Pane showing charts */}
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col min-h-0 select-text">
+          <div className="grid grid-cols-2 gap-4 max-w-[1400px] mx-auto w-full">
+            {[
+              { title: 'HTTP(S) DNS Lookup Time', key: 'dns', unit: 'ms', color: '#1070ca', fill: 'url(#colorDns)' },
+              { title: 'HTTP(S) Connection Duration', key: 'conn', unit: 'ms', color: '#005a9c', fill: 'url(#colorConn)' },
+              { title: 'HTTP(S) Secure Connection Duration', key: 'secure', unit: 'ms', color: '#0d7a86', fill: 'url(#colorSecure)' },
+              { title: 'HTTP(S) Request Duration', key: 'req', unit: 'ms', color: '#d14343', fill: 'url(#colorReq)' },
+              { title: 'HTTP(S) Response Duration', key: 'resp', unit: 'ms', color: '#e69800', fill: 'url(#colorResp)' },
+              { title: 'HTTP(S) Total Duration', key: 'total', unit: 'ms', color: '#6845a7', fill: 'url(#colorTotal)' },
+              { title: 'HTTP(S) Response Status Code', key: 'status', unit: 'count', color: '#32805b', fill: 'url(#colorStatus)' },
+              { title: 'HTTP(S) Success Rate', key: 'success', unit: '%', color: '#1d8c00', fill: 'url(#colorSuccess)' }
+            ].map((chart) => (
+              <div key={chart.key} className="bg-white border border-[#bdcddc] rounded-sm p-3 shadow-sm flex flex-col h-[280px]">
+                <div className="flex justify-between items-center border-b border-gray-150 pb-2 mb-2 select-none relative">
+                  <span className="font-bold text-[11px] text-[#2c3e50] flex items-center gap-1">
+                    {chart.title} <span className="text-gray-400 text-[10px] cursor-help">ⓘ</span>
+                  </span>
+                  <div>
+                    <button 
+                      onClick={() => setOpenDropdownChart(openDropdownChart === chart.key ? null : chart.key)}
+                      className="bg-gray-50 border border-gray-200 hover:bg-gray-100 text-[10px] text-gray-700 px-2 py-0.5 rounded-sm flex items-center gap-1 font-semibold"
+                    >
+                      {chartSelections[chart.key] || 'Quick View'} <span className="text-[8px] text-gray-400">▼</span>
+                    </button>
+                    {openDropdownChart === chart.key && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setOpenDropdownChart(null)} />
+                        <div className="absolute right-0 mt-1 bg-white border border-[#b0b0b0] text-[#333333] text-[11px] p-0 w-[200px] shadow-md rounded-none select-none z-50 max-h-[220px] overflow-y-auto">
+                          <div className="py-0.5">
+                            {CHART_OPTIONS.map((option) => (
+                              <div
+                                key={option}
+                                onClick={() => {
+                                  setChartSelections(prev => ({ ...prev, [chart.key]: option }));
+                                  setOpenDropdownChart(null);
+                                }}
+                                className={`px-3 py-1 cursor-pointer outline-none ${
+                                  (chartSelections[chart.key] || 'Quick View') === option 
+                                    ? 'bg-[#0f4471] text-white font-semibold' 
+                                    : 'hover:bg-[#0f4471] hover:text-white text-[#333333]'
+                                }`}
+                              >
+                                {option}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 text-[9.5px] text-gray-500 mb-2 select-none">
+                  <div>
+                    Interval: <span className="font-bold text-gray-700">1 minute ▾</span>
+                  </div>
+                  <div>
+                    Statistic: <span className="font-bold text-gray-700">Mean ▾</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={getChartDataForSelection(mockChartData, chartSelections[chart.key] || 'Quick View', chart.key)} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id={`color${chart.key.charAt(0).toUpperCase() + chart.key.slice(1)}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={chart.color} stopOpacity={0.15}/>
+                          <stop offset="95%" stopColor={chart.color} stopOpacity={0.01}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef0f2" />
+                      <XAxis dataKey="time" tick={{ fontSize: 9, fill: '#7f8c8d' }} stroke="#bdc3c7" tickLine={false} />
+                      <YAxis tick={{ fontSize: 9, fill: '#7f8c8d' }} stroke="#bdc3c7" tickLine={false} />
+                      <Tooltip contentStyle={{ fontSize: '10px' }} />
+                      <Area type="monotone" dataKey={chart.key} stroke={chart.color} strokeWidth={1.5} fill={chart.fill} dot={false} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (activeTab.type === 'DeveloperTools') {
     return (
       <div className="w-screen h-screen bg-[#fafbfc] text-[#333333] text-[10.5px] font-sans flex flex-col select-none overflow-hidden h-full">
@@ -314,9 +914,9 @@ export default function App() {
           style={{ backgroundImage: 'linear-gradient(to right, #00305a 0%, #005aa7 50%, #00305a 100%)' }}
         >
           <div className="flex items-center gap-2">
-            {/* Oracle WebCenter Content Logo text styling */}
+            {/* AxioVital Developer Panel Logo text styling */}
             <span className="font-extrabold text-[13px] tracking-tight text-white flex items-center">
-              <span className="text-[#ff0000] font-black mr-1 text-[14px]">ORACLE</span> WebCenter Content
+              AxioVital Developer Panel
             </span>
           </div>
           <div className="flex items-center gap-4 text-[10px]">
@@ -328,14 +928,6 @@ export default function App() {
               <span className="cursor-pointer hover:underline">Refresh Page</span>
             </div>
             
-            {/* Quick Search */}
-            <div className="flex items-center bg-white border border-[#555555] rounded-sm text-black h-[20px] px-1">
-              <select className="bg-transparent border-none text-[9.5px] font-semibold focus:outline-none pr-1">
-                <option>Quick Search</option>
-              </select>
-              <input type="text" className="bg-transparent border-none text-[10px] w-[140px] focus:outline-none px-1" placeholder="" />
-              <button className="text-blue-900 font-bold text-[12px] pl-1">▶</button>
-            </div>
           </div>
         </div>
 
@@ -349,102 +941,203 @@ export default function App() {
           </button>
           <div className="h-3 w-[1px] bg-gray-400 mx-1" />
           <button className="bg-white border-t border-x border-[#bdcddc] px-3 py-0.5 rounded-t-sm">Search</button>
-          <button className="hover:bg-[#cbd8e3] px-3 py-0.5">New Check-In</button>
         </div>
 
         <div className="flex-1 flex overflow-hidden">
           {/* Left Sidebar navigation panel */}
           <div className="w-[220px] bg-[#f0f4f8] border-r border-[#bdcddc] flex flex-col select-none text-[10.5px]">
             <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
-              <div className="p-1 space-y-1">
-                
+              
                 {/* My Content Server */}
-                <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]">
-                  <span>➕</span> <span>My Content Server</span>
+                <div 
+                  onClick={() => setDevSidebarExpanded(prev => ({ ...prev, MyContentServer: !prev.MyContentServer }))}
+                  className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]"
+                >
+                  <span>{devSidebarExpanded.MyContentServer ? '➖' : '➕'}</span> <span>My Content Server</span>
                 </div>
+                {devSidebarExpanded.MyContentServer && (
+                  <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under My Content Server</div>
+                )}
 
                 {/* Browse Content */}
-                <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]">
-                  <span>➕</span> <span>Browse Content</span>
+                <div 
+                  onClick={() => setDevSidebarExpanded(prev => ({ ...prev, BrowseContent: !prev.BrowseContent }))}
+                  className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]"
+                >
+                  <span>{devSidebarExpanded.BrowseContent ? '➖' : '➕'}</span> <span>Browse Content</span>
                 </div>
+                {devSidebarExpanded.BrowseContent && (
+                  <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under Browse Content</div>
+                )}
 
                 {/* Search */}
-                <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]">
-                  <span>➕</span> <span>Search</span>
+                <div 
+                  onClick={() => setDevSidebarExpanded(prev => ({ ...prev, Search: !prev.Search }))}
+                  className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]"
+                >
+                  <span>{devSidebarExpanded.Search ? '➖' : '➕'}</span> <span>Search</span>
                 </div>
+                {devSidebarExpanded.Search && (
+                  <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under Search</div>
+                )}
 
                 {/* Content Management */}
-                <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]">
-                  <span>➕</span> <span>Content Management</span>
+                <div 
+                  onClick={() => setDevSidebarExpanded(prev => ({ ...prev, ContentManagement: !prev.ContentManagement }))}
+                  className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer font-bold text-[#003366]"
+                >
+                  <span>{devSidebarExpanded.ContentManagement ? '➖' : '➕'}</span> <span>Content Management</span>
                 </div>
+                {devSidebarExpanded.ContentManagement && (
+                  <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under Content Management</div>
+                )}
 
                 {/* Administration */}
                 <div className="pt-1">
-                  <div className="flex items-center gap-1 p-1 font-bold text-[#003366]">
-                    <span>➖</span> <span>Administration</span>
+                  <div 
+                    onClick={() => setDevSidebarExpanded(prev => {
+                      const isClosing = prev.Administration;
+                      if (isClosing) {
+                        return {
+                          ...prev,
+                          Administration: false,
+                          LogFiles: false,
+                          RefineryAdministration: false,
+                          ScheduledJobsAdministration: false,
+                          AdminServer: false,
+                          FrameworkFolders: false,
+                          ImagingMigration: false,
+                          FoldersRetention: false,
+                          SmartContent: false,
+                          SiteStudio: false
+                        };
+                      }
+                      return {
+                        ...prev,
+                        Administration: true
+                      };
+                    })}
+                    className="flex items-center gap-1 p-1 font-bold text-[#003366] hover:bg-[#cbd8e3] rounded cursor-pointer"
+                  >
+                    <span>{devSidebarExpanded.Administration ? '➖' : '➕'}</span> <span>Administration</span>
                   </div>
                   
-                  <div className="pl-3 space-y-0.5 text-[#333333]">
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>➕</span> <span>Log Files</span>
-                    </div>
-
-                    <div className="pl-4 space-y-0.5 border-l border-gray-300">
-                      <div className="p-1 text-blue-900 font-bold bg-[#cbd8e3]/50 border-y border-[#bdcddc]/50">
-                        📄 Component Manager
+                  {devSidebarExpanded.Administration && (
+                    <div className="pl-3 space-y-0.5 text-[#333333]">
+                      <div 
+                        onClick={() => setDevSidebarExpanded(prev => ({ ...prev, LogFiles: !prev.LogFiles }))}
+                        className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer"
+                      >
+                        <span>{devSidebarExpanded.LogFiles ? '➖' : '➕'}</span> <span>Log Files</span>
                       </div>
-                      <div className="p-1 hover:text-blue-900 cursor-pointer">📄 General Configuration</div>
-                      <div className="p-1 hover:text-blue-900 cursor-pointer">📄 Content Security</div>
-                      <div className="p-1 hover:text-blue-900 cursor-pointer">📄 Internet Configuration</div>
-                    </div>
 
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>➕</span> <span>Refinery Administration</span>
-                    </div>
+                      {devSidebarExpanded.LogFiles && (
+                        <div className="pl-4 space-y-0.5 border-l border-gray-300">
+                          <div className="p-1 text-blue-900 font-bold bg-[#cbd8e3]/50 border-y border-[#bdcddc]/50">
+                            📄 Component Manager
+                          </div>
+                          <div className="p-1 hover:text-blue-900 cursor-pointer">📄 General Configuration</div>
+                          <div className="p-1 hover:text-blue-900 cursor-pointer">📄 Content Security</div>
+                          <div className="p-1 hover:text-blue-900 cursor-pointer">📄 Internet Configuration</div>
+                        </div>
+                      )}
 
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>➕</span> <span>Scheduled Jobs Administration</span>
-                    </div>
+                      <div 
+                        onClick={() => setDevSidebarExpanded(prev => ({ ...prev, RefineryAdministration: !prev.RefineryAdministration }))}
+                        className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer"
+                      >
+                        <span>{devSidebarExpanded.RefineryAdministration ? '➖' : '➕'}</span> <span>Refinery Administration</span>
+                      </div>
+                      {devSidebarExpanded.RefineryAdministration && (
+                        <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under Refinery Administration</div>
+                      )}
 
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>➕</span> <span>Admin Server</span>
-                    </div>
+                      <div 
+                        onClick={() => setDevSidebarExpanded(prev => ({ ...prev, ScheduledJobsAdministration: !prev.ScheduledJobsAdministration }))}
+                        className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer"
+                      >
+                        <span>{devSidebarExpanded.ScheduledJobsAdministration ? '➖' : '➕'}</span> <span>Scheduled Jobs Administration</span>
+                      </div>
+                      {devSidebarExpanded.ScheduledJobsAdministration && (
+                        <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under Scheduled Jobs</div>
+                      )}
 
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>📄</span> <span>Environment Packager</span>
-                    </div>
+                      <div 
+                        onClick={() => setDevSidebarExpanded(prev => ({ ...prev, AdminServer: !prev.AdminServer }))}
+                        className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer"
+                      >
+                        <span>{devSidebarExpanded.AdminServer ? '➖' : '➕'}</span> <span>Admin Server</span>
+                      </div>
+                      {devSidebarExpanded.AdminServer && (
+                        <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under Admin Server</div>
+                      )}
 
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>📄</span> <span>Localization</span>
-                    </div>
+                      <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                        <span>📄</span> <span>Environment Packager</span>
+                      </div>
 
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>📄</span> <span>DataStoreDesign SQL Generation</span>
-                    </div>
+                      <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                        <span>📄</span> <span>Localization</span>
+                      </div>
 
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>➕</span> <span>FrameworkFolders Configuration</span>
-                    </div>
+                      <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
+                        <span>📄</span> <span>DataStoreDesign SQL Generation</span>
+                      </div>
 
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>➕</span> <span>Imaging Migration Administration</span>
-                    </div>
+                      <div 
+                        onClick={() => setDevSidebarExpanded(prev => ({ ...prev, FrameworkFolders: !prev.FrameworkFolders }))}
+                        className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer"
+                      >
+                        <span>{devSidebarExpanded.FrameworkFolders ? '➖' : '➕'}</span> <span>FrameworkFolders Configuration</span>
+                      </div>
+                      {devSidebarExpanded.FrameworkFolders && (
+                        <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under FrameworkFolders</div>
+                      )}
 
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>➕</span> <span>Folders Retention Administration</span>
-                    </div>
+                      <div 
+                        onClick={() => setDevSidebarExpanded(prev => ({ ...prev, ImagingMigration: !prev.ImagingMigration }))}
+                        className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer"
+                      >
+                        <span>{devSidebarExpanded.ImagingMigration ? '➖' : '➕'}</span> <span>Imaging Migration Administration</span>
+                      </div>
+                      {devSidebarExpanded.ImagingMigration && (
+                        <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under Imaging Migration</div>
+                      )}
 
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>➕</span> <span>SmartContent</span>
-                    </div>
+                      <div 
+                        onClick={() => setDevSidebarExpanded(prev => ({ ...prev, FoldersRetention: !prev.FoldersRetention }))}
+                        className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer"
+                      >
+                        <span>{devSidebarExpanded.FoldersRetention ? '➖' : '➕'}</span> <span>Folders Retention Administration</span>
+                      </div>
+                      {devSidebarExpanded.FoldersRetention && (
+                        <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under Folders Retention</div>
+                      )}
 
-                    <div className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer">
-                      <span>➕</span> <span>Site Studio Administration</span>
+                      <div 
+                        onClick={() => setDevSidebarExpanded(prev => ({ ...prev, SmartContent: !prev.SmartContent }))}
+                        className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer"
+                      >
+                        <span>{devSidebarExpanded.SmartContent ? '➖' : '➕'}</span> <span>SmartContent</span>
+                      </div>
+                      {devSidebarExpanded.SmartContent && (
+                        <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under SmartContent</div>
+                      )}
+
+                      <div 
+                        onClick={() => setDevSidebarExpanded(prev => ({ ...prev, SiteStudio: !prev.SiteStudio }))}
+                        className="flex items-center gap-1 p-1 hover:bg-[#cbd8e3] rounded cursor-pointer"
+                      >
+                        <span>{devSidebarExpanded.SiteStudio ? '➖' : '➕'}</span> <span>Site Studio Administration</span>
+                      </div>
+                      {devSidebarExpanded.SiteStudio && (
+                        <div className="pl-4 text-gray-500 italic text-[9.5px]">No items under Site Studio</div>
+                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
 
-              </div>
+              
             </div>
           </div>
 
@@ -543,18 +1236,22 @@ export default function App() {
 
       {/* Classic Menu Bar */}
       <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-0.5 flex gap-3 text-[#2c3e50] text-[10.5px] items-center relative z-50">
-        {['Terminal', 'Session', 'View'].map((item) => (
-          <button key={item} className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors">
-            {item}
-          </button>
-        ))}
+        <button 
+          onClick={() => selectOrOpenTab('Home', 'Home', 'home-tab')}
+          className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold"
+        >
+          Home
+        </button>
+        <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors">
+          View
+        </button>
 
         {/* Patient Dropdown Trigger */}
         <div className="relative group">
           <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#002a46]">
             Patient
           </button>
-          <div className="absolute left-0 mt-0 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none z-50">
+          <div className="absolute left-0 top-full -mt-0.5 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none z-50">
             <div className="py-0.5">
               <div 
                 onClick={() => selectOrOpenTab('AdmitPatient', 'Admit Patient', 'admit-patient-tab')} 
@@ -592,7 +1289,7 @@ export default function App() {
           <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#002a46]">
             Clinical
           </button>
-          <div className="absolute left-0 mt-0 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none overflow-y-auto max-h-[85vh] scrollbar-none z-50">
+          <div className="absolute left-0 top-full -mt-0.5 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none overflow-y-auto max-h-[85vh] scrollbar-none z-50">
             <style dangerouslySetInnerHTML={{__html: `
               .scrollbar-none::-webkit-scrollbar { display: none; }
             `}} />
@@ -658,14 +1355,32 @@ export default function App() {
           Notifications
         </button>
 
-        <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors">Admin</button>
+        {/* Admin Dropdown Trigger */}
+        <div className="relative group">
+          <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#002a46]">
+            Admin
+          </button>
+          <div className="absolute left-0 top-full -mt-0.5 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none z-50">
+            <div className="py-0.5">
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Command Center</div>
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Organization</div>
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">User Management</div>
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Workforce</div>
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Operations</div>
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Finance</div>
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Security</div>
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Compliance</div>
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">AI Administration</div>
+            </div>
+          </div>
+        </div>
         
         {/* Help Dropdown Trigger */}
         <div className="relative group">
           <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#002a46]">
             Help
           </button>
-          <div className="absolute right-0 mt-0 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none z-50">
+          <div className="absolute right-0 top-full -mt-0.5 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none z-50">
             <div className="py-0.5">
               <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Welcome</div>
               <div 
@@ -742,7 +1457,12 @@ export default function App() {
         </button>
         
         <button className="flex items-center gap-1 hover:text-black">Clinical Decision Support</button>
-        <button className="flex items-center gap-1 hover:text-black">Order Sets</button>
+        <button 
+          onClick={() => selectOrOpenTab('Orders', 'Orders', 'orders-tab')}
+          className="flex items-center gap-1 hover:text-black font-semibold text-[#002a46]"
+        >
+          Order Sets
+        </button>
         <button className="flex items-center gap-1 hover:text-black">Care Pathways</button>
         <button className="flex items-center gap-1 hover:text-black">Labs</button>
         <button className="flex items-center gap-1 hover:text-black">Imaging</button>
@@ -770,6 +1490,8 @@ export default function App() {
           {activeTab.type === 'AdmitPatient' && 'Admit Patient'}
           {activeTab.type === 'ReferralTransfer' && 'Referral & Transfer Management'}
           {activeTab.type === 'DischargeList' && 'Patient Discharge List'}
+          {activeTab.type === 'Orders' && 'Orders'}
+          {(activeTab.type as string) === 'Home' && 'Home'}
           {(activeTab.type as string) === 'DeveloperTools' && 'Developer Configuration & System Administration'}
         </span>
         
@@ -1020,6 +1742,7 @@ export default function App() {
 
         {/* Workspace content matching the active Chrome tab type */}
         <div className="flex flex-1 overflow-hidden bg-[#fafbfc]">
+
           {activeTab.type === 'MessageCenter' && (
             <div className="flex flex-1 overflow-hidden">
               {/* Left pane: Navigation menu */}
@@ -4276,6 +4999,65 @@ export default function App() {
             </div>
           )}
 
+          {activeTab.type === 'Orders' && (
+            <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-[#f8f9fa] text-[10.5px] select-text h-full flex flex-col min-h-0">
+              
+
+              {/* Main Table Container */}
+              <div className="flex-1 min-h-0 bg-white border border-[#bdcddc] rounded-sm overflow-hidden flex flex-col shadow-sm">
+                <div className="flex-1 overflow-auto">
+                  <table className="w-full text-left border-collapse text-[10.5px]">
+                    <thead>
+                      <tr className="bg-[#f0f4f8] text-gray-700 border-b border-gray-300 sticky top-0 font-bold select-none text-[10.5px]">
+                        <th className="p-2 border-r border-gray-200">Patient Name</th>
+                        <th className="p-2 border-r border-gray-200">Order/Plan Name</th>
+                        <th className="p-2 border-r border-gray-200">Order Action</th>
+                        <th className="p-2 border-r border-gray-200">Details</th>
+                        <th className="p-2 border-r border-gray-200">Details</th>
+                        <th className="p-2 border-r border-gray-200">Order Comment</th>
+                        <th className="p-2 border-r border-gray-200">Originator Name</th>
+                        <th className="p-2 border-r border-gray-200">Create Date</th>
+                        <th className="p-2 border-r border-gray-200">Stop Date</th>
+                        <th className="p-2 border-r border-gray-200">Stop Type</th>
+                        <th className="p-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-150 text-black">
+                      {mockOrdersData.map((order, idx) => (
+                        <tr 
+                          key={idx} 
+                          className="hover:bg-blue-50/30 transition-colors border-b border-gray-100"
+                        >
+                          <td 
+                            className="p-2 border-r border-gray-100 font-bold text-[#0d7a86] cursor-pointer hover:underline" 
+                            onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${order.patientName.toUpperCase()}`, 'patient-doe')}
+                          >
+                            {order.patientName}
+                          </td>
+                          <td className="p-2 border-r border-gray-100 text-blue-900 font-bold">{order.orderPlanName}</td>
+                          <td className="p-2 border-r border-gray-100">{order.action}</td>
+                          <td className="p-2 border-r border-gray-100 text-gray-600">{order.detailsDate}...</td>
+                          <td className="p-2 border-r border-gray-100 text-gray-700 font-medium">{order.detailsDesc}</td>
+                          <td className="p-2 border-r border-gray-100 text-gray-500">{order.comment}</td>
+                          <td className="p-2 border-r border-gray-100 text-gray-600">{order.originator}</td>
+                          <td className="p-2 border-r border-gray-100 font-mono text-gray-600">{order.createDate}</td>
+                          <td className="p-2 border-r border-gray-100 font-mono text-gray-600">{order.stopDate}</td>
+                          <td className="p-2 border-r border-gray-100">{order.stopType}</td>
+                          <td className="p-2">
+                            <span className="px-2 py-0.5 rounded-sm font-bold text-[9px] bg-green-50 text-green-700 border border-green-200">
+                              {order.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          )}
+
           {(activeTab.type as string) === 'DeveloperTools' && (
             <div className="flex-1 overflow-hidden bg-[#fafbfc] text-[#333333] text-[11px] flex select-none">
               {/* Left sidebar admin options list */}
@@ -4652,6 +5434,451 @@ export default function App() {
                 className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-4 py-1.5 rounded shadow-sm transition-all"
               >
                 Review & Confirm →
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Person Search Modal Overlay */}
+      {showPersonSearch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs select-none">
+          <div className="bg-[#f0f0f0] w-[1050px] h-[650px] rounded shadow-2xl border border-gray-400 flex flex-col overflow-hidden text-[10.5px] font-sans text-[#333333]">
+            
+            {/* Title Bar */}
+            <div className="bg-[#f2b744] text-black px-3 py-1 flex justify-between items-center border-b border-[#c89228] select-none shrink-0 h-[28px]">
+              <div className="flex items-center gap-1.5 font-bold">
+                <span className="text-[12px]">👥</span>
+                <span>Person Search</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button className="hover:bg-black/10 w-5 h-5 flex items-center justify-center rounded-sm font-bold text-[10px]">—</button>
+                <button className="hover:bg-black/10 w-5 h-5 flex items-center justify-center rounded-sm font-bold text-[10px]">⬜</button>
+                <button 
+                  onClick={() => setShowPersonSearch(false)}
+                  className="hover:bg-red-600 hover:text-white w-5 h-5 flex items-center justify-center rounded-sm font-bold text-[11px]"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Tab Bar */}
+            <div className="bg-[#e4e4e4] px-2 pt-1 flex gap-1 border-b border-gray-300 shrink-0 select-none">
+              <button 
+                onClick={() => setPsActiveTab('Person')}
+                className={`px-4 py-1.5 border-t border-x rounded-t-sm font-semibold transition-all ${
+                  psActiveTab === 'Person'
+                    ? 'bg-[#f0f0f0] border-gray-300 border-b-[#f0f0f0] text-black'
+                    : 'bg-[#d8d8d8] border-transparent border-b-gray-300 hover:bg-[#dfdfdf] text-gray-700'
+                }`}
+              >
+                Person
+              </button>
+              <button 
+                onClick={() => setPsActiveTab('Guarantor')}
+                className={`px-4 py-1.5 border-t border-x rounded-t-sm font-semibold transition-all ${
+                  psActiveTab === 'Guarantor'
+                    ? 'bg-[#f0f0f0] border-gray-300 border-b-[#f0f0f0] text-black'
+                    : 'bg-[#d8d8d8] border-transparent border-b-gray-300 hover:bg-[#dfdfdf] text-gray-700'
+                }`}
+              >
+                Guarantor
+              </button>
+            </div>
+
+            {/* Info Message Bar */}
+            <div className="bg-[#ebf3fc] border-b border-gray-300 px-3 py-2 flex justify-between items-center text-[#0f4471] font-medium shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] bg-blue-100 text-blue-800 rounded-full w-4 h-4 flex items-center justify-center font-bold">i</span>
+                <span>Turning on the Assume Wildcards setting will reduce search strength.</span>
+              </div>
+              <button className="text-gray-400 hover:text-gray-600 text-[12px]">⛶</button>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 flex overflow-hidden bg-[#f0f0f0]">
+              
+              {/* Left Pane (Search Form) */}
+              <div className="w-[280px] border-r border-gray-300 p-3 flex flex-col justify-between shrink-0 bg-[#f0f0f0]">
+                <div className="space-y-2.5">
+                  <div className="space-y-0.5">
+                    <label className="font-semibold text-gray-700">Last Name</label>
+                    <input 
+                      type="text" 
+                      value={psLastName}
+                      onChange={(e) => setPsLastName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
+                      className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
+                    />
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <label className="font-semibold text-gray-700">First Name</label>
+                    <input 
+                      type="text" 
+                      value={psFirstName}
+                      onChange={(e) => setPsFirstName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
+                      className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
+                    />
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <label className="font-semibold text-gray-700">Birth Date</label>
+                    <div className="flex gap-1">
+                      <input 
+                        type="text" 
+                        value={psBirthDate}
+                        placeholder="DD/MM/YYYY"
+                        onChange={(e) => setPsBirthDate(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
+                        className="flex-1 bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
+                      />
+                      <button className="bg-white border border-gray-300 hover:bg-gray-50 px-2 rounded-sm text-[11px] font-bold text-gray-600">📅</button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <label className="font-semibold text-gray-700">Any Phone Number</label>
+                    <input 
+                      type="text" 
+                      value={psPhoneNumber}
+                      onChange={(e) => setPsPhoneNumber(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
+                      className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
+                    />
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <label className="font-semibold text-gray-700">Person Identifiers</label>
+                    <input 
+                      type="text" 
+                      value={psPersonIdentifier}
+                      onChange={(e) => setPsPersonIdentifier(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
+                      className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
+                    />
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <label className="font-semibold text-gray-700">Encounter Identifiers</label>
+                    <input 
+                      type="text" 
+                      value={psEncounterIdentifier}
+                      onChange={(e) => setPsEncounterIdentifier(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
+                      className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-4 select-none">
+                  <button 
+                    onClick={handlePsSearch}
+                    className="flex-1 bg-white hover:bg-gray-50 border border-gray-300 active:bg-gray-100 text-black font-semibold py-1.5 rounded-sm shadow-xs text-[11px] transition-all"
+                  >
+                    Search...
+                  </button>
+                  <button 
+                    onClick={handlePsClear}
+                    className="bg-white hover:bg-gray-50 border border-gray-300 active:bg-gray-100 text-gray-700 font-semibold py-1.5 px-4 rounded-sm shadow-xs text-[11px] transition-all"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Pane (Results Tables) */}
+              <div className="flex-1 p-3 flex flex-col gap-3 min-w-0 bg-[#f0f0f0]">
+                
+                {/* Upper Table (Person List) */}
+                <div className="flex-1 flex flex-col min-h-0 bg-white border border-gray-300 rounded-sm overflow-hidden">
+                  
+                  {/* Table Header Controls */}
+                  <div className="bg-[#fafafa] border-b border-gray-300 px-2 py-1 flex justify-between items-center text-[10px] font-bold text-gray-600 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#0f4471]">Person</span>
+                      <button 
+                        onClick={() => {
+                          selectOrOpenTab('AdmitPatient', 'Admit Patient', 'admit-patient-tab');
+                          setShowPersonSearch(false);
+                        }}
+                        className="hover:text-blue-900 flex items-center gap-0.5"
+                      >
+                        <span>➕</span> Add
+                      </button>
+                      <button className="hover:text-blue-900 flex items-center gap-0.5"><span>🔍</span> Preview</button>
+                    </div>
+                    <button className="text-blue-800 hover:underline">Preferences</button>
+                  </div>
+
+                  {/* Results Grid */}
+                  <div className="flex-1 overflow-auto">
+                    <table className="w-full text-left border-collapse text-[10.5px]">
+                      <thead>
+                        <tr className="bg-[#f0f4f8] text-gray-700 border-b border-gray-300 sticky top-0 font-bold select-none">
+                          <th className="p-1.5 border-r border-gray-200">Name</th>
+                          <th className="p-1.5 border-r border-gray-200">MRN</th>
+                          <th className="p-1.5 border-r border-gray-200">Date of Birth</th>
+                          <th className="p-1.5 border-r border-gray-200">Sex</th>
+                          <th className="p-1.5 border-r border-gray-200">Age</th>
+                          <th className="p-1.5 border-r border-gray-200">Account Number</th>
+                          <th className="p-1.5">Address</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 text-black">
+                        {psResults.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-4 text-center text-gray-400 italic">No search results. Enter parameters and click Search...</td>
+                          </tr>
+                        ) : (
+                          psResults.map((p, idx) => (
+                            <tr 
+                              key={p.mrn}
+                              onClick={() => setPsSelectedPersonIndex(idx)}
+                              onDoubleClick={handlePsSelect}
+                              className={`cursor-pointer transition-colors ${
+                                psSelectedPersonIndex === idx 
+                                  ? 'bg-[#0f4471] text-white hover:bg-[#0c3a61]' 
+                                  : 'hover:bg-blue-50/50'
+                              }`}
+                            >
+                              <td className="p-1.5 border-r border-gray-200 truncate max-w-[150px]">{p.name}</td>
+                              <td className="p-1.5 border-r border-gray-200 font-mono font-semibold">{p.mrn}</td>
+                              <td className="p-1.5 border-r border-gray-200">{p.dob}</td>
+                              <td className="p-1.5 border-r border-gray-200">{p.ageGender?.split(' / ')[1] || 'Male'}</td>
+                              <td className="p-1.5 border-r border-gray-200">{p.ageGender?.split(' / ')[0] || '45 Y'}</td>
+                              <td className="p-1.5 border-r border-gray-200 font-mono text-gray-500">{p.uhid}</td>
+                              <td className="p-1.5 truncate max-w-[200px]">{p.location || '—'}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Lower Table (Encounter List) */}
+                <div className="flex-1 flex flex-col min-h-0 bg-white border border-gray-300 rounded-sm overflow-hidden">
+                  <div className="bg-[#fafafa] border-b border-gray-300 px-2 py-1 flex items-center text-[10px] font-bold text-gray-600 shrink-0">
+                    <span className="text-[#0f4471]">Encounter</span>
+                  </div>
+
+                  <div className="flex-1 overflow-auto">
+                    <table className="w-full text-left border-collapse text-[10.5px]">
+                      <thead>
+                        <tr className="bg-[#f0f4f8] text-gray-700 border-b border-gray-300 sticky top-0 font-bold select-none">
+                          <th className="p-1.5 border-r border-gray-200">Encounter</th>
+                          <th className="p-1.5 border-r border-gray-200">Facility</th>
+                          <th className="p-1.5 border-r border-gray-200">Encounter Type</th>
+                          <th className="p-1.5 border-r border-gray-200">Date of Service</th>
+                          <th className="p-1.5 border-r border-gray-200">Resource</th>
+                          <th className="p-1.5 border-r border-gray-200">Guarantor</th>
+                          <th className="p-1.5">Discharge Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 text-black">
+                        {psSelectedPersonIndex === null || psResults.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-4 text-center text-gray-400 italic">Select a person to view encounters.</td>
+                          </tr>
+                        ) : (
+                          getSelectedPersonEncounters().map((enc, idx) => (
+                            <tr key={idx} className="hover:bg-gray-50/50">
+                              <td className="p-1.5 border-r border-gray-200 font-mono font-bold text-blue-900">{enc.encounter}</td>
+                              <td className="p-1.5 border-r border-gray-200">{enc.facility}</td>
+                              <td className="p-1.5 border-r border-gray-200">{enc.type}</td>
+                              <td className="p-1.5 border-r border-gray-200">{enc.dateOfService}</td>
+                              <td className="p-1.5 border-r border-gray-200">{enc.resource}</td>
+                              <td className="p-1.5 border-r border-gray-200">{enc.guarantor}</td>
+                              <td className="p-1.5">{enc.dischargeDate}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Bottom Actions Bar */}
+            <div className="bg-[#cbd8e3]/40 border-t border-gray-300 p-2.5 flex justify-between items-center select-none shrink-0">
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-1.5 font-semibold text-gray-700 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={psAssumeWildcards}
+                    onChange={(e) => setPsAssumeWildcards(e.target.checked)}
+                    className="rounded-sm w-3.5 h-3.5 border-gray-300 text-[#0f4471] focus:ring-[#0f4471]" 
+                  />
+                  <span>Assume Wildcards</span>
+                </label>
+              </div>
+
+              <div className="flex gap-2">
+                <button 
+                  onClick={handlePsSelect}
+                  disabled={psSelectedPersonIndex === null}
+                  className={`font-semibold py-1 px-5 rounded-sm border shadow-xs text-[11px] transition-all ${
+                    psSelectedPersonIndex === null
+                      ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-white hover:bg-gray-50 border-gray-300 text-black active:bg-gray-100'
+                  }`}
+                >
+                  Select
+                </button>
+                <button 
+                  onClick={() => setShowPersonSearch(false)}
+                  className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-semibold py-1 px-5 rounded-sm shadow-xs text-[11px] transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Prescription Renewal Modal Overlay */}
+      {showPrescriptionRenewal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs select-none">
+          <div className="bg-white w-[900px] h-[600px] rounded shadow-2xl border border-gray-400 flex flex-col overflow-hidden text-[11px] font-sans text-[#333333]">
+            
+            {/* Title Bar */}
+            <div className="bg-[#0f4471] text-white px-3 py-1.5 flex justify-between items-center border-b border-[#0d3455] select-none shrink-0 h-[32px]">
+              <div className="flex items-center gap-1.5 font-bold">
+                <span className="text-[12px]">📄</span>
+                <span>Prescription Renewal</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => setShowPrescriptionRenewal(false)}
+                  className="hover:bg-red-600 hover:text-white w-5 h-5 flex items-center justify-center rounded-sm font-bold text-[11px]"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 select-text">
+              
+              {/* Main Heading */}
+              <div className="border-b border-gray-300 pb-1.5 mb-4">
+                <h1 className="text-[18px] font-bold text-gray-900 font-sans tracking-wide">Prescription Renewal</h1>
+              </div>
+
+              {/* To field */}
+              <div className="flex items-center gap-4 text-gray-800 text-[11px] font-medium mb-3">
+                <span className="w-10 text-gray-500 text-right">To</span>
+                <input 
+                  type="text" 
+                  value={prescriptionSearchTo}
+                  onChange={(e) => setPrescriptionSearchTo(e.target.value)}
+                  placeholder="Search" 
+                  className="border border-gray-300 rounded px-2 py-1 w-[400px] focus:outline-none focus:border-blue-500 bg-white"
+                />
+              </div>
+
+              {/* Messaging Policies Alert Box */}
+              <div className="bg-[#eef5fc] border border-[#a2c5eb] text-gray-800 rounded p-4 space-y-1">
+                <div className="font-bold text-[12px]">
+                  Messaging Policies <span className="text-blue-700 hover:underline cursor-pointer">(show details)</span>
+                </div>
+                <div>Do not use messaging for urgent matters.</div>
+                <div>Normal turn-around time is one business day.</div>
+              </div>
+
+              {/* fieldset Prescription(s) to be Renewed */}
+              <div className="border border-gray-300 rounded p-4 relative pt-5 mt-5">
+                <span className="absolute -top-2.5 left-4 bg-white px-2 text-[#0f4471] font-semibold text-[11px] border border-gray-200 shadow-2xs rounded-sm">
+                  Prescription(s) to be Renewed
+                </span>
+
+                <div className="space-y-4">
+                  {/* Note block */}
+                  <div className="bg-[#f5f5f5] border border-gray-300 p-3 rounded text-gray-700 leading-relaxed">
+                    <div>To renew a prescription, enter the medication information below.</div>
+                    <div className="text-gray-500 font-medium">(To enter multiple prescriptions, click Add Another Prescription.)</div>
+                  </div>
+
+                  {/* Inputs Table */}
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-[2fr_1.2fr_1.2fr_2fr_1fr] gap-3 text-gray-600 font-bold uppercase tracking-wider text-[9px] select-none pl-1">
+                      <div>*Medication</div>
+                      <div>Dose</div>
+                      <div>Frequency</div>
+                      <div>Reason</div>
+                      <div>Quantity</div>
+                    </div>
+
+                    <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                      {prescriptions.map((p, idx) => (
+                        <div key={idx} className="grid grid-cols-[2fr_1.2fr_1.2fr_2fr_1fr] gap-3">
+                          <input 
+                            type="text" 
+                            value={p.medication}
+                            onChange={(e) => updatePrescriptionRow(idx, 'medication', e.target.value)}
+                            className="border border-gray-300 rounded px-2 py-1 w-full focus:outline-none focus:border-blue-500 bg-white"
+                          />
+                          <input 
+                            type="text" 
+                            value={p.dose}
+                            onChange={(e) => updatePrescriptionRow(idx, 'dose', e.target.value)}
+                            className="border border-gray-300 rounded px-2 py-1 w-full focus:outline-none focus:border-blue-500 bg-white"
+                          />
+                          <input 
+                            type="text" 
+                            value={p.frequency}
+                            onChange={(e) => updatePrescriptionRow(idx, 'frequency', e.target.value)}
+                            className="border border-gray-300 rounded px-2 py-1 w-full focus:outline-none focus:border-blue-500 bg-white"
+                          />
+                          <input 
+                            type="text" 
+                            value={p.reason}
+                            onChange={(e) => updatePrescriptionRow(idx, 'reason', e.target.value)}
+                            className="border border-gray-300 rounded px-2 py-1 w-full focus:outline-none focus:border-blue-500 bg-white"
+                          />
+                          <input 
+                            type="text" 
+                            value={p.quantity}
+                            onChange={(e) => updatePrescriptionRow(idx, 'quantity', e.target.value)}
+                            className="border border-gray-300 rounded px-2 py-1 w-full focus:outline-none focus:border-blue-500 bg-white"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Add Another Prescription Button */}
+                  <button 
+                    onClick={addPrescriptionRow}
+                    className="border border-gray-400 bg-gradient-to-b from-gray-50 to-gray-200 hover:from-gray-100 hover:to-gray-300 text-gray-800 px-3 py-1 font-semibold rounded shadow-2xs active:from-gray-200 active:to-gray-100 transition-all text-[10.5px]"
+                  >
+                    Add Another Prescription
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Actions Bar */}
+            <div className="bg-[#cbd8e3]/45 border-t border-gray-300 p-2.5 flex justify-end gap-2 select-none shrink-0">
+              <button 
+                onClick={handlePrescriptionSubmit}
+                className="bg-white hover:bg-gray-50 border border-gray-300 text-[#0f4471] font-bold py-1 px-5 rounded-sm shadow-xs text-[11px] transition-all"
+              >
+                Submit Request
+              </button>
+              <button 
+                onClick={() => setShowPrescriptionRenewal(false)}
+                className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-semibold py-1 px-5 rounded-sm shadow-xs text-[11px] transition-all"
+              >
+                Cancel
               </button>
             </div>
 
