@@ -102,7 +102,6 @@ const getChartDataForSelection = (baseData: any[], selection: string, chartKey: 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
-  const [employeeId, setEmployeeId] = useState('PROD');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -271,8 +270,8 @@ export default function App() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !employeeId) {
-      setLoginError('Please enter both ID and password.');
+    if (!email || !password) {
+      setLoginError('Please enter both email and password.');
       return;
     }
     setLoginError('');
@@ -717,6 +716,30 @@ export default function App() {
   // Results states
   const [psResults, setPsResults] = useState<any[]>([]);
   const [psSelectedPersonIndex, setPsSelectedPersonIndex] = useState<number | null>(null);
+  const [psContextMenu, setPsContextMenu] = useState<{ x: number, y: number, visible: boolean, personIndex: number | null }>({ x: 0, y: 0, visible: false, personIndex: null });
+  
+  // Draggable Person Search modal state
+  const [psModalPos, setPsModalPos] = useState<{ x: number, y: number }>({ x: -1, y: -1 });
+  const psDragRef = React.useRef<{ isDragging: boolean, startX: number, startY: number, origX: number, origY: number }>({ isDragging: false, startX: 0, startY: 0, origX: 0, origY: 0 });
+
+  const handlePsDragStart = (e: React.MouseEvent) => {
+    const pos = psModalPos.x === -1 ? { x: (window.innerWidth - 1050) / 2, y: (window.innerHeight - 650) / 2 } : psModalPos;
+    psDragRef.current = { isDragging: true, startX: e.clientX, startY: e.clientY, origX: pos.x, origY: pos.y };
+    
+    const handleMouseMove = (ev: MouseEvent) => {
+      if (!psDragRef.current.isDragging) return;
+      const dx = ev.clientX - psDragRef.current.startX;
+      const dy = ev.clientY - psDragRef.current.startY;
+      setPsModalPos({ x: psDragRef.current.origX + dx, y: psDragRef.current.origY + dy });
+    };
+    const handleMouseUp = () => {
+      psDragRef.current.isDragging = false;
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
 
   // Ref to always capture the latest selectOrOpenTab function without re-registering event listener
   const selectOrOpenTabRef = React.useRef(selectOrOpenTab);
@@ -724,21 +747,78 @@ export default function App() {
     selectOrOpenTabRef.current = selectOrOpenTab;
   }, [selectOrOpenTab]);
 
-  // Keyboard shortcut listener for F10 and Ctrl + S
+  // Keyboard shortcut listener for function keys and global shortcuts
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // F1 → Home
+      if (e.key === 'F1') {
+        e.preventDefault();
+        selectOrOpenTabRef.current('Home', 'Home', 'home-tab');
+      }
+      // F2 → Appointment Reschedule page
+      if (e.key === 'F2') {
+        e.preventDefault();
+        selectOrOpenTabRef.current('RescheduleRequests', 'Appointment Reschedule Requests', 'reschedule-requests-tab');
+      }
+      // F3 → Orders List page
+      if (e.key === 'F3') {
+        e.preventDefault();
+        selectOrOpenTabRef.current('Orders', 'Orders', 'orders-tab');
+      }
+      // F9 → New Patient (Admit Patient) page
+      if (e.key === 'F9') {
+        e.preventDefault();
+        selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab');
+      }
+      // F10 → Toggle Person Search modal
       if (e.key === 'F10') {
         e.preventDefault();
         setShowPersonSearch(prev => !prev);
       }
+      // F12 → Toggle Developer Tools page
+      if (e.key === 'F12') {
+        e.preventDefault();
+        selectOrOpenTabRef.current('DeveloperTools', 'Developer Tools & System Settings', 'dev-tools-tab');
+      }
+      // ESC → Cancel / Close the topmost open modal or context menu
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        // Close context menu first
+        setPsContextMenu(prev => ({ ...prev, visible: false }));
+        // Close Person Search modal
+        if (showPersonSearch) {
+          setShowPersonSearch(false);
+          setPsModalPos({ x: -1, y: -1 });
+          return;
+        }
+        // Close Reschedule modal
+        if (showRescheduleModal) {
+          setShowRescheduleModal(false);
+          setSelectedRescheduleReq(null);
+          return;
+        }
+        // Close Prescription Renewal modal
+        if (showPrescriptionRenewal) {
+          setShowPrescriptionRenewal(false);
+          return;
+        }
+      }
+      // Ctrl+S → save shortcut (override browser default)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
         selectOrOpenTabRef.current('RescheduleRequests', 'Appointment Reschedule Requests', 'reschedule-requests-tab');
       }
     };
+    const handleCloseMenu = () => {
+      setPsContextMenu(prev => ({ ...prev, visible: false }));
+    };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+    window.addEventListener('click', handleCloseMenu);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('click', handleCloseMenu);
+    };
+  }, [showPersonSearch, showRescheduleModal, showPrescriptionRenewal]);
 
   const handlePsSearch = () => {
     let filtered = [...patientDirectoryData];
@@ -759,6 +839,17 @@ export default function App() {
     }
     setPsResults(filtered);
     setPsSelectedPersonIndex(filtered.length > 0 ? 0 : null);
+  };
+
+  const handlePsContextMenu = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    setPsSelectedPersonIndex(index);
+    setPsContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      visible: true,
+      personIndex: index
+    });
   };
 
   const handlePsClear = () => {
@@ -1218,16 +1309,22 @@ export default function App() {
 
   if (!isLoggedIn) {
     return (
-      <div className="w-screen h-screen bg-[#04608c] flex flex-col justify-between text-white font-sans overflow-hidden select-none relative">
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col items-center justify-center pt-8">
-          
+      <div className="w-screen h-screen bg-[#04608c] flex flex-col justify-between text-white font-sans overflow-hidden select-none relative p-8">
+        
+        {/* Top-Left Branding Header */}
+        <div className="flex items-center gap-2 select-none">
+          <svg className="w-6 h-6 text-white fill-current" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+          </svg>
+          <span className="text-xl font-bold tracking-tight text-white font-sans">AxioVital</span>
+        </div>
 
-
+        {/* Center Auth Panel */}
+        <div className="flex-1 flex flex-col items-center justify-center -mt-8">
           {/* Millennium Beveled Title */}
           <div className="mb-8 select-none text-center">
             <span 
-              className="text-[34px] font-bold tracking-normal font-sans"
+              className="text-[38px] font-bold tracking-normal font-sans"
               style={{
                 color: 'rgba(255, 255, 255, 0.45)',
                 textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
@@ -1238,16 +1335,16 @@ export default function App() {
             </span>
           </div>
 
-          {/* Login Form Panel */}
+          {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4 w-[280px]">
             {loginError && (
-              <div className="bg-red-900/50 border border-red-500 text-red-100 p-2 text-center text-[10px] mb-2 font-medium">
+              <div className="bg-red-950/40 border border-red-800 text-red-300 p-2 text-center text-[10px] mb-2 font-medium">
                 {loginError}
               </div>
             )}
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium tracking-wide block">Role :</label>
+              <label className="text-[11px] font-medium tracking-wide block">User Name :</label>
               <select 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -1279,27 +1376,45 @@ export default function App() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium tracking-wide block">Employee-ID :</label>
-              <input 
-                type="text" 
-                value={employeeId}
-                onChange={(e) => setEmployeeId(e.target.value)}
-                className="w-full h-[24px] border border-gray-400 bg-white text-black px-2 text-[11.5px] focus:outline-none rounded-none"
-              />
+              <label className="text-[11px] font-medium tracking-wide block">Domain :</label>
+              <select 
+                defaultValue="PRODX"
+                className="w-full h-[24px] border border-gray-400 bg-white text-black px-1.5 text-[11.5px] focus:outline-none rounded-none appearance-none"
+                style={{ 
+                  backgroundImage: 'url("data:image/svg+xml;utf8,<svg fill=\'black\' height=\'24\' viewBox=\'0 0 24 24\' width=\'24\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/><path d=\'M0 0h24v24H0z\' fill=\'none\'/></svg>")', 
+                  backgroundPosition: 'right 4px center', 
+                  backgroundRepeat: 'no-repeat', 
+                  backgroundSize: '16px' 
+                }}
+              >
+                <option value="PROD">PROD</option>
+                <option value="PRODX">PRODX</option>
+                <option value="TEST">TEST</option>
+              </select>
             </div>
 
             {/* Buttons Row */}
-            <div className="flex justify-between pt-3 gap-4">
+            <div className="flex justify-center gap-4 pt-3 select-none">
               <button 
                 type="submit"
-                className="flex-1 h-[25px] border border-gray-400 bg-gradient-to-b from-gray-50 to-gray-200 text-black font-semibold rounded-sm shadow-xs hover:from-gray-100 hover:to-gray-300 active:from-gray-200 active:to-gray-100 focus:outline-none text-[11px] transition-all"
+                className="w-[100px] h-[25px] border border-[#7f7f7f] bg-[#cccccc] hover:bg-[#d8d8d8] text-black font-medium shadow-sm active:bg-[#b8b8b8] focus:outline-none text-[11px] transition-all"
+                style={{
+                  borderWidth: '1.5px',
+                  borderStyle: 'outset',
+                  borderColor: '#eeeeee #555555 #555555 #eeeeee'
+                }}
               >
                 OK
               </button>
               <button 
                 type="button"
                 onClick={() => { setEmail(''); setPassword(''); setLoginError(''); }}
-                className="flex-1 h-[25px] border border-gray-400 bg-gradient-to-b from-gray-50 to-gray-200 text-black font-semibold rounded-sm shadow-xs hover:from-gray-100 hover:to-gray-300 active:from-gray-200 active:to-gray-100 focus:outline-none text-[11px] transition-all"
+                className="w-[100px] h-[25px] border border-[#7f7f7f] bg-[#cccccc] hover:bg-[#d8d8d8] text-black font-medium shadow-sm active:bg-[#b8b8b8] focus:outline-none text-[11px] transition-all"
+                style={{
+                  borderWidth: '1.5px',
+                  borderStyle: 'outset',
+                  borderColor: '#eeeeee #555555 #555555 #eeeeee'
+                }}
               >
                 Cancel
               </button>
@@ -1308,11 +1423,15 @@ export default function App() {
         </div>
 
         {/* Footer Area */}
-        <div className="p-5 text-[9.5px] text-gray-300/80 leading-relaxed font-sans shrink-0 border-t border-white/5 bg-black/10">
-          <div>© 2011 AxioVital Corporation. All rights reserved.</div>
-          <div className="mt-1">Access and use of this solution system (including components thereof) require, and are governed by, license(s) from AxioVital Corporation.</div>
-          <div className="mt-1">Unauthorized use, access, reproduction, display or distribution of any portion of this solution or the data contained therein may result in severe civil damages and criminal penalties. Further information may be found in Help About.</div>
+        <div className="w-full shrink-0 flex flex-col justify-end text-left select-none">
+          <div className="text-base font-bold text-white tracking-wide mb-1">Operating Environment</div>
+          <div className="text-[9.5px] text-gray-300/80 leading-relaxed font-sans">
+            <div>© 2026 AxioVital Corporation. All rights reserved.</div>
+            <div className="mt-0.5">Access and use of this solution system (including components thereof) require, and are governed by, license(s) from AxioVital Corporation.</div>
+            <div className="mt-0.5">Unauthorized use, access, reproduction, display or distribution of any portion of this solution or the data contained therein may result in severe civil damages and criminal penalties. Further information may be found in Help About.</div>
+          </div>
         </div>
+
       </div>
     );
   }
@@ -5545,11 +5664,21 @@ export default function App() {
 
       {/* Person Search Modal Overlay */}
       {showPersonSearch && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs select-none">
-          <div className="bg-[#f0f0f0] w-[1050px] h-[650px] rounded shadow-2xl border border-gray-400 flex flex-col overflow-hidden text-[10.5px] font-sans text-[#333333]">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs select-none">
+          <div 
+            className="bg-[#f0f0f0] w-[1050px] h-[650px] rounded shadow-2xl border border-gray-400 flex flex-col overflow-hidden text-[10.5px] font-sans text-[#333333] absolute"
+            style={{ 
+              top: psModalPos.x === -1 ? '50%' : psModalPos.y,
+              left: psModalPos.x === -1 ? '50%' : psModalPos.x,
+              transform: psModalPos.x === -1 ? 'translate(-50%, -50%)' : 'none',
+            }}
+          >
             
             {/* Title Bar */}
-            <div className="bg-[#f2b744] text-black px-3 py-1 flex justify-between items-center border-b border-[#c89228] select-none shrink-0 h-[28px]">
+            <div 
+              className="bg-[#f2b744] text-black px-3 py-1 flex justify-between items-center border-b border-[#c89228] select-none shrink-0 h-[28px] cursor-move"
+              onMouseDown={handlePsDragStart}
+            >
               <div className="flex items-center gap-1.5 font-bold">
                 <span className="text-[12px]">👥</span>
                 <span>Person Search</span>
@@ -5558,7 +5687,7 @@ export default function App() {
                 <button className="hover:bg-black/10 w-5 h-5 flex items-center justify-center rounded-sm font-bold text-[10px]">—</button>
                 <button className="hover:bg-black/10 w-5 h-5 flex items-center justify-center rounded-sm font-bold text-[10px]">⬜</button>
                 <button 
-                  onClick={() => setShowPersonSearch(false)}
+                  onClick={() => { setShowPersonSearch(false); setPsModalPos({ x: -1, y: -1 }); }}
                   className="hover:bg-red-600 hover:text-white w-5 h-5 flex items-center justify-center rounded-sm font-bold text-[11px]"
                 >
                   ✕
@@ -5741,6 +5870,7 @@ export default function App() {
                               key={p.mrn}
                               onClick={() => setPsSelectedPersonIndex(idx)}
                               onDoubleClick={handlePsSelect}
+                              onContextMenu={(e) => handlePsContextMenu(e, idx)}
                               className={`cursor-pointer transition-colors ${
                                 psSelectedPersonIndex === idx 
                                   ? 'bg-[#0f4471] text-white hover:bg-[#0c3a61]' 
@@ -5834,7 +5964,7 @@ export default function App() {
                   Select
                 </button>
                 <button 
-                  onClick={() => setShowPersonSearch(false)}
+                  onClick={() => { setShowPersonSearch(false); setPsModalPos({ x: -1, y: -1 }); }}
                   className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-semibold py-1 px-5 rounded-sm shadow-xs text-[11px] transition-all"
                 >
                   Cancel
@@ -5985,6 +6115,67 @@ export default function App() {
             </div>
 
           </div>
+        </div>
+      )}
+
+      {psContextMenu.visible && (
+        <div 
+          className="fixed z-[9999] bg-white border border-gray-300 py-1 shadow-lg text-[#333333] text-[11.5px] font-sans rounded-xs select-none w-auto"
+          style={{ 
+            top: psContextMenu.y, 
+            left: psContextMenu.x,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {[
+            { label: 'Confirm...', action: () => alert('Confirm clicked') },
+            { label: 'Contact...', action: () => alert('Contact clicked') },
+            { label: 'Modify...', action: () => alert('Modify clicked') },
+            { label: 'Reschedule', action: () => alert('Reschedule clicked') },
+            { label: 'Hold...', action: () => alert('Hold clicked') },
+            { label: 'Cancel...', action: () => alert('Cancel clicked') },
+            { label: 'No Show...', action: () => alert('No Show clicked') },
+            { divider: true },
+            { label: 'Check In...', action: () => alert('Check In clicked') },
+            { label: 'Check Out...', action: () => alert('Check Out clicked') },
+            { label: 'Patient Seen...', action: () => alert('Patient Seen clicked') },
+            { label: 'Batch Reschedule', action: () => alert('Batch Reschedule clicked') },
+            { divider: true },
+            { label: 'Group Info...', action: () => alert('Group Info clicked') },
+            { label: 'Verify...', action: () => alert('Verify clicked') },
+            { label: 'Med Nec Check...', action: () => alert('Med Nec Check clicked') },
+            { divider: true },
+            { label: 'Lock...', action: () => alert('Lock clicked') },
+            { label: 'Unlock...', action: () => alert('Unlock clicked') },
+            { label: 'Add New Appointment', action: () => alert('Add New Appointment clicked') },
+            { divider: true },
+            { label: 'Request', submenu: true },
+            { label: 'Inquiry', submenu: true },
+            { label: 'Notifications...', action: () => alert('Notifications clicked') },
+            { label: 'Superbill...', action: () => alert('Superbill clicked') },
+            { divider: true },
+            { label: 'Person', submenu: true },
+            { divider: true },
+            { label: 'Link...', submenu: true },
+            { label: 'Unlink...', action: () => alert('Unlink clicked') }
+          ].map((item, idx) => {
+            if (item.divider) {
+              return <div key={idx} className="border-t border-gray-200 my-1" />;
+            }
+            return (
+              <div 
+                key={idx}
+                onClick={() => {
+                  if (item.action) item.action();
+                  setPsContextMenu(prev => ({ ...prev, visible: false }));
+                }}
+                className="px-3 py-1 hover:bg-[#004b75] hover:text-white cursor-pointer flex justify-between items-center gap-4 transition-colors text-gray-800 text-[11.5px] whitespace-nowrap"
+              >
+                <span>{item.label}</span>
+                {item.submenu && <span className="text-[9px] text-gray-400">▶</span>}
+              </div>
+            );
+          })}
         </div>
       )}
 
