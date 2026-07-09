@@ -38,10 +38,8 @@ export function createMainWindow(): BrowserWindow {
     );
   }
 
-  // Open DevTools in development
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools();
-  }
+  // Open DevTools always so the user/developer can inspect the console log errors causing the white screen
+  mainWindow.webContents.openDevTools();
 
   return mainWindow;
 }
