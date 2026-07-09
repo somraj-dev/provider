@@ -1485,13 +1485,13 @@ export default function App() {
           Home
         </button>
         <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors">
-          View
+          Ledger
         </button>
 
         {/* Patient Dropdown Trigger */}
         <div className="relative group">
           <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#002a46]">
-            Patient
+            ambulatory
           </button>
           <div className="absolute left-0 top-full -mt-0.5 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none z-50">
             <div className="py-0.5">
