@@ -8,6 +8,8 @@ import path from 'path';
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 declare const MAIN_WINDOW_VITE_NAME: string;
+declare const MAIN_WINDOW_PRELOAD_VITE_ENTRY: string;
+
 
 export function createMainWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -17,7 +19,7 @@ export function createMainWindow(): BrowserWindow {
     minHeight: 680,
     title: 'AxioVital Provider',
     webPreferences: {
-      preload: path.join(__dirname, '..', 'preload', 'index.js'),
+      preload: typeof MAIN_WINDOW_PRELOAD_VITE_ENTRY !== 'undefined' ? MAIN_WINDOW_PRELOAD_VITE_ENTRY : path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
