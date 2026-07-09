@@ -34,7 +34,20 @@ function copyRecursive(src, dest) {
     if (entry.isDirectory()) {
       copyRecursive(srcPath, destPath);
     } else {
-      fs.copyFileSync(srcPath, destPath);
+      if (entry.name.endsWith('.html')) {
+        let content = fs.readFileSync(srcPath, 'utf8');
+        // Rewrite absolute links to next assets to make them relative for file:// protocol
+        content = content.replace(/(href|src)="\/_next\//g, '$1="_next/');
+        content = content.replace(/(href|src)="\/images\//g, '$1="images/');
+        content = content.replace(/url\("\/_next\//g, 'url("_next/');
+        fs.writeFileSync(destPath, content, 'utf8');
+      } else if (entry.name.endsWith('.js') || entry.name.endsWith('.css')) {
+        let content = fs.readFileSync(srcPath, 'utf8');
+        content = content.replace(/\/_next\//g, '_next/');
+        fs.writeFileSync(destPath, content, 'utf8');
+      } else {
+        fs.copyFileSync(srcPath, destPath);
+      }
     }
   }
 }

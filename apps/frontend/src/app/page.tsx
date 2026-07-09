@@ -712,6 +712,16 @@ export default function App() {
   const [psPersonIdentifier, setPsPersonIdentifier] = useState('');
   const [psEncounterIdentifier, setPsEncounterIdentifier] = useState('');
   const [psAssumeWildcards, setPsAssumeWildcards] = useState(true);
+  const [psAxioId, setPsAxioId] = useState('');
+  const [psTokenNumber, setPsTokenNumber] = useState('');
+  const [psSearchMethod, setPsSearchMethod] = useState<'Name' | 'AxioID' | 'TokenNumber' | 'MRN'>('Name');
+  const [psShowSettings, setPsShowSettings] = useState(false);
+  // Settings customization options
+  const [psSettingsAutoWildcard, setPsSettingsAutoWildcard] = useState(true);
+  const [psSettingsMaxResults, setPsSettingsMaxResults] = useState<'25' | '50' | '100' | 'All'>('50');
+  const [psSettingsShowInactive, setPsSettingsShowInactive] = useState(false);
+  const [psSettingsSearchOnType, setPsSettingsSearchOnType] = useState(false);
+  const [psSettingsDefaultMethod, setPsSettingsDefaultMethod] = useState<'Name' | 'AxioID' | 'TokenNumber' | 'MRN'>('Name');
   
   // Results states
   const [psResults, setPsResults] = useState<any[]>([]);
@@ -822,21 +832,39 @@ export default function App() {
 
   const handlePsSearch = () => {
     let filtered = [...patientDirectoryData];
-    if (psLastName) {
-      filtered = filtered.filter(p => p.name.toLowerCase().includes(psLastName.toLowerCase()));
-    }
-    if (psFirstName) {
-      filtered = filtered.filter(p => p.name.toLowerCase().includes(psFirstName.toLowerCase()));
-    }
-    if (psBirthDate) {
-      filtered = filtered.filter(p => p.dob.includes(psBirthDate));
-    }
-    if (psPhoneNumber) {
-      filtered = filtered.filter(p => p.phone.includes(psPhoneNumber));
-    }
-    if (psPersonIdentifier) {
+    
+    // Search by method
+    if (psSearchMethod === 'AxioID' && psAxioId) {
+      filtered = filtered.filter(p => p.uhid.toLowerCase().includes(psAxioId.toLowerCase()));
+    } else if (psSearchMethod === 'TokenNumber' && psTokenNumber) {
+      // Token number maps to MRN in this context
+      filtered = filtered.filter(p => p.mrn.includes(psTokenNumber));
+    } else if (psSearchMethod === 'MRN' && psPersonIdentifier) {
       filtered = filtered.filter(p => p.mrn.includes(psPersonIdentifier) || p.uhid.includes(psPersonIdentifier));
+    } else {
+      // Default Name-based search
+      if (psLastName) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(psLastName.toLowerCase()));
+      }
+      if (psFirstName) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(psFirstName.toLowerCase()));
+      }
+      if (psBirthDate) {
+        filtered = filtered.filter(p => p.dob.includes(psBirthDate));
+      }
+      if (psPhoneNumber) {
+        filtered = filtered.filter(p => p.phone.includes(psPhoneNumber));
+      }
+      if (psPersonIdentifier) {
+        filtered = filtered.filter(p => p.mrn.includes(psPersonIdentifier) || p.uhid.includes(psPersonIdentifier));
+      }
     }
+    
+    // Apply max results setting
+    if (psSettingsMaxResults !== 'All') {
+      filtered = filtered.slice(0, parseInt(psSettingsMaxResults));
+    }
+    
     setPsResults(filtered);
     setPsSelectedPersonIndex(filtered.length > 0 ? 0 : null);
   };
@@ -859,6 +887,8 @@ export default function App() {
     setPsPhoneNumber('');
     setPsPersonIdentifier('');
     setPsEncounterIdentifier('');
+    setPsAxioId('');
+    setPsTokenNumber('');
     setPsResults([]);
     setPsSelectedPersonIndex(null);
   };
@@ -1443,15 +1473,6 @@ export default function App() {
       <div className="bg-[#002a46] text-white px-3 py-1.5 flex justify-between items-center border-b border-[#001729]">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-xs tracking-wide">AxioVital Operating Environment</span>
-        </div>
-        <div className="flex items-center gap-3 text-[10px]">
-          <span>Axiovital Admin</span>
-          <button 
-            onClick={handleLogout}
-            className="flex items-center justify-center w-5 h-5 rounded-full bg-[#0d7a86] text-white font-bold text-[9px] hover:bg-[#085f68]"
-          >
-            AV
-          </button>
         </div>
       </div>
 
@@ -5717,6 +5738,19 @@ export default function App() {
               >
                 Guarantor
               </button>
+              
+              <div className="flex-1" />
+              
+              <button 
+                onClick={() => setPsShowSettings(prev => !prev)}
+                className={`px-4 py-1.5 border-t border-x rounded-t-sm font-semibold transition-all flex items-center gap-1 ${
+                  psShowSettings
+                    ? 'bg-[#e0eaf3] border-blue-300 border-b-[#e0eaf3] text-[#0f4471] font-bold'
+                    : 'bg-[#d8d8d8] border-transparent border-b-gray-300 hover:bg-[#dfdfdf] text-gray-700'
+                }`}
+              >
+                ⚙️ Search Settings Customization
+              </button>
             </div>
 
             {/* Info Message Bar */}
@@ -5734,27 +5768,87 @@ export default function App() {
               {/* Left Pane (Search Form) */}
               <div className="w-[280px] border-r border-gray-300 p-3 flex flex-col justify-between shrink-0 bg-[#f0f0f0]">
                 <div className="space-y-2.5">
+                  {/* Search Method Dropdown */}
                   <div className="space-y-0.5">
-                    <label className="font-semibold text-gray-700">Last Name</label>
-                    <input 
-                      type="text" 
-                      value={psLastName}
-                      onChange={(e) => setPsLastName(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
-                      className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
-                    />
+                    <label className="font-semibold text-gray-700">Search Method</label>
+                    <select
+                      value={psSearchMethod}
+                      onChange={(e) => setPsSearchMethod(e.target.value as any)}
+                      className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black font-semibold"
+                    >
+                      <option value="Name">Name (First/Last)</option>
+                      <option value="AxioID">Axio ID (UHID)</option>
+                      <option value="TokenNumber">Token Number (MRN)</option>
+                      <option value="MRN">Person / MRN Identifier</option>
+                    </select>
                   </div>
 
-                  <div className="space-y-0.5">
-                    <label className="font-semibold text-gray-700">First Name</label>
-                    <input 
-                      type="text" 
-                      value={psFirstName}
-                      onChange={(e) => setPsFirstName(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
-                      className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
-                    />
-                  </div>
+                  {psSearchMethod === 'Name' && (
+                    <>
+                      <div className="space-y-0.5">
+                        <label className="font-semibold text-gray-700">Last Name</label>
+                        <input 
+                          type="text" 
+                          value={psLastName}
+                          onChange={(e) => setPsLastName(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
+                          className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
+                        />
+                      </div>
+
+                      <div className="space-y-0.5">
+                        <label className="font-semibold text-gray-700">First Name</label>
+                        <input 
+                          type="text" 
+                          value={psFirstName}
+                          onChange={(e) => setPsFirstName(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
+                          className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {psSearchMethod === 'AxioID' && (
+                    <div className="space-y-0.5">
+                      <label className="font-semibold text-gray-700">Axio ID (UHID)</label>
+                      <input 
+                        type="text" 
+                        value={psAxioId}
+                        placeholder="e.g. AVX-000123"
+                        onChange={(e) => setPsAxioId(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
+                        className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
+                      />
+                    </div>
+                  )}
+
+                  {psSearchMethod === 'TokenNumber' && (
+                    <div className="space-y-0.5">
+                      <label className="font-semibold text-gray-700">Token Number (MRN)</label>
+                      <input 
+                        type="text" 
+                        value={psTokenNumber}
+                        placeholder="e.g. 1000245678"
+                        onChange={(e) => setPsTokenNumber(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
+                        className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
+                      />
+                    </div>
+                  )}
+
+                  {psSearchMethod === 'MRN' && (
+                    <div className="space-y-0.5">
+                      <label className="font-semibold text-gray-700">Person Identifiers</label>
+                      <input 
+                        type="text" 
+                        value={psPersonIdentifier}
+                        onChange={(e) => setPsPersonIdentifier(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
+                        className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
+                      />
+                    </div>
+                  )}
 
                   <div className="space-y-0.5">
                     <label className="font-semibold text-gray-700">Birth Date</label>
@@ -5777,17 +5871,6 @@ export default function App() {
                       type="text" 
                       value={psPhoneNumber}
                       onChange={(e) => setPsPhoneNumber(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
-                      className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
-                    />
-                  </div>
-
-                  <div className="space-y-0.5">
-                    <label className="font-semibold text-gray-700">Person Identifiers</label>
-                    <input 
-                      type="text" 
-                      value={psPersonIdentifier}
-                      onChange={(e) => setPsPersonIdentifier(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handlePsSearch()}
                       className="w-full bg-white border border-gray-300 rounded-sm px-1.5 py-1 text-[11px] focus:outline-none focus:border-blue-500 text-black" 
                     />
@@ -5842,7 +5925,14 @@ export default function App() {
                       </button>
                       <button className="hover:text-blue-900 flex items-center gap-0.5"><span>🔍</span> Preview</button>
                     </div>
-                    <button className="text-blue-800 hover:underline">Preferences</button>
+                    <button 
+                      onClick={() => setPsShowSettings(prev => !prev)}
+                      className={`text-blue-800 hover:underline flex items-center gap-1 px-2 py-0.5 rounded border transition-all ${
+                        psShowSettings ? 'bg-blue-100 border-blue-400 font-bold' : 'border-transparent'
+                      }`}
+                    >
+                      ⚙️ Search Settings
+                    </button>
                   </div>
 
                   {/* Results Grid */}
@@ -5971,6 +6061,115 @@ export default function App() {
                 </button>
               </div>
             </div>
+
+            {/* Search Customization Settings Panel */}
+            {psShowSettings && (
+              <div className="absolute top-[28px] right-0 bottom-[40px] w-[320px] bg-white border-l border-gray-300 shadow-xl z-30 flex flex-col p-4 font-sans select-none text-[11px] text-gray-800">
+                <div className="flex justify-between items-center border-b border-gray-200 pb-2 mb-4">
+                  <h3 className="font-bold text-[#0f4471] text-[12px] flex items-center gap-1">
+                    <span>⚙️</span> Search Customization
+                  </h3>
+                  <button 
+                    onClick={() => setPsShowSettings(false)}
+                    className="text-gray-400 hover:text-gray-600 font-bold text-[14px]"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="flex-1 space-y-4 overflow-y-auto pr-1">
+                  <div className="space-y-1">
+                    <label className="font-bold block text-gray-700">Default Search Method</label>
+                    <select
+                      value={psSettingsDefaultMethod}
+                      onChange={(e) => {
+                        const val = e.target.value as any;
+                        setPsSettingsDefaultMethod(val);
+                        setPsSearchMethod(val);
+                      }}
+                      className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-[11px] focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="Name">Name (First/Last)</option>
+                      <option value="AxioID">Axio ID (UHID)</option>
+                      <option value="TokenNumber">Token Number (MRN)</option>
+                      <option value="MRN">Person / MRN Identifier</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-bold block text-gray-700">Max Results Limit</label>
+                    <select
+                      value={psSettingsMaxResults}
+                      onChange={(e) => setPsSettingsMaxResults(e.target.value as any)}
+                      className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-[11px] focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="25">25 Results</option>
+                      <option value="50">50 Results</option>
+                      <option value="100">100 Results</option>
+                      <option value="All">All Results (No Limit)</option>
+                    </select>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-3 space-y-2">
+                    <label className="flex items-center gap-2 cursor-pointer font-semibold">
+                      <input 
+                        type="checkbox"
+                        checked={psSettingsAutoWildcard}
+                        onChange={(e) => {
+                          setPsSettingsAutoWildcard(e.target.checked);
+                          setPsAssumeWildcards(e.target.checked);
+                        }}
+                        className="rounded text-[#0f4471] focus:ring-[#0f4471]"
+                      />
+                      <span>Automatic Wildcards (Appends %)</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer font-semibold">
+                      <input 
+                        type="checkbox"
+                        checked={psSettingsSearchOnType}
+                        onChange={(e) => setPsSettingsSearchOnType(e.target.checked)}
+                        className="rounded text-[#0f4471] focus:ring-[#0f4471]"
+                      />
+                      <span>Live Search (Search on type)</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer font-semibold">
+                      <input 
+                        type="checkbox"
+                        checked={psSettingsShowInactive}
+                        onChange={(e) => setPsSettingsShowInactive(e.target.checked)}
+                        className="rounded text-[#0f4471] focus:ring-[#0f4471]"
+                      />
+                      <span>Show Inactive/Discharged Patients</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 pt-3 flex gap-2">
+                  <button
+                    onClick={() => {
+                      setPsSettingsDefaultMethod('Name');
+                      setPsSettingsMaxResults('50');
+                      setPsSettingsAutoWildcard(true);
+                      setPsSettingsSearchOnType(false);
+                      setPsSettingsShowInactive(false);
+                      setPsSearchMethod('Name');
+                      setPsAssumeWildcards(true);
+                    }}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 rounded font-semibold text-center transition-colors"
+                  >
+                    Reset Defaults
+                  </button>
+                  <button
+                    onClick={() => setPsShowSettings(false)}
+                    className="flex-1 bg-[#0f4471] hover:bg-[#0b3355] text-white py-1.5 rounded font-semibold text-center transition-colors"
+                  >
+                    Apply Settings
+                  </button>
+                </div>
+              </div>
+            )}
 
           </div>
         </div>
