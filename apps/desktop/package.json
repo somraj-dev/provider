@@ -8,7 +8,7 @@
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "npm run copy-frontend && electron-forge make",
+    "make": "npm run copy-frontend && npx vite build --config vite.preload.config.ts && electron-forge make",
     "copy-frontend": "node scripts/copy-frontend.js",
     "lint": "eslint src/"
   },
