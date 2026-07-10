@@ -148,6 +148,18 @@ No qualifying data available.`
   const [newAssessmentInput, setNewAssessmentInput] = useState<string>('');
   const [newOrderInput, setNewOrderInput] = useState<string>('');
 
+  // Note details panel states
+  const [showNoteDetailsPanel, setShowNoteDetailsPanel] = useState<boolean>(true);
+  const [selectedNoteTemplate, setSelectedNoteTemplate] = useState<string>('Office Visit Note');
+
+  // Context menu state for right-clicking patient names
+  const [patientContextMenu, setPatientContextMenu] = useState<{
+    x: number;
+    y: number;
+    patientName: string;
+    patientMrn: string;
+  } | null>(null);
+
   // Sign / Submit modal states
   const [showSignModal, setShowSignModal] = useState<boolean>(false);
   const [signType1, setSignType1] = useState<string>('Office/Clinic Note-Physician');
@@ -188,6 +200,7 @@ ${ioVal}`;
 
   React.useEffect(() => {
     const handleGlobalContextMenu = (e: MouseEvent) => {
+      setPatientContextMenu(null);
       if (selectedPatientMrns.length > 1) {
         e.preventDefault();
         setContextMenu({
@@ -200,6 +213,7 @@ ${ioVal}`;
 
     const handleGlobalClick = () => {
       setContextMenu(null);
+      setPatientContextMenu(null);
     };
 
     window.addEventListener('contextmenu', handleGlobalContextMenu);
@@ -2919,6 +2933,16 @@ ${ioVal}`;
                               e.stopPropagation();
                               selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.toUpperCase()}`, 'patient-doe');
                             }}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setPatientContextMenu({
+                                x: e.clientX,
+                                y: e.clientY,
+                                patientName: row.name,
+                                patientMrn: row.mrn
+                              });
+                            }}
                           >
                             {row.name}
                           </td>
@@ -4580,11 +4604,6 @@ No qualifying data available.`;
                       <span>Attending: {patient.physician}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span>Loc: {patient.location}</span>
-                      <span>Isolation: None</span>
-                      <button className="bg-[#115b8d] hover:bg-[#146ba4] px-2 py-0.5 rounded text-[9.5px]">List</button>
-                      <button className="bg-[#115b8d] hover:bg-[#146ba4] px-2 py-0.5 rounded text-[9.5px]">Recent</button>
-                      <input type="text" placeholder="Search..." className="bg-white text-gray-800 rounded px-1.5 py-0.2 text-[9.5px] border border-gray-400 focus:outline-none" />
                     </div>
                   </div>
                   <div className="flex items-center justify-between border-t border-[#115b8d] mt-1 pt-1 text-[9.5px] text-[#bde0f5]">
@@ -4593,37 +4612,11 @@ No qualifying data available.`;
                       <span>Admit: {patient.admitted}</span>
                       <span>Disch: &lt;None&gt;</span>
                     </div>
-                    <span>Loc: 6E Neurolonav: 6406: 0</span>
                   </div>
-                </div>
-
-                {/* Sub-header documentation ribbon */}
-                <div className="bg-white border-b border-[#cbd8e3] p-1 flex items-center gap-3 shrink-0 text-gray-700 select-none text-[10px]">
-                  <button className="hover:bg-gray-150 px-1.5 py-0.5 rounded">◀</button>
-                  <button className="hover:bg-gray-150 px-1.5 py-0.5 rounded">▶</button>
-                  <span className="text-gray-300">|</span>
-                  <button className="hover:bg-gray-150 px-2 py-0.5 rounded flex items-center gap-1">🏠 Documentation</button>
-                  <span className="text-gray-400 ml-auto">0 minutes ago</span>
                 </div>
 
                 {/* Main Content Workspace Grid */}
                 <div className="flex-1 flex overflow-hidden">
-                  
-                  {/* Left Column - Tagged Text */}
-                  <div className="w-[180px] bg-white border-r border-[#cbd8e3] flex flex-col shrink-0 text-[10px]">
-                    <div className="bg-[#f0f4f8] p-1.5 font-bold border-b border-[#cbd8e3] text-[#0f4471]">
-                      Tagged Text
-                    </div>
-                    <div className="p-2 space-y-3 overflow-y-auto flex-1">
-                      <div className="border border-blue-200 bg-blue-50/30 p-2 rounded cursor-pointer hover:bg-blue-50/50">
-                        <div className="font-bold flex justify-between text-[9px] text-[#0f4471]">
-                          <span>Admission H&P</span>
-                          <span className="text-gray-400">10/22/2017</span>
-                        </div>
-                        <p className="text-gray-500 line-clamp-2 mt-0.5">General: Alert and oriented, well nourished...</p>
-                      </div>
-                    </div>
-                  </div>
 
                   {/* Middle Column - Editor workspace */}
                   <div className="flex-1 bg-white flex flex-col overflow-hidden">
@@ -4699,6 +4692,139 @@ No qualifying data available.`;
                       {/* Editing View */}
                       {isEditingNote ? (
                         <div className="space-y-4">
+                          
+                          {/* Hide/Show Note Details collapsible options pallet */}
+                          <div className="p-1 select-none mb-4 text-[11px] font-sans">
+                            <div 
+                              className="flex items-center gap-1 font-semibold text-gray-900 cursor-pointer text-[11px]"
+                              onClick={() => setShowNoteDetailsPanel(prev => !prev)}
+                            >
+                              <span className="text-[9px]">{showNoteDetailsPanel ? '▲' : '▼'}</span>
+                              <span className="hover:underline">{showNoteDetailsPanel ? 'Hide Note Details' : 'Show Note Details'}</span>
+                            </div>
+
+                            {showNoteDetailsPanel && (
+                              <div className="mt-3 space-y-2 border-t border-gray-200 pt-3">
+                                
+                                {/* *Type Row */}
+                                <div className="flex items-center text-[11px]">
+                                  <span className="w-[75px] font-bold text-right pr-2 text-gray-700">*Type:</span>
+                                  <div className="flex gap-2">
+                                    <select 
+                                      value={signType1}
+                                      onChange={(e) => setSignType1(e.target.value)}
+                                      className="bg-white border border-gray-400 rounded-none px-1.5 py-0.5 text-[11px] w-[280px] h-[22px] focus:outline-none focus:border-blue-500"
+                                    >
+                                      <option>Office/Clinic Note-Physician</option>
+                                      <option>Progress Note-Generic</option>
+                                    </select>
+                                    <select 
+                                      value={signType2}
+                                      onChange={(e) => setSignType2(e.target.value)}
+                                      className="bg-white border border-gray-400 rounded-none px-1.5 py-0.5 text-[11px] w-[280px] h-[22px] focus:outline-none focus:border-blue-500"
+                                    >
+                                      <option>Personal Note Type List</option>
+                                      <option>System Note Type List</option>
+                                    </select>
+                                  </div>
+                                </div>
+
+                                {/* Title Row */}
+                                <div className="flex items-center text-[11px]">
+                                  <span className="w-[75px] font-bold text-right pr-2 text-gray-700">Title:</span>
+                                  <input 
+                                    type="text" 
+                                    value={signTitleVal}
+                                    onChange={(e) => setSignTitleVal(e.target.value)}
+                                    className="bg-white border border-gray-400 rounded-none px-1.5 py-0.5 text-[11px] w-[568px] h-[22px] focus:outline-none focus:border-blue-500"
+                                  />
+                                </div>
+
+                                {/* *Date Row */}
+                                <div className="flex items-center text-[11px]">
+                                  <span className="w-[75px] font-bold text-right pr-2 text-gray-700">*Date:</span>
+                                  <div className="flex gap-2 items-center">
+                                    <div className="flex items-center border border-gray-400 rounded-none bg-white overflow-hidden h-[22px] w-[140px]">
+                                      <input 
+                                        type="text" 
+                                        value={signDateVal}
+                                        onChange={(e) => setSignDateVal(e.target.value)}
+                                        className="px-1.5 py-0.5 text-[11px] focus:outline-none flex-1 border-none rounded-none"
+                                      />
+                                      <button className="bg-gray-150 hover:bg-gray-200 border-l border-gray-400 px-1 py-0.5 text-[9px] h-full rounded-none">📅</button>
+                                    </div>
+                                    <input 
+                                      type="text" 
+                                      value={signTimeVal}
+                                      onChange={(e) => setSignTimeVal(e.target.value)}
+                                      className="bg-white border border-gray-400 rounded-none px-1.5 py-0.5 text-[11px] text-center w-[120px] h-[22px] focus:outline-none focus:border-blue-500"
+                                    />
+                                    <span className="font-bold text-gray-700 text-[10px] ml-1">{signTimezoneVal}</span>
+                                  </div>
+                                </div>
+
+                                {/* *Author Row */}
+                                <div className="flex items-center text-[11px]">
+                                  <span className="w-[75px] font-bold text-right pr-2 text-gray-700">*Author:</span>
+                                  <input 
+                                    type="text" 
+                                    value={signAuthorVal}
+                                    disabled
+                                    className="bg-gray-100 border border-gray-400 rounded-none px-1.5 py-0.5 text-[11px] text-gray-500 focus:outline-none cursor-not-allowed w-[568px] h-[22px]"
+                                  />
+                                </div>
+
+                                {/* Note Templates Section */}
+                                <div className="space-y-1 pt-2 w-[800px]">
+                                  <div className="font-bold text-gray-700 text-[11px]">*Note Templates</div>
+                                  <div className="border border-gray-300 rounded-none bg-white max-h-[160px] overflow-y-auto">
+                                    <table className="w-full text-left border-collapse text-[11px]">
+                                      <thead>
+                                        <tr className="bg-gray-100 text-gray-700 font-bold border-b border-gray-300 select-none">
+                                          <th className="p-1 px-2.5 w-[200px] border-r border-gray-200">Name</th>
+                                          <th className="p-1 px-2.5">Description</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {[
+                                          { name: 'Admission H & P', desc: 'Admission History & Physical Note Template' },
+                                          { name: 'Consult Note', desc: 'Consultation Note Template' },
+                                          { name: 'Discharge Note', desc: 'Discharge Note Template' },
+                                          { name: 'ED Note', desc: 'Emergency Department Note Template' },
+                                          { name: 'Free Text Note', desc: 'Free Text Note Template' },
+                                          { name: 'Inpatient Progress Note', desc: 'Inpatient Progress Note Template' },
+                                          { name: 'Letter', desc: 'Letter Template' },
+                                          { name: 'Office Visit Note', desc: 'Outpatient Office Visit Note Template' },
+                                          { name: 'Op Note', desc: 'Operative Note Template' },
+                                          { name: 'Peds Office Physical', desc: 'Pediatric Office Physical Note Template' },
+                                          { name: 'Procedure Note', desc: 'Procedure Note Template' },
+                                          { name: 'Progress/SOAP Note', desc: 'Daily Progress Note Template' },
+                                          { name: 'Tertiary Trauma Survey (TTS)', desc: 'Tertiary Trauma Survey (TTS) Template' }
+                                        ].map((tmpl, idx) => (
+                                          <tr 
+                                            key={idx} 
+                                            onClick={() => {
+                                              setSelectedNoteTemplate(tmpl.name);
+                                              setSignTitleVal(tmpl.name);
+                                            }}
+                                            className={`border-b border-gray-200 cursor-pointer select-none transition-all ${
+                                              selectedNoteTemplate === tmpl.name 
+                                                ? 'bg-[#1e90ff] text-white hover:bg-[#1a80e5] font-semibold' 
+                                                : 'hover:bg-gray-50 text-gray-800'
+                                            }`}
+                                          >
+                                            <td className="p-1 px-2.5 font-sans border-r border-gray-150">{tmpl.name}</td>
+                                            <td className={`p-1 px-2.5 font-sans ${selectedNoteTemplate === tmpl.name ? 'text-blue-100' : 'text-gray-500'}`}>{tmpl.desc}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+
+                              </div>
+                            )}
+                          </div>
                           
                           {/* Assessment Items Badges */}
                           <div className="space-y-1.5">
@@ -5430,7 +5556,20 @@ No qualifying data available.`;
                           </td>
                           <td className="p-2.5 border-r border-gray-200 font-bold text-gray-700">{row.id}</td>
                           <td className="p-2.5 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
-                            <div className="font-bold text-[#0d7a86] cursor-pointer hover:underline" onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.toUpperCase()}`, 'patient-doe')}>{row.name}</div>
+                            <div 
+                              className="font-bold text-[#0d7a86] cursor-pointer hover:underline" 
+                              onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.toUpperCase()}`, 'patient-doe')}
+                              onContextMenu={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setPatientContextMenu({
+                                  x: e.clientX,
+                                  y: e.clientY,
+                                  patientName: row.name,
+                                  patientMrn: row.mrn
+                                });
+                              }}
+                            >{row.name}</div>
                             <div className="text-[9px] text-gray-500 font-mono">{row.mrn}</div>
                           </td>
                           <td className="p-2.5 border-r border-gray-200 font-semibold">{row.current}</td>
@@ -6229,6 +6368,16 @@ No qualifying data available.`;
                           <td 
                             className="p-2 border-r border-gray-100 font-bold text-[#0d7a86] cursor-pointer hover:underline" 
                             onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${order.patientName.toUpperCase()}`, 'patient-doe')}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setPatientContextMenu({
+                                x: e.clientX,
+                                y: e.clientY,
+                                patientName: order.patientName,
+                                patientMrn: '1000245678'
+                              });
+                            }}
                           >
                             {order.patientName}
                           </td>
@@ -7385,6 +7534,48 @@ No qualifying data available.`;
               <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Opening Active Chart')}>Active Chart</div>
               <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Opening All Charts')}>All Charts</div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {patientContextMenu && (
+        <div 
+          className="fixed bg-white border border-[#a0a0a0] text-[#333333] text-[11.5px] p-0 w-[140px] shadow-md rounded-none select-none z-[99999] text-left py-1 font-sans"
+          style={{ left: `${patientContextMenu.x}px`, top: `${patientContextMenu.y}px` }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('Appointments clicked'); setPatientContextMenu(null); }}>
+            Appointments
+          </div>
+          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('Registration clicked'); setPatientContextMenu(null); }}>
+            Registration
+          </div>
+          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('Encounters clicked'); setPatientContextMenu(null); }}>
+            Encounters
+          </div>
+          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('Patient Account clicked'); setPatientContextMenu(null); }}>
+            Patient Account
+          </div>
+          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('Charge Entry clicked'); setPatientContextMenu(null); }}>
+            Charge Entry
+          </div>
+          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('History clicked'); setPatientContextMenu(null); }}>
+            History
+          </div>
+
+          <div className="border-t border-gray-200 my-1"></div>
+
+          <div 
+            className="px-4 py-1.5 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-[#0f4471] font-semibold" 
+            onClick={() => { 
+              selectOrOpenTab('PatientProfile', `Patient Profile: ${patientContextMenu.patientName.toUpperCase()}`, 'patient-doe');
+              setPatientContextMenu(null); 
+            }}
+          >
+            Keep Open
+          </div>
+          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-600" onClick={() => setPatientContextMenu(null)}>
+            Close
           </div>
         </div>
       )}
