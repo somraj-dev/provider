@@ -32,7 +32,7 @@ import {
 interface TabItem {
   id: string;
   title: string;
-  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home';
+  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes';
 }
 
 const CHART_OPTIONS = [
@@ -105,6 +105,111 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Context menu for multi-patient selection
+  const [selectedPatientMrns, setSelectedPatientMrns] = useState<string[]>([]);
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, visible: boolean } | null>(null);
+
+  // Patient notes state map
+  const [patientNotesMap, setPatientNotesMap] = useState<Record<string, string>>({
+    '1000245678': `Assessment/Plan
+1. ST elevation (STEMI) myocardial infarction involving right coronary artery
+   
+2. Acute diverticulitis
+
+Orders:
+temazepam, 15 mg, = 1 cap, Oral, Cap, HS, PRN sleep, First Dose: 10/22/17 15:54:00 CDT
+
+Subjective
+
+Review of Systems
+
+Physical Exam
+Vitals & Measurements
+
+Intake and Output
+No qualifying data available.`
+  });
+
+  // Structured note components for active editing
+  const [assessmentItems, setAssessmentItems] = useState<string[]>([
+    '1. ST elevation (STEMI) myocardial infarction involving right coronary artery',
+    '2. Acute diverticulitis'
+  ]);
+  const [ordersItems, setOrdersItems] = useState<string[]>([
+    'temazepam, 15 mg, = 1 cap, Oral, Cap, HS, PRN sleep, First Dose: 10/22/17 15:54:00 CDT'
+  ]);
+  const [noteSubjective, setNoteSubjective] = useState<string>('');
+  const [noteRos, setNoteRos] = useState<string>('Review of Systems');
+  const [notePe, setNotePe] = useState<string>(`Physical Exam\nVitals & Measurements`);
+  const [noteIo, setNoteIo] = useState<string>(`Intake and Output\nNo qualifying data available.`);
+
+  const [isEditingNote, setIsEditingNote] = useState<boolean>(false);
+  const [newAssessmentInput, setNewAssessmentInput] = useState<string>('');
+  const [newOrderInput, setNewOrderInput] = useState<string>('');
+
+  // Sign / Submit modal states
+  const [showSignModal, setShowSignModal] = useState<boolean>(false);
+  const [signType1, setSignType1] = useState<string>('Office/Clinic Note-Physician');
+  const [signType2, setSignType2] = useState<string>('Personal Note Type List');
+  const [signTitleVal, setSignTitleVal] = useState<string>('Office Visit Note');
+  const [signDateVal, setSignDateVal] = useState<string>('18-Feb-2015');
+  const [signTimeVal, setSignTimeVal] = useState<string>('11:11');
+  const [signTimezoneVal, setSignTimezoneVal] = useState<string>('PST');
+  const [signAuthorVal, setSignAuthorVal] = useState<string>('Patterson, Stanley C');
+
+  const syncToTextMap = (
+    assess: string[],
+    orders: string[],
+    subj: string,
+    rosVal: string,
+    peVal: string,
+    ioVal: string
+  ) => {
+    const formatted = `Assessment/Plan
+${assess.map(x => x).join('\n')}
+
+Orders:
+${orders.map(x => x).join('\n')}
+
+Subjective
+${subj}
+
+${rosVal}
+
+${peVal}
+
+${ioVal}`;
+    setPatientNotesMap(prev => ({
+      ...prev,
+      '1000245678': formatted
+    }));
+  };
+
+  React.useEffect(() => {
+    const handleGlobalContextMenu = (e: MouseEvent) => {
+      if (selectedPatientMrns.length > 1) {
+        e.preventDefault();
+        setContextMenu({
+          x: e.clientX,
+          y: e.clientY,
+          visible: true
+        });
+      }
+    };
+
+    const handleGlobalClick = () => {
+      setContextMenu(null);
+    };
+
+    window.addEventListener('contextmenu', handleGlobalContextMenu);
+    window.addEventListener('click', handleGlobalClick);
+
+    return () => {
+      window.removeEventListener('contextmenu', handleGlobalContextMenu);
+      window.removeEventListener('click', handleGlobalClick);
+    };
+  }, [selectedPatientMrns]);
   
   const [chartSelections, setChartSelections] = useState<Record<string, string>>({
     dns: 'Quick View',
@@ -286,7 +391,7 @@ export default function App() {
     setActiveTabId('patient-doe');
   };
 
-  const selectOrOpenTab = (type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home', title: string, id: string) => {
+  const selectOrOpenTab = (type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes', title: string, id: string) => {
     if (type === 'AdmitPatient') {
       const now = new Date();
       const dd = String(now.getDate()).padStart(2, '0');
@@ -326,6 +431,37 @@ export default function App() {
     }
   };
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        
+        let activePatientName = 'JOHN DOE';
+        let activePatientMrn = '1000245678';
+        
+        const currentActiveTab = openTabs.find(t => t.id === activeTabId);
+        if (currentActiveTab && currentActiveTab.type === 'PatientProfile') {
+          const prefix = 'Patient Profile: ';
+          if (currentActiveTab.title.startsWith(prefix)) {
+            activePatientName = currentActiveTab.title.substring(prefix.length);
+          }
+          if (currentActiveTab.id.startsWith('patient-')) {
+            activePatientMrn = currentActiveTab.id.replace('patient-', '');
+          }
+        }
+        
+        const tabTitle = `Patient Notes: ${activePatientName}`;
+        const tabId = `patient-notes-${activePatientMrn}`;
+        selectOrOpenTab('PatientNotes', tabTitle, tabId);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openTabs, activeTabId]);
+
   const activeTab = openTabs.find(t => t.id === activeTabId) || openTabs[0];
 
   // Save edit form modifications back to active state
@@ -360,16 +496,16 @@ export default function App() {
 
   // Mock Patient Directory rows data 1:1 matching requested layout
   const patientDirectoryData = [
-    { mrn: '1000245678', uhid: 'AVX-000123', name: 'James, William', ageGender: '45 Y / Male', dob: '12/03/1979', phone: '9876543210', visit: 'Inpatient', dept: 'Cardiology', physician: 'Dr. R. Sharma', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: 'ICU-01 / Bed 02', admitted: '28/05/2025 08:30 AM' },
-    { mrn: '1000245679', uhid: 'AVX-000124', name: 'Patel, Rahul', ageGender: '38 Y / Male', dob: '22/07/1986', phone: '9876543211', visit: 'Inpatient', dept: 'Neurology', physician: 'Dr. P. Singh', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: 'NEU-02 / Bed 05', admitted: '28/05/2025 09:15 AM' },
-    { mrn: '1000245680', uhid: 'AVX-000125', name: 'Johnson, Maria', ageGender: '29 Y / Female', dob: '14/11/1995', phone: '9876543212', visit: 'Outpatient', dept: 'General Medicine', physician: 'Dr. K. Iyer', status: 'Registered', statusBg: 'bg-blue-100 text-blue-800', location: '—', admitted: '28/05/2025 10:20 AM' },
-    { mrn: '1000245681', uhid: 'AVX-000126', name: 'Lee, David', ageGender: '52 Y / Male', dob: '30/09/1972', phone: '9876543213', visit: 'Inpatient', dept: 'Pulmonology', physician: 'Dr. S. Reddy', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: 'PUL-01 / Bed 01', admitted: '28/05/2025 06:10 AM' },
-    { mrn: '1000245682', uhid: 'AVX-000127', name: 'Garcia, Lucia', ageGender: '41 Y / Female', dob: '19/02/1984', phone: '9876543214', visit: 'Day Care', dept: 'Oncology', physician: 'Dr. M. Desai', status: 'In Treatment', statusBg: 'bg-orange-100 text-orange-800', location: 'DAY-CARE 02', admitted: '28/05/2025 11:00 AM' },
-    { mrn: '1000245683', uhid: 'AVX-000128', name: 'Thomas, Michael', ageGender: '33 Y / Male', dob: '07/06/1991', phone: '9876543215', visit: 'Outpatient', dept: 'Dermatology', physician: 'Dr. N. Verma', status: 'Completed', statusBg: 'bg-gray-100 text-gray-800', location: '—', admitted: '28/05/2025 11:30 AM' },
-    { mrn: '1000245684', uhid: 'AVX-000129', name: 'Kim, James', ageGender: '27 Y / Male', dob: '23/08/1997', phone: '9876543216', visit: 'Inpatient', dept: 'Diabetology', physician: 'Dr. P. Nair', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: 'DIAB-01 / Bed 03', admitted: '27/05/2025 09:50 PM' },
-    { mrn: '1000245685', uhid: 'AVX-000130', name: 'Brown, Elizabeth', ageGender: '48 Y / Female', dob: '02/04/1977', phone: '9876543217', visit: 'Inpatient', dept: 'Nephrology', physician: 'Dr. R. Menon', status: 'ICU', statusBg: 'bg-red-100 text-red-800', location: 'ICU-02 / Bed 01', admitted: '27/05/2025 05:25 PM' },
-    { mrn: '1000245686', uhid: 'AVX-000131', name: 'White, Charles', ageGender: '55 Y / Male', dob: '16/05/1970', phone: '9876543218', visit: 'Inpatient', text: 'ENT', physician: 'Dr. S. Malhotra', status: 'Scheduled', statusBg: 'bg-yellow-100 text-yellow-800', location: '—', admitted: '29/05/2025 09:00 AM' },
-    { mrn: '1000245687', uhid: 'AVX-000132', name: 'Davis, Patricia', ageGender: '36 Y / Female', dob: '11/12/1988', phone: '9876543219', visit: 'Outpatient', dept: 'Ophthalmology', physician: 'Dr. V. Bhatia', status: 'Registered', statusBg: 'bg-blue-100 text-blue-800', location: '—', admitted: '26/05/2025 04:20 PM' }
+    { mrn: '1360508', uhid: 'AVX-000123', name: 'AHSDEMO, Peds', ageGender: '8 Y / Female', dob: '12/03/2018', phone: '9876543210', visit: 'Inpatient', dept: 'General Medicine', physician: 'Test, Prov Gen Phys', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: '101 / A', admitted: '28/05/2025 08:30 AM' },
+    { mrn: '1360509', uhid: 'AVX-000124', name: 'AHSDEMO, SDS', ageGender: '56 Y / Female', dob: '22/07/1970', phone: '9876543211', visit: 'Inpatient', dept: 'General Medicine', physician: 'Test, Prov Gen Phys', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: '101 / B', admitted: '28/05/2025 09:15 AM' },
+    { mrn: '1360510', uhid: 'AVX-000125', name: 'AHSDEMO, READMISSION', ageGender: '57 Y / Male', dob: '14/11/1968', phone: '9876543212', visit: 'Outpatient', dept: 'General Medicine', physician: 'Test, Prov Gen Phys', status: 'Registered', statusBg: 'bg-blue-100 text-blue-800', location: '102 / A', admitted: '28/05/2025 10:20 AM' },
+    { mrn: '1360511', uhid: 'AVX-000126', name: 'AHSDEMO, HEART 0103', ageGender: '57 Y / Female', dob: '30/09/1968', phone: '9876543213', visit: 'Inpatient', dept: 'General Medicine', physician: 'Train, Provider: Primary Care0050', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: '102 / B', admitted: '28/05/2025 06:10 AM' },
+    { mrn: '1360512', uhid: 'AVX-000127', name: 'AHSDEMO, CHF-1', ageGender: '62 Y / Female', dob: '19/02/1964', phone: '9876543214', visit: 'Day Care', dept: 'General Medicine', physician: 'Train, Provider: Primary Care0050', status: 'In Treatment', statusBg: 'bg-orange-100 text-orange-800', location: '103 / A', admitted: '28/05/2025 11:00 AM' },
+    { mrn: '1360513', uhid: 'AVX-000128', name: 'AHSDEMO, ORTHO', ageGender: '79 Y / Male', dob: '07/06/1947', phone: '9876543215', visit: 'Outpatient', dept: 'General Medicine', physician: 'Train, Provider: Primary Care0050', status: 'Completed', statusBg: 'bg-gray-100 text-gray-800', location: '103 / B', admitted: '28/05/2025 11:30 AM' },
+    { mrn: '1360514', uhid: 'AVX-000129', name: 'AHSDEMO, LABOR', ageGender: '30 Y / Female', dob: '23/08/1995', phone: '9876543216', visit: 'Inpatient', dept: 'General Medicine', physician: 'Test, Barrett', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: '104 / A', admitted: '27/05/2025 09:50 PM' },
+    { mrn: '1360515', uhid: 'AVX-000130', name: 'AHSDEMO, STROKE', ageGender: '45 Y / Female', dob: '02/04/1981', phone: '9876543217', visit: 'Inpatient', dept: 'General Medicine', physician: 'Train, Provider: General Surgeon0209', status: 'ICU', statusBg: 'bg-red-100 text-red-800', location: '104 / B', admitted: '27/05/2025 05:25 PM' },
+    { mrn: '1360516', uhid: 'AVX-000131', name: 'AHSDEMO, INFECTION', ageGender: '50 Y / Female', dob: '16/05/1976', phone: '9876543218', visit: 'Inpatient', dept: 'General Medicine', physician: 'Train, Provider: General Surgeon0004', status: 'Scheduled', statusBg: 'bg-yellow-100 text-yellow-800', location: '105 / A', admitted: '29/05/2025 09:00 AM' },
+    { mrn: '1360517', uhid: 'AVX-000132', name: 'AHSDEMO, PNEUMONIA', ageGender: '36 Y / Female', dob: '11/12/1989', phone: '9876543219', visit: 'Outpatient', dept: 'General Medicine', physician: 'Train, Provider: Primary Care0004', status: 'Registered', statusBg: 'bg-blue-100 text-blue-800', location: '105 / B', admitted: '26/05/2025 04:20 PM' }
   ];
 
   // Mock Notifications rows matching image 1:1 exactly
@@ -1631,7 +1767,206 @@ export default function App() {
               >
                 Show All Commands
               </div>
-              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Editor Playground</div>
+              {/* Editor Playground Dropdown Option with submenus */}
+              <div className="relative group/playground px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] flex justify-between items-center">
+                <span>Editor Playground</span>
+                <span className="text-[9px] text-gray-500 group-hover/playground:text-white ml-2">◀</span>
+                
+                {/* Submenu A: Editor options card (bright theme) */}
+                <div className="absolute right-full top-0 mr-0.5 hidden group-hover/playground:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[240px] shadow-md rounded-none select-none z-[100] text-left">
+                  <div className="py-0.5">
+                    <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
+                      <span>Command Palette...</span>
+                      <span className="text-[10px] text-gray-400 group-hover/item:text-blue-100">Ctrl+Shift+P</span>
+                    </div>
+                    <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                      Open View...
+                    </div>
+                  </div>
+                  
+                  <div className="border-t border-[#e2e2e2] my-0.5"></div>
+                  
+                  <div className="py-0.5">
+                    {/* Appearance Submenu */}
+                    <div className="relative group/appearance flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                      <span>Appearance</span>
+                      <span className="text-[9px] text-gray-500 group-hover/appearance:text-white ml-2">◀</span>
+                      
+                      {/* Appearance Options */}
+                      <div className="absolute right-full top-0 mr-0.5 hidden group-hover/appearance:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[200px] shadow-md rounded-none select-none z-[110] text-left">
+                        <div className="py-0.5">
+                          <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/app-item">
+                            <span>Toggle Side Bar</span>
+                            <span className="text-[10px] text-gray-400 group-hover/app-item:text-blue-100">Ctrl+B</span>
+                          </div>
+                          <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/app-item">
+                            <span>Toggle Panel</span>
+                            <span className="text-[10px] text-gray-400 group-hover/app-item:text-blue-100">Ctrl+J</span>
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Toggle Status Bar
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Toggle Menu Bar
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Toggle Activity Bar
+                          </div>
+                          <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/app-item">
+                            <span>Toggle Zen Mode</span>
+                            <span className="text-[10px] text-gray-400 group-hover/app-item:text-blue-100">Ctrl+K Z</span>
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Centered Layout
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Editor Layout Submenu */}
+                    <div className="relative group/layout flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                      <span>Editor Layout</span>
+                      <span className="text-[9px] text-gray-500 group-hover/layout:text-white ml-2">◀</span>
+                      
+                      {/* Submenu B: Split editor options card (bright theme) */}
+                      <div className="absolute right-full top-0 mr-0.5 hidden group-hover/layout:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[240px] shadow-md rounded-none select-none z-[110] text-left">
+                        <div className="py-0.5">
+                          <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/layout-item">
+                            <span>Split Up</span>
+                            <span className="text-[10px] text-gray-400 group-hover/layout-item:text-blue-100">Ctrl+K Ctrl+\</span>
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Split Down
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Split Left
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Split Right
+                          </div>
+                        </div>
+                        
+                        <div className="border-t border-[#e2e2e2] my-0.5"></div>
+                        
+                        <div className="py-0.5">
+                          <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/layout-item">
+                            <span>Split in Group</span>
+                            <span className="text-[10px] text-gray-400 group-hover/layout-item:text-blue-100">Ctrl+K Ctrl+Shift+\</span>
+                          </div>
+                        </div>
+                        
+                        <div className="border-t border-[#e2e2e2] my-0.5"></div>
+                        
+                        <div className="py-0.5">
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Move Editor into New Window
+                          </div>
+                          <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/layout-item">
+                            <span>Copy Editor into New Window</span>
+                            <span className="text-[10px] text-gray-400 group-hover/layout-item:text-blue-100">Ctrl+K O</span>
+                          </div>
+                        </div>
+                        
+                        <div className="border-t border-[#e2e2e2] my-0.5"></div>
+                        
+                        <div className="py-0.5">
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Single
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Two Columns
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Three Columns
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Two Rows
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Three Rows
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Grid (2x2)
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Two Rows Right
+                          </div>
+                          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                            Two Columns Bottom
+                          </div>
+                        </div>
+                        
+                        <div className="border-t border-[#e2e2e2] my-0.5"></div>
+                        
+                        <div className="py-0.5">
+                          <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/layout-item">
+                            <span>Flip Layout</span>
+                            <span className="text-[10px] text-gray-400 group-hover/layout-item:text-blue-100">Shift+Alt+0</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t border-[#e2e2e2] my-0.5"></div>
+                  
+                  <div className="py-0.5">
+                    <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
+                      <span>Explorer</span>
+                      <span className="text-[10px] text-gray-400 group-hover/item:text-blue-100">Ctrl+Shift+E</span>
+                    </div>
+                    <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
+                      <span>Search</span>
+                      <span className="text-[10px] text-gray-400 group-hover/item:text-blue-100">Ctrl+Shift+F</span>
+                    </div>
+                    <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
+                      <span>Source Control</span>
+                      <span className="text-[10px] text-gray-400 group-hover/item:text-blue-100">Ctrl+Shift+G G</span>
+                    </div>
+                    <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
+                      <span>Run</span>
+                      <span className="text-[10px] text-gray-400 group-hover/item:text-blue-100">Ctrl+Shift+D</span>
+                    </div>
+                    <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
+                      <span>Extensions</span>
+                      <span className="text-[10px] text-gray-400 group-hover/item:text-blue-100">Ctrl+Shift+X</span>
+                    </div>
+                    <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
+                      Testing
+                    </div>
+                  </div>
+                  
+                  <div className="border-t border-[#e2e2e2] my-0.5"></div>
+                  
+                  <div className="py-0.5">
+                    <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
+                      <span>Problems</span>
+                      <span className="text-[10px] text-gray-400 group-hover/item:text-blue-100">Ctrl+Shift+M</span>
+                    </div>
+                    <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
+                      <span>Output</span>
+                      <span className="text-[10px] text-gray-400 group-hover/item:text-blue-100">Ctrl+Shift+U</span>
+                    </div>
+                    <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
+                      <span>Debug Console</span>
+                      <span className="text-[10px] text-gray-400 group-hover/item:text-blue-100">Ctrl+Shift+Y</span>
+                    </div>
+                    <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
+                      <span>Terminal</span>
+                      <span className="text-[10px] text-gray-400 group-hover/item:text-blue-100">Ctrl+`</span>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t border-[#e2e2e2] my-0.5"></div>
+                  
+                  <div className="py-0.5">
+                    <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
+                      <span>Word Wrap</span>
+                      <span className="text-[10px] text-gray-400 group-hover/item:text-blue-100">Alt+Z</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Open Walkthrough...</div>
               <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Provide Feedback</div>
               <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Download Diagnostics</div>
@@ -2558,11 +2893,35 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {patientDirectoryData.map((row, index) => (
-                        <tr key={index} className="border-b border-gray-100 hover:bg-gray-50/50">
+                       {patientDirectoryData.map((row, index) => (
+                        <tr 
+                          key={index} 
+                          onClick={(e) => {
+                            setSelectedPatientMrns(prev => {
+                              if (prev.includes(row.mrn)) {
+                                return prev.filter(m => m !== row.mrn);
+                              } else {
+                                return [...prev, row.mrn];
+                              }
+                            });
+                          }}
+                          className={`border-b border-gray-100 select-none cursor-pointer transition-colors ${
+                            selectedPatientMrns.includes(row.mrn) 
+                              ? 'bg-[#2a76f2] text-white hover:bg-[#1a66e2]' 
+                              : 'hover:bg-gray-50/50'
+                          }`}
+                        >
                           <td className="p-2.5 border-r border-gray-200">{row.mrn}</td>
-                          <td className="p-2.5 border-r border-gray-200 font-medium text-gray-500">{row.uhid}</td>
-                          <td className="p-2.5 border-r border-gray-200 font-bold text-[#0d7a86] cursor-pointer hover:underline" onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.toUpperCase()}`, 'patient-doe')}>{row.name}</td>
+                          <td className={`p-2.5 border-r border-gray-200 font-medium ${selectedPatientMrns.includes(row.mrn) ? 'text-blue-150' : 'text-gray-500'}`}>{row.uhid}</td>
+                          <td 
+                            className={`p-2.5 border-r border-gray-200 font-bold cursor-pointer hover:underline ${selectedPatientMrns.includes(row.mrn) ? 'text-white' : 'text-[#0d7a86]'}`} 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.toUpperCase()}`, 'patient-doe');
+                            }}
+                          >
+                            {row.name}
+                          </td>
                           <td className="p-2.5 border-r border-gray-200">{row.ageGender}</td>
                           <td className="p-2.5 border-r border-gray-200">{row.dob}</td>
                           <td className="p-2.5 border-r border-gray-200">{row.phone}</td>
@@ -2570,14 +2929,22 @@ export default function App() {
                           <td className="p-2.5 border-r border-gray-200">{row.dept}</td>
                           <td className="p-2.5 border-r border-gray-200">{row.physician}</td>
                           <td className="p-2.5 border-r border-gray-200">
-                            <span className={`px-2 py-0.5 rounded-sm font-semibold text-[9px] ${row.statusBg}`}>
+                            <span className={`px-2 py-0.5 rounded-sm font-semibold text-[9px] ${
+                              selectedPatientMrns.includes(row.mrn) 
+                                ? 'bg-white/20 text-white' 
+                                : row.statusBg
+                            }`}>
                               {row.status}
                             </span>
                           </td>
                           <td className="p-2.5 border-r border-gray-200">{row.location}</td>
-                          <td className="p-2.5 border-r border-gray-200 text-gray-500">{row.admitted}</td>
-                          <td className="p-2.5 text-center">
-                            <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">•••</button>
+                          <td className={`p-2.5 border-r border-gray-200 ${selectedPatientMrns.includes(row.mrn) ? 'text-blue-150' : 'text-gray-500'}`}>{row.admitted}</td>
+                          <td className="p-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                            <button className={`border px-1.5 py-0.5 rounded text-[10px] ${
+                              selectedPatientMrns.includes(row.mrn) 
+                                ? 'bg-white/10 border-white/20 hover:bg-white/25 text-white' 
+                                : 'bg-white border-[#bdcddc] hover:bg-gray-50 text-gray-700'
+                            }`}>•••</button>
                           </td>
                         </tr>
                       ))}
@@ -2800,7 +3167,7 @@ export default function App() {
                     <h2 className="text-base font-bold tracking-wide -mt-1 font-sans">JOHN DOE</h2>
                     <div className="grid grid-cols-[1fr_1.8fr_1fr] gap-x-8 gap-y-1.5 text-[9.5px] text-gray-200">
                       <div className="space-y-1">
-                        <div><span className="text-gray-400 font-semibold inline-block w-[50px]">MRN:</span> 1000245678</div>
+                        <div><span className="text-gray-400 font-semibold inline-block w-[50px]">ABHA:</span> 1000245678</div>
                         <div><span className="text-gray-400 font-semibold inline-block w-[50px]">Axio-ID:</span> AXSL06-S1L2V3</div>
                         <div><span className="text-gray-400 font-semibold inline-block w-[50px]">DOB:</span> 03/12/1979 (45Y)</div>
                         <div><span className="text-gray-400 font-semibold inline-block w-[50px]">Gender:</span> Male</div>
@@ -3573,8 +3940,8 @@ export default function App() {
                   <div className="bg-[#cbd8e3]/30 p-1.5 border-b border-[#bdcddc] font-bold text-[10.5px] text-[#0f4471]">
                     Important Note
                   </div>
-                  <div className="p-2 text-gray-800 h-[100px] overflow-y-auto text-[9.5px] leading-relaxed">
-                    11/25/2004: Allergic rhinitis | Nasal polyps | Acute sinusitis.
+                  <div className="p-2 text-gray-800 h-[100px] overflow-y-auto text-[9.5px] leading-relaxed whitespace-pre-line">
+                    {patientNotesMap[editMrn] || "11/25/2004: Allergic rhinitis | Nasal polyps | Acute sinusitis."}
                   </div>
                 </div>
 
@@ -4165,6 +4532,595 @@ export default function App() {
 
             </div>
           )}
+
+          {activeTab.type === 'PatientNotes' && (() => {
+            const mrn = activeTab.id.replace('patient-notes-', '');
+            const patient = patientDirectoryData.find(p => p.mrn === mrn) || {
+              name: 'JOHN DOE',
+              mrn: '1000245678',
+              dob: '03/12/1979',
+              ageGender: '45 Y / Male',
+              visit: 'Inpatient',
+              admitted: '28/05/2025 08:30 AM',
+              location: '101 / A',
+              physician: 'Dr. Herman Stewart'
+            };
+
+            const noteText = patientNotesMap[patient.mrn] || `Assessment/Plan
+1. ST elevation (STEMI) myocardial infarction involving right coronary artery
+   
+2. Acute diverticulitis
+
+Orders:
+temazepam, 15 mg, = 1 cap, Oral, Cap, HS, PRN sleep, First Dose: 10/22/17 15:54:00 CDT
+
+Subjective
+
+Review of Systems
+
+Physical Exam
+Vitals & Measurements
+
+Intake and Output
+No qualifying data available.`;
+
+            return (
+              <div className="flex flex-1 flex-col overflow-hidden bg-[#eef2f5] text-[11px] select-text">
+                
+                {/* clinical patient banner header */}
+                <div className="bg-[#0b4369] text-white px-3 py-1 flex flex-col font-sans select-none shrink-0 text-[10px]">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-6">
+                      <span className="font-bold text-sm tracking-wide">{patient.name.toUpperCase()}</span>
+                      <span>DOB: {patient.dob}</span>
+                      <span>Age: {patient.ageGender.split(' / ')[0]}</span>
+                      <span>Dose Wt: 80.200 kg (07/24/2017)</span>
+                      <span>Sex: {patient.ageGender.split(' / ')[1]}</span>
+                      <span>MRN: {patient.mrn}</span>
+                      <span>Attending: {patient.physician}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span>Loc: {patient.location}</span>
+                      <span>Isolation: None</span>
+                      <button className="bg-[#115b8d] hover:bg-[#146ba4] px-2 py-0.5 rounded text-[9.5px]">List</button>
+                      <button className="bg-[#115b8d] hover:bg-[#146ba4] px-2 py-0.5 rounded text-[9.5px]">Recent</button>
+                      <input type="text" placeholder="Search..." className="bg-white text-gray-800 rounded px-1.5 py-0.2 text-[9.5px] border border-gray-400 focus:outline-none" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-[#115b8d] mt-1 pt-1 text-[9.5px] text-[#bde0f5]">
+                    <div className="flex items-center gap-4">
+                      <span>FIN: 1200290664</span>
+                      <span>Admit: {patient.admitted}</span>
+                      <span>Disch: &lt;None&gt;</span>
+                    </div>
+                    <span>Loc: 6E Neurolonav: 6406: 0</span>
+                  </div>
+                </div>
+
+                {/* Sub-header documentation ribbon */}
+                <div className="bg-white border-b border-[#cbd8e3] p-1 flex items-center gap-3 shrink-0 text-gray-700 select-none text-[10px]">
+                  <button className="hover:bg-gray-150 px-1.5 py-0.5 rounded">◀</button>
+                  <button className="hover:bg-gray-150 px-1.5 py-0.5 rounded">▶</button>
+                  <span className="text-gray-300">|</span>
+                  <button className="hover:bg-gray-150 px-2 py-0.5 rounded flex items-center gap-1">🏠 Documentation</button>
+                  <span className="text-gray-400 ml-auto">0 minutes ago</span>
+                </div>
+
+                {/* Main Content Workspace Grid */}
+                <div className="flex-1 flex overflow-hidden">
+                  
+                  {/* Left Column - Tagged Text */}
+                  <div className="w-[180px] bg-white border-r border-[#cbd8e3] flex flex-col shrink-0 text-[10px]">
+                    <div className="bg-[#f0f4f8] p-1.5 font-bold border-b border-[#cbd8e3] text-[#0f4471]">
+                      Tagged Text
+                    </div>
+                    <div className="p-2 space-y-3 overflow-y-auto flex-1">
+                      <div className="border border-blue-200 bg-blue-50/30 p-2 rounded cursor-pointer hover:bg-blue-50/50">
+                        <div className="font-bold flex justify-between text-[9px] text-[#0f4471]">
+                          <span>Admission H&P</span>
+                          <span className="text-gray-400">10/22/2017</span>
+                        </div>
+                        <p className="text-gray-500 line-clamp-2 mt-0.5">General: Alert and oriented, well nourished...</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Middle Column - Editor workspace */}
+                  <div className="flex-1 bg-white flex flex-col overflow-hidden">
+                    
+                    {/* Tabs row */}
+                    <div className="bg-[#eef2f5] border-b border-[#cbd8e3] flex text-[10px] select-none shrink-0">
+                      <div className="bg-white border-r border-t border-[#cbd8e3] px-3 py-1 font-bold text-gray-800 flex items-center gap-2">
+                        <span>Progress Note</span>
+                        <span className="text-gray-400 hover:text-red-600 cursor-pointer">×</span>
+                      </div>
+                      <div className="px-3 py-1 text-gray-500 hover:bg-gray-200/50 flex items-center cursor-pointer">
+                        List
+                      </div>
+                    </div>
+
+                    {/* Editor Toolbar */}
+                    <div className="bg-[#fafbfc] border-b border-[#cbd8e3] p-1 flex flex-wrap items-center gap-1 select-none shrink-0">
+                      <select className="bg-white border border-[#cbd8e3] rounded px-1.5 py-0.5 text-[9.5px]">
+                        <option>Tahoma</option>
+                        <option>Arial</option>
+                        <option>Courier New</option>
+                      </select>
+                      <select className="bg-white border border-[#cbd8e3] rounded px-1.5 py-0.5 text-[9.5px] w-[50px]">
+                        <option>Size</option>
+                        <option>10</option>
+                        <option>12</option>
+                        <option>14</option>
+                      </select>
+                      <span className="text-gray-300 mx-0.5">|</span>
+                      <button className="hover:bg-gray-200 px-1.5 py-0.5 rounded font-bold">B</button>
+                      <button className="hover:bg-gray-200 px-1.5 py-0.5 rounded italic font-serif">I</button>
+                      <button className="hover:bg-gray-200 px-1.5 py-0.5 rounded underline">U</button>
+                      <button className="hover:bg-gray-200 px-1.5 py-0.5 rounded line-through">abc</button>
+                      <button className="hover:bg-gray-200 px-1.5 py-0.5 rounded text-amber-500 font-bold">A</button>
+                      <span className="text-gray-300 mx-0.5">|</span>
+                      <button className="hover:bg-gray-200 px-1.5 py-0.5 rounded">📄 Align Left</button>
+                      <button className="hover:bg-gray-200 px-1.5 py-0.5 rounded">📄 Align Center</button>
+                      <button className="hover:bg-gray-200 px-1.5 py-0.5 rounded">📄 Align Right</button>
+                    </div>
+
+                    {/* Text Editor area */}
+                    <div className="flex-1 p-5 overflow-y-auto space-y-4 font-sans select-none text-[11px]">
+                      
+                      {/* Section Header with edit (pencil) and clear (dustbin) actions */}
+                      <div className="flex items-center gap-3 border-b border-gray-100 pb-1.5 select-none">
+                        <span className="font-bold text-[#0f4471] text-xs">Assessment/Plan</span>
+                        <button 
+                          onClick={() => setIsEditingNote(prev => !prev)}
+                          className={`p-1 rounded hover:bg-gray-150 transition-colors text-[11.5px] ${isEditingNote ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-500'}`}
+                          title="Edit Sections"
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if (confirm("Delete the complete note to start a new note?")) {
+                              setAssessmentItems([]);
+                              setOrdersItems([]);
+                              setNoteSubjective('');
+                              setNoteRos('Review of Systems');
+                              setNotePe('Physical Exam\nVitals & Measurements');
+                              setNoteIo('Intake and Output\nNo qualifying data available.');
+                              syncToTextMap([], [], '', 'Review of Systems', 'Physical Exam\nVitals & Measurements', 'Intake and Output\nNo qualifying data available.');
+                            }
+                          }}
+                          className="p-1 rounded hover:bg-red-50 text-red-500 transition-colors text-[11.5px]"
+                          title="Delete Note"
+                        >
+                          🗑️ Clear Note
+                        </button>
+                      </div>
+
+                      {/* Editing View */}
+                      {isEditingNote ? (
+                        <div className="space-y-4">
+                          
+                          {/* Assessment Items Badges */}
+                          <div className="space-y-1.5">
+                            <span className="text-gray-500 font-bold block">Assessment Items:</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {assessmentItems.length === 0 ? (
+                                <span className="text-gray-400 italic text-[10px]">No assessment items.</span>
+                              ) : (
+                                assessmentItems.map((item, idx) => (
+                                  <span key={idx} className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#f0f7ff] border border-[#d2e4ff] rounded text-blue-800 text-[10.5px]">
+                                    <span>{item}</span>
+                                    <span 
+                                      onClick={() => {
+                                        const updated = assessmentItems.filter((_, i) => i !== idx);
+                                        setAssessmentItems(updated);
+                                        syncToTextMap(updated, ordersItems, noteSubjective, noteRos, notePe, noteIo);
+                                      }}
+                                      className="text-red-500 hover:text-red-700 cursor-pointer font-bold ml-1 text-xs"
+                                    >
+                                      ×
+                                    </span>
+                                  </span>
+                                ))
+                              )}
+                            </div>
+                            <div className="flex gap-2 pt-1">
+                              <input 
+                                type="text"
+                                placeholder="Type a new assessment line and press Enter..."
+                                value={newAssessmentInput}
+                                onChange={(e) => setNewAssessmentInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && newAssessmentInput.trim()) {
+                                    const updated = [...assessmentItems, newAssessmentInput.trim()];
+                                    setAssessmentItems(updated);
+                                    setNewAssessmentInput('');
+                                    syncToTextMap(updated, ordersItems, noteSubjective, noteRos, notePe, noteIo);
+                                  }
+                                }}
+                                className="flex-1 bg-white border border-gray-300 rounded px-2 py-1 text-[10.5px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Orders Badges */}
+                          <div className="space-y-1.5">
+                            <span className="text-gray-500 font-bold block">Orders:</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {ordersItems.length === 0 ? (
+                                <span className="text-gray-400 italic text-[10px]">No orders.</span>
+                              ) : (
+                                ordersItems.map((item, idx) => (
+                                  <span key={idx} className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#f0f7ff] border border-[#d2e4ff] rounded text-blue-800 text-[10.5px]">
+                                    <span>{item}</span>
+                                    <span 
+                                      onClick={() => {
+                                        const updated = ordersItems.filter((_, i) => i !== idx);
+                                        setOrdersItems(updated);
+                                        syncToTextMap(assessmentItems, updated, noteSubjective, noteRos, notePe, noteIo);
+                                      }}
+                                      className="text-red-500 hover:text-red-700 cursor-pointer font-bold ml-1 text-xs"
+                                    >
+                                      ×
+                                    </span>
+                                  </span>
+                                ))
+                              )}
+                            </div>
+                            <div className="flex gap-2 pt-1">
+                              <input 
+                                type="text"
+                                placeholder="Type a new order line and press Enter..."
+                                value={newOrderInput}
+                                onChange={(e) => setNewOrderInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && newOrderInput.trim()) {
+                                    const updated = [...ordersItems, newOrderInput.trim()];
+                                    setOrdersItems(updated);
+                                    setNewOrderInput('');
+                                    syncToTextMap(assessmentItems, updated, noteSubjective, noteRos, notePe, noteIo);
+                                  }
+                                }}
+                                className="flex-1 bg-white border border-gray-300 rounded px-2 py-1 text-[10.5px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Subjective */}
+                          <div className="space-y-1">
+                            <span className="text-gray-500 font-bold block">Subjective:</span>
+                            <textarea
+                              value={noteSubjective}
+                              onChange={(e) => {
+                                setNoteSubjective(e.target.value);
+                                syncToTextMap(assessmentItems, ordersItems, e.target.value, noteRos, notePe, noteIo);
+                              }}
+                              className="w-full bg-white border border-gray-300 rounded p-2 focus:outline-none h-[50px] text-[10.5px] resize-none"
+                              placeholder="Type subjective details..."
+                            />
+                          </div>
+
+                          {/* Review of Systems */}
+                          <div className="space-y-1">
+                            <span className="text-gray-500 font-bold block">Review of Systems:</span>
+                            <textarea
+                              value={noteRos}
+                              onChange={(e) => {
+                                setNoteRos(e.target.value);
+                                syncToTextMap(assessmentItems, ordersItems, noteSubjective, e.target.value, notePe, noteIo);
+                              }}
+                              className="w-full bg-white border border-gray-300 rounded p-2 focus:outline-none h-[50px] text-[10.5px] resize-none"
+                              placeholder="Review of Systems..."
+                            />
+                          </div>
+
+                          {/* Physical Exam */}
+                          <div className="space-y-1">
+                            <span className="text-gray-500 font-bold block">Physical Exam:</span>
+                            <textarea
+                              value={notePe}
+                              onChange={(e) => {
+                                setNotePe(e.target.value);
+                                syncToTextMap(assessmentItems, ordersItems, noteSubjective, noteRos, e.target.value, noteIo);
+                              }}
+                              className="w-full bg-white border border-gray-300 rounded p-2 focus:outline-none h-[60px] text-[10.5px] resize-none"
+                            />
+                          </div>
+
+                          {/* Intake and Output */}
+                          <div className="space-y-1">
+                            <span className="text-gray-500 font-bold block">Intake and Output:</span>
+                            <textarea
+                              value={noteIo}
+                              onChange={(e) => {
+                                setNoteIo(e.target.value);
+                                syncToTextMap(assessmentItems, ordersItems, noteSubjective, noteRos, notePe, e.target.value);
+                              }}
+                              className="w-full bg-white border border-gray-300 rounded p-2 focus:outline-none h-[50px] text-[10.5px] resize-none"
+                            />
+                          </div>
+
+                        </div>
+                      ) : (
+                        // Read / Text View matching standard note
+                        <div className="space-y-4 text-gray-800 leading-relaxed select-text font-mono whitespace-pre-line text-[10.5px]">
+                          {/* Assessment Section */}
+                          <div>
+                            {assessmentItems.map((item, idx) => (
+                              <div key={idx} className="pl-2">{item}</div>
+                            ))}
+                          </div>
+
+                          {/* Orders Section */}
+                          {ordersItems.length > 0 && (
+                            <div>
+                              <div className="font-bold mt-2">Orders:</div>
+                              {ordersItems.map((item, idx) => (
+                                <div key={idx} className="pl-2">{item}</div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Subjective Section */}
+                          <div>
+                            <div className="font-bold mt-2">Subjective</div>
+                            <div className="pl-2 text-gray-600">{noteSubjective || "—"}</div>
+                          </div>
+
+                          {/* ROS Section */}
+                          <div>
+                            <div className="font-bold mt-2">{noteRos.split('\n')[0]}</div>
+                            <div className="pl-2 text-gray-600">{noteRos.includes('\n') ? noteRos.substring(noteRos.indexOf('\n') + 1) : "—"}</div>
+                          </div>
+
+                          {/* PE Section */}
+                          <div>
+                            <div className="font-bold mt-2">{notePe.split('\n')[0]}</div>
+                            <div className="pl-2 text-gray-600">{notePe.includes('\n') ? notePe.substring(notePe.indexOf('\n') + 1) : "—"}</div>
+                          </div>
+
+                          {/* IO Section */}
+                          <div>
+                            <div className="font-bold mt-2">{noteIo.split('\n')[0]}</div>
+                            <div className="pl-2 text-gray-600">{noteIo.includes('\n') ? noteIo.substring(noteIo.indexOf('\n') + 1) : "—"}</div>
+                          </div>
+
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+
+                  {/* Right Column - Clinical Info Sidebar (Meds, Allergies, Labs) */}
+                  <div className="w-[280px] bg-white border-l border-[#cbd8e3] flex flex-col shrink-0 overflow-y-auto p-2.5 space-y-3.5">
+                    
+                    {/* Medications section */}
+                    <div className="space-y-1.5">
+                      <h4 className="font-bold text-[#0f4471] border-b border-[#cbd8e3] pb-0.5">Medications</h4>
+                      <div className="space-y-2 text-[9px] text-gray-700">
+                        <div>
+                          <span className="font-bold text-gray-900 block border-b border-gray-100 pb-0.2">Inpatient</span>
+                          <ul className="list-disc pl-3.5 space-y-1 mt-1">
+                            <li>albumin human 25% intravenous solution, 12.5 g, 50 mL, IV Piggyback, As Directed (see comments), PRN</li>
+                            <li>aspirin buffered oral tablet, 325 mg, 1 tab, Oral, BID</li>
+                            <li>D5W 250 mL + amiodarone IV additive 450 mg, Continuous, Daily</li>
+                            <li>dextrose 5% with 0.45% NaCl and potassium chloride 20 mEq/L 1,000 mL, 1000 mL, IV</li>
+                            <li>hydrogen peroxide 3% topical solution, 1 app, Topical, Daily</li>
+                            <li>Lovenox, 40 mg, 0.4 mL, Subcutaneous, Daily</li>
+                            <li>morphine, 2 mg, 1 mL, IV Push, every 3 hr, PRN</li>
+                            <li>Procrit, 10000 units, 1 mL, IV Push, Mon/We/Fr</li>
+                            <li>Restoril, 15 mg, 1 cap, Oral, HS, PRN</li>
+                            <li>sodium chloride 0.9% bolus, 200 mL, IV Piggyback, As Directed (see comments), PRN</li>
+                            <li>Tylenol, 650 mg, 2 tab, Oral, every 6 hr, PRN</li>
+                            <li>Zemplar, 5 mcg, 1 mL, IV Push, Mon/We/Fr</li>
+                            <li>Zofran, 4 mg, 1 tab, Oral, every 6 hr, PRN</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <span className="font-bold text-gray-900 block border-b border-gray-100 pb-0.2">Home</span>
+                          <ul className="list-disc pl-3.5 space-y-1 mt-1">
+                            <li>glimepiride 4 mg oral tablet, 4 mg, 1 tab, Oral, Daily</li>
+                            <li>lisinopril 20 mg oral tablet, 20 mg, 1 tab, Oral, Daily</li>
+                            <li>metFORMIN 500 mg oral tablet, 500 mg, 1 tab, Oral, BID</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Allergies section */}
+                    <div className="space-y-1.5">
+                      <h4 className="font-bold text-[#0f4471] border-b border-[#cbd8e3] pb-0.5">Allergies</h4>
+                      <p className="text-[9.5px] text-gray-500">No active allergies recorded.</p>
+                    </div>
+
+                    {/* Lab Results section */}
+                    <div className="space-y-1.5">
+                      <h4 className="font-bold text-[#0f4471] border-b border-[#cbd8e3] pb-0.5">Lab Results (Last 24 Hours)</h4>
+                      <p className="text-[9.5px] text-gray-500">No qualifying laboratory data available.</p>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Bottom action buttons footer */}
+                <div className="bg-[#f0f4f8] border-t border-[#cbd8e3] p-2 flex justify-between items-center shrink-0 select-none">
+                  <div className="text-[10px] text-gray-500 font-sans">
+                    Note Details: Progress Note Generic, Sanders MD, Michael Lawrence, 10/23/2017 10:46 CDT, Progress Note
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        setShowSignModal(true);
+                      }}
+                      className="bg-white hover:bg-gray-50 text-gray-800 border border-gray-400 px-3 py-1 font-semibold rounded shadow-2xs active:bg-gray-100"
+                    >
+                      Sign/Submit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setPatientNotesMap(prev => ({ ...prev, [patient.mrn]: noteText }));
+                        alert('Note saved successfully!');
+                      }}
+                      className="bg-white hover:bg-gray-50 text-gray-800 border border-gray-400 px-3 py-1 font-semibold rounded shadow-2xs active:bg-gray-100"
+                    >
+                      Save
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setPatientNotesMap(prev => ({ ...prev, [patient.mrn]: noteText }));
+                        closeTab(activeTab.id, {} as any);
+                      }}
+                      className="bg-white hover:bg-gray-50 text-gray-800 border border-gray-400 px-3 py-1 font-semibold rounded shadow-2xs active:bg-gray-100"
+                    >
+                      Save & Close
+                    </button>
+                    <button 
+                      onClick={(e) => closeTab(activeTab.id, e as any)}
+                      className="bg-white hover:bg-gray-50 text-gray-800 border border-gray-400 px-3 py-1 font-semibold rounded shadow-2xs active:bg-gray-100"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sign/Submit Note Confirmation Modal */}
+                {showSignModal && (
+                  <div className="fixed inset-0 bg-black/45 flex items-center justify-center z-[99999]">
+                    <div 
+                      className="bg-[#f0f4f8] border-2 border-[#115b8d] w-[520px] shadow-2xl rounded-sm flex flex-col font-sans select-none text-[11px] text-gray-800"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Modal Title bar */}
+                      <div className="bg-[#0b4369] text-white px-3 py-1.5 flex justify-between items-center select-none font-semibold">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs">📄</span>
+                          <span>Sign/Submit Note</span>
+                        </div>
+                        <button 
+                          onClick={() => setShowSignModal(false)}
+                          className="hover:bg-red-600 hover:text-white px-1.5 py-0.5 rounded text-xs transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      {/* Modal Body Form */}
+                      <div className="p-4 space-y-3 bg-[#f8f9fa] border-b border-[#cbd8e3]">
+                        
+                        {/* Type row */}
+                        <div className="grid grid-cols-[80px_1fr_1fr] gap-2 items-center">
+                          <span className="font-bold text-right pr-2 text-gray-700">*Type:</span>
+                          <select 
+                            value={signType1}
+                            onChange={(e) => setSignType1(e.target.value)}
+                            className="bg-white border border-gray-300 rounded px-1.5 py-1 text-[11px] focus:outline-none"
+                          >
+                            <option>Office/Clinic Note-Physician</option>
+                            <option>Progress Note-Generic</option>
+                          </select>
+                          <select 
+                            value={signType2}
+                            onChange={(e) => setSignType2(e.target.value)}
+                            className="bg-white border border-gray-300 rounded px-1.5 py-1 text-[11px] focus:outline-none"
+                          >
+                            <option>Personal Note Type List</option>
+                            <option>System Note Type List</option>
+                          </select>
+                        </div>
+
+                        {/* Title row */}
+                        <div className="grid grid-cols-[80px_1fr] gap-2 items-center">
+                          <span className="font-bold text-right pr-2 text-gray-700">Title:</span>
+                          <input 
+                            type="text" 
+                            value={signTitleVal}
+                            onChange={(e) => setSignTitleVal(e.target.value)}
+                            className="bg-white border border-gray-300 rounded px-1.5 py-1 text-[11px] focus:outline-none"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                setPatientNotesMap(prev => ({ ...prev, [patient.mrn]: noteText }));
+                                setShowSignModal(false);
+                                closeTab(activeTab.id, {} as any);
+                              }
+                            }}
+                          />
+                        </div>
+
+                        {/* Date row */}
+                        <div className="grid grid-cols-[80px_1.5fr_1fr_auto] gap-2 items-center">
+                          <span className="font-bold text-right pr-2 text-gray-700">*Date:</span>
+                          <div className="flex items-center border border-gray-300 rounded bg-white overflow-hidden">
+                            <input 
+                              type="text" 
+                              value={signDateVal}
+                              onChange={(e) => setSignDateVal(e.target.value)}
+                              className="px-1.5 py-1 text-[11px] focus:outline-none flex-1 border-none"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  setPatientNotesMap(prev => ({ ...prev, [patient.mrn]: noteText }));
+                                  setShowSignModal(false);
+                                  closeTab(activeTab.id, {} as any);
+                                }
+                              }}
+                            />
+                            <button className="bg-gray-100 hover:bg-gray-200 border-l border-gray-300 px-1.5 py-1 text-[10px]">📅</button>
+                          </div>
+                          <input 
+                            type="text" 
+                            value={signTimeVal}
+                            onChange={(e) => setSignTimeVal(e.target.value)}
+                            className="bg-white border border-gray-300 rounded px-1.5 py-1 text-[11px] focus:outline-none text-center"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                  setPatientNotesMap(prev => ({ ...prev, [patient.mrn]: noteText }));
+                                  setShowSignModal(false);
+                                  closeTab(activeTab.id, {} as any);
+                              }
+                            }}
+                          />
+                          <span className="font-bold text-gray-600">{signTimezoneVal}</span>
+                        </div>
+
+                        {/* Author row */}
+                        <div className="grid grid-cols-[80px_1fr] gap-2 items-center">
+                          <span className="font-bold text-right pr-2 text-gray-700">*Author:</span>
+                          <input 
+                            type="text" 
+                            value={signAuthorVal}
+                            disabled
+                            className="bg-gray-100 border border-gray-300 rounded px-1.5 py-1 text-[11px] text-gray-500 focus:outline-none cursor-not-allowed"
+                          />
+                        </div>
+
+                      </div>
+
+                      {/* Modal Footer actions */}
+                      <div className="bg-[#cbd8e3]/45 p-2 flex justify-end gap-2 shrink-0 select-none">
+                        <button 
+                          onClick={() => {
+                            setPatientNotesMap(prev => ({ ...prev, [patient.mrn]: noteText }));
+                            setShowSignModal(false);
+                            closeTab(activeTab.id, {} as any);
+                          }}
+                          className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-semibold py-1 px-5 rounded-sm shadow-xs text-[11px] transition-all"
+                        >
+                          Sign
+                        </button>
+                        <button 
+                          onClick={() => setShowSignModal(false)}
+                          className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-semibold py-1 px-5 rounded-sm shadow-xs text-[11px] transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            );
+          })()}
 
           {activeTab.type === 'HelpCentre' && (
             <div className="flex flex-1 overflow-auto bg-[#fafbfc] p-6 text-gray-800 text-[11px] select-text">
@@ -6375,6 +7331,61 @@ export default function App() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {contextMenu && contextMenu.visible && (
+        <div 
+          className="fixed bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[190px] shadow-lg rounded-none select-none z-[9999] text-left py-0.5"
+          style={{ left: `${contextMenu.x}px`, top: `${contextMenu.y}px` }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Patient Snapshot clicked')}>Patient Snapshot...</div>
+          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Provider Information clicked')}>Provider Information...</div>
+          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Visit List clicked')}>Visit List...</div>
+          
+          <div className="border-t border-[#e2e2e2] my-0.5"></div>
+          
+          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white text-gray-400 cursor-not-allowed">Inactivate Relationship...</div>
+          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Add/View Sticky Notes clicked')}>Add/View Sticky Notes...</div>
+          
+          <div className="border-t border-[#e2e2e2] my-0.5"></div>
+          
+          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Sort clicked')}>Sort...</div>
+          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Hide clicked')}>Hide</div>
+          <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Customize Columns clicked')}>Customize Columns...</div>
+          
+          <div className="border-t border-[#e2e2e2] my-0.5"></div>
+          
+          {/* Add to a Patient List (with hover submenu) */}
+          <div className="relative group/addlist px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer flex justify-between items-center">
+            <span>Add to a Patient List</span>
+            <span className="text-[8px] text-gray-500 group-hover/addlist:text-white">▶</span>
+            <div className="absolute left-full top-0 ml-0.5 hidden group-hover/addlist:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[120px] shadow-md rounded-none select-none z-[10000]">
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Added to My List')}>My List</div>
+            </div>
+          </div>
+          
+          <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer group/copy" onClick={() => alert('Copied patients')}>
+            <span>Copy</span>
+            <span className="text-[10px] text-gray-400 group-hover/copy:text-blue-100">Ctrl+C</span>
+          </div>
+          <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer group/paste" onClick={() => alert('Pasted patients')}>
+            <span>Paste</span>
+            <span className="text-[10px] text-gray-400 group-hover/paste:text-blue-100">Ctrl+V</span>
+          </div>
+          
+          <div className="border-t border-[#e2e2e2] my-0.5"></div>
+          
+          {/* Open Patient Chart (with hover submenu) */}
+          <div className="relative group/openchart px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer flex justify-between items-center">
+            <span>Open Patient Chart</span>
+            <span className="text-[8px] text-gray-500 group-hover/openchart:text-white">▶</span>
+            <div className="absolute left-full top-0 ml-0.5 hidden group-hover/openchart:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[160px] shadow-md rounded-none select-none z-[10000]">
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Opening Active Chart')}>Active Chart</div>
+              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Opening All Charts')}>All Charts</div>
+            </div>
+          </div>
         </div>
       )}
 
