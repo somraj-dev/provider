@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans h-full w-full overflow-hidden", geist.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn("font-sans h-full w-full overflow-hidden")} suppressHydrationWarning>
       <body className="h-full w-full overflow-hidden" suppressHydrationWarning>{children}</body>
     </html>
   );
