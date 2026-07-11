@@ -2490,7 +2490,12 @@ ${ioVal}`;
 
       {/* Navigation Shortcut Row (Ribbon 2) */}
       <div className="bg-[#eef2f5] border-b border-[#bdcddc] px-3 py-1 flex gap-3 text-[#4f5f6f] items-center text-[10.5px]">
-        <button className="flex items-center gap-1 hover:text-black">Dashboard</button>
+        <button 
+          onClick={() => selectOrOpenTab('Home', 'Home', 'home-tab')}
+          className={`flex items-center gap-1 hover:text-black ${activeTab.type === 'Home' ? 'font-semibold text-[#002a46]' : ''}`}
+        >
+          Dashboard
+        </button>
         
         {/* Scheduler Shortcut Tab Trigger */}
         <button 
