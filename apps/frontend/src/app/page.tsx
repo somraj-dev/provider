@@ -32,7 +32,7 @@ import {
 interface TabItem {
   id: string;
   title: string;
-  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes';
+  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs';
 }
 
 const CHART_OPTIONS = [
@@ -99,6 +99,152 @@ const getChartDataForSelection = (baseData: any[], selection: string, chartKey: 
   });
 };
 
+const patientDemographics: Record<string, {
+  mrn: string;
+  axioId: string;
+  gender: string;
+  age: string;
+  allergies: string;
+  dob: string;
+  weight: string;
+  height: string;
+  bloodType: string;
+  healthLife: string;
+}> = {
+  'JAMES, WILLIAM': {
+    mrn: '1000245601',
+    axioId: 'AXSL06-WJ281',
+    gender: 'Male',
+    age: '52Y 3M',
+    allergies: 'Penicillin, Sulfa',
+    dob: '04/12/1974 (52Y)',
+    weight: '78.4 kg (05/20/2026)',
+    height: '180 cm',
+    bloodType: 'A+',
+    healthLife: 'Yes'
+  },
+  'PATEL, RAHUL': {
+    mrn: '1000245679',
+    axioId: 'AXSL06-RP915',
+    gender: 'Male',
+    age: '38Y 5M',
+    allergies: 'No Known Allergies',
+    dob: '11/14/1987 (38Y)',
+    weight: '72.1 kg (04/10/2026)',
+    height: '172 cm',
+    bloodType: 'B+',
+    healthLife: 'Yes'
+  },
+  'JOHNSON, MARIA': {
+    mrn: '1000245680',
+    axioId: 'AXSL06-MJ100',
+    gender: 'Female',
+    age: '41Y 2M',
+    allergies: 'Aspirin',
+    dob: '08/22/1984 (41Y)',
+    weight: '64.8 kg (03/15/2026)',
+    height: '165 cm',
+    bloodType: 'O-',
+    healthLife: 'Yes'
+  },
+  'LEE, DAVID': {
+    mrn: '1000245681',
+    axioId: 'AXSL06-DL103',
+    gender: 'Male',
+    age: '56Y 10M',
+    allergies: 'No Known Allergies',
+    dob: '07/22/1969 (56Y)',
+    weight: '82.3 kg (02/28/2026)',
+    height: '178 cm',
+    bloodType: 'AB+',
+    healthLife: 'Yes'
+  },
+  'GARCIA, LUCIA': {
+    mrn: '1000245682',
+    axioId: 'AXSL06-LG110',
+    gender: 'Female',
+    age: '29Y 8M',
+    allergies: 'Latex',
+    dob: '09/25/1996 (29Y)',
+    weight: '58.2 kg (05/01/2026)',
+    height: '162 cm',
+    bloodType: 'A-',
+    healthLife: 'Yes'
+  },
+  'KIM, JAMES': {
+    mrn: '1000245684',
+    axioId: 'AXSL06-JK113',
+    gender: 'Male',
+    age: '49Y 4M',
+    allergies: 'Penicillin',
+    dob: '02/19/1977 (49Y)',
+    weight: '85.6 kg (04/22/2026)',
+    height: '176 cm',
+    bloodType: 'O+',
+    healthLife: 'Yes'
+  },
+  'BROWN, ELIZABETH': {
+    mrn: '1000245685',
+    axioId: 'AXSL06-EB120',
+    gender: 'Female',
+    age: '62Y 11M',
+    allergies: 'Codeine',
+    dob: '07/06/1963 (62Y)',
+    weight: '69.4 kg (01/18/2026)',
+    height: '168 cm',
+    bloodType: 'B-',
+    healthLife: 'Yes'
+  },
+  'THOMAS, MICHAEL': {
+    mrn: '1000245683',
+    axioId: 'AXSL06-MT123',
+    gender: 'Male',
+    age: '45Y 6M',
+    allergies: 'No Known Allergies',
+    dob: '01/10/1981 (45Y)',
+    weight: '80.0 kg (03/30/2026)',
+    height: '182 cm',
+    bloodType: 'A+',
+    healthLife: 'Yes'
+  },
+  'ANDERSON, SUSAN': {
+    mrn: '1000245688',
+    axioId: 'AXSL06-SA130',
+    gender: 'Female',
+    age: '50Y 1M',
+    allergies: 'Sulfa Drugs',
+    dob: '05/16/1976 (50Y)',
+    weight: '66.2 kg (05/10/2026)',
+    height: '164 cm',
+    bloodType: 'O+',
+    healthLife: 'Yes'
+  },
+  'MILLER, ROBERT': {
+    mrn: '1000245689',
+    axioId: 'AXSL06-RM133',
+    gender: 'Male',
+    age: '68Y 7M',
+    allergies: 'Penicillin',
+    dob: '12/03/1957 (68Y)',
+    weight: '88.1 kg (04/05/2026)',
+    height: '175 cm',
+    bloodType: 'A-',
+    healthLife: 'Yes'
+  },
+  'DAVIS, PATRICIA': {
+    mrn: '1000245690',
+    axioId: 'AXSL06-PD140',
+    gender: 'Female',
+    age: '72Y 3M',
+    allergies: 'No Known Allergies',
+    dob: '03/28/1954 (72Y)',
+    weight: '61.5 kg (02/14/2026)',
+    height: '160 cm',
+    bloodType: 'AB-',
+    healthLife: 'Yes'
+  }
+};
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
@@ -106,6 +252,9 @@ export default function App() {
   const [loginError, setLoginError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   
+  const [messageCenterView, setMessageCenterView] = useState<'list' | 'detail'>('list');
+  const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
+
   // Context menu for multi-patient selection
   const [selectedPatientMrns, setSelectedPatientMrns] = useState<string[]>([]);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, visible: boolean } | null>(null);
@@ -405,7 +554,11 @@ ${ioVal}`;
     setActiveTabId('patient-doe');
   };
 
-  const selectOrOpenTab = (type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes', title: string, id: string) => {
+  const selectOrOpenTab = (type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs', title: string, id: string) => {
+    if (type === 'MessageCenter') {
+      setMessageCenterView('list');
+      setSelectedMessage(null);
+    }
     if (type === 'AdmitPatient') {
       const now = new Date();
       const dd = String(now.getDate()).padStart(2, '0');
@@ -2513,9 +2666,13 @@ ${ioVal}`;
           Order Sets
         </button>
         <button className="flex items-center gap-1 hover:text-black">Care Pathways</button>
-        <button className="flex items-center gap-1 hover:text-black">Labs</button>
+        <button 
+          onClick={() => selectOrOpenTab('Labs', 'Labs', 'labs-tab')}
+          className={`flex items-center gap-1 hover:text-black ${activeTab.type === 'Labs' ? 'font-semibold text-[#002a46]' : ''}`}
+        >
+          Labs
+        </button>
         <button className="flex items-center gap-1 hover:text-black">Imaging</button>
-        <button className="flex items-center gap-1 hover:text-black">Pharmacy</button>
         <button 
           onClick={() => selectOrOpenTab('Analytics', 'Analytics Overview', 'analytics-overview')}
           className="flex items-center gap-1 hover:text-black font-semibold"
@@ -2540,6 +2697,7 @@ ${ioVal}`;
           {activeTab.type === 'ReferralTransfer' && 'Referral & Transfer Management'}
           {activeTab.type === 'DischargeList' && 'Patient Discharge List'}
           {activeTab.type === 'Orders' && 'Orders'}
+          {activeTab.type === 'Labs' && 'Labs'}
           {(activeTab.type as string) === 'Home' && 'Home'}
           {(activeTab.type as string) === 'DeveloperTools' && 'Developer Configuration & System Administration'}
         </span>
@@ -2774,7 +2932,9 @@ ${ioVal}`;
                 style={{ width: '220px' }}
               >
                 <span className="truncate pr-4 flex-1 pointer-events-none">
-                  {t.title}
+                  {t.type === 'MessageCenter' && selectedMessage 
+                    ? `General Messages: ${selectedMessage.patientName}` 
+                    : t.title}
                 </span>
                 {openTabs.length > 1 && (
                   <button 
@@ -2794,169 +2954,332 @@ ${ioVal}`;
 
           {activeTab.type === 'MessageCenter' && (
             <div className="flex flex-1 overflow-hidden">
-              {/* Left pane: Navigation menu */}
-              <div className="w-[200px] bg-[#dbe6ef] border-r border-[#bdcddc] flex flex-col select-none text-[10.5px]">
-                <div className="bg-[#789cbb] text-white font-bold p-1.5 flex justify-between items-center">
-                  <span>Inbox Summary</span>
-                  <Badge className="bg-[#002a46] hover:bg-[#002a46] text-white text-[9px] px-1 py-0 rounded-none h-4">0</Badge>
-                </div>
-                
-                <div className="bg-[#cbd8e3] p-0.5 flex gap-0.5 border-b border-[#bdcddc] text-[10px]">
-                  <button className="flex-1 bg-white border border-[#bdcddc] py-0.5 font-bold text-center">Inbox</button>
-                  <button className="flex-1 py-0.5 text-center hover:bg-white/40">Proxies</button>
-                  <button className="flex-1 py-0.5 text-center hover:bg-white/40">Pools</button>
-                </div>
+              {messageCenterView === 'list' ? (
+                <div className="flex-1 bg-white flex flex-col overflow-hidden text-[11px]">
+                  {/* Toolbar matching the second image's icons perfectly */}
+                  <div className="bg-[#fafbfc] border-b border-[#bdcddc] px-3 py-1 flex items-center gap-5 text-[#333333] text-[11px] select-none font-sans">
+                    <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1 text-gray-700 font-medium">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="#d1154f" className="inline mr-0.5">
+                        <path d="M14 3.25c-.41 0-.75.34-.75.75v16c0 .41.34.75.75.75s.75-.34.75-.75V4c0-.41-.34-.75-.75-.75zM3 9v6h3l5 5V4L6 9H3zm17.5 3c0-1.8-1.04-3.36-2.5-4.13v8.26c1.46-.77 2.5-2.33 2.5-4.13z"/>
+                      </svg>
+                      <span className="text-[#333333]">Communicate</span>
+                      <span className="text-[8px] text-gray-400">▼</span>
+                    </button>
+                    <div className="h-4 w-[1px] bg-gray-300 mx-1"></div>
+                    <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="#ffb300" className="inline">
+                        <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                      </svg>
+                      <span className="text-[#333333]">Open</span>
+                    </button>
+                    <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="#1e88e5" className="inline">
+                        <path d="M21 5c-1.11-.9-2.45-1-4-1-1.48 0-2.75.1-4 1-1.25-.9-2.52-1-4-1-1.55 0-2.89.1-4 1v14.5c1.11-.9 2.45-1 4-1 1.48 0 2.75.1 4 1 1.25-.9 2.52-1 4-1 1.55 0 2.89.1 4 1V5zm-1 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-3.4.25-5 1V6.5c1.6-.75 3.3-1 5-1 1.2 0 2.4.15 3.5.5v13z"/>
+                      </svg>
+                      <span className="text-[#333333]">Message Journal</span>
+                    </button>
+                    <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                      <svg width="12" height="12" viewBox="0 0 24 24" className="inline">
+                        <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z" fill="#cbd8e3"/>
+                        <path d="M11 16v-3H8v-2h3V8l5 4-5 4z" fill="#d32f2f"/>
+                      </svg>
+                      <span className="text-[#333333]">Forward Only</span>
+                    </button>
+                    <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="#311b92" className="inline">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                      </svg>
+                      <span className="text-[#333333]">Select Patient</span>
+                    </button>
+                    <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="#37474f" className="inline">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
+                      <span className="text-[#333333]">Select All</span>
+                    </button>
+                  </div>
 
-                <div className="p-1.5 border-b border-[#bdcddc] flex items-center gap-1.5 bg-[#e6edf3]">
-                  <span className="text-gray-600">Display:</span>
-                  <select className="bg-white border border-[#bdcddc] rounded-sm px-1 py-0.5 flex-1 focus:outline-none text-[9.5px]">
-                    <option>Last 30 Days</option>
-                    <option>Last 15 Days</option>
-                    <option>All History</option>
-                  </select>
-                  <button className="border border-[#bdcddc] px-1 bg-white hover:bg-gray-50 rounded-sm">...</button>
+                  {/* Table with custom font, high contrast text and border styles */}
+                  <div className="flex-1 overflow-auto">
+                    <table className="w-full text-left border-collapse font-sans">
+                      <thead>
+                        <tr className="bg-[#f0f4f8] text-[#333333] select-none sticky top-0 z-10 text-[11px]">
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Patient Name</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order/Plan Name</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Action</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Comment</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Originator Name</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Create Date</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Stop Date</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Stop Type</th>
+                          <th className="p-1 px-2 border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {mockOrdersData.map((row, idx) => (
+                          <tr
+                            key={idx}
+                            onClick={() => {
+                              setSelectedMessage(row);
+                              setMessageCenterView('detail');
+                            }}
+                            className={`hover:bg-[#eaf4fc] cursor-pointer transition-colors ${
+                              idx % 2 === 1 ? 'bg-[#f4f8fb]' : 'bg-white'
+                            }`}
+                          >
+                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] font-bold text-black uppercase whitespace-nowrap text-[11px]">
+                              {row.patientName}
+                            </td>
+                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-[#004b87] hover:underline whitespace-nowrap text-[11px]">
+                              {row.orderPlanName}
+                            </td>
+                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] whitespace-nowrap text-gray-800 text-[11px]">{row.action}</td>
+                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">
+                              {row.detailsDate}...
+                            </td>
+                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-700 whitespace-nowrap text-[11px]">
+                              {row.detailsDesc}
+                            </td>
+                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-600 whitespace-nowrap text-[11px]">{row.comment}</td>
+                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-600 whitespace-nowrap text-[11px]">{row.originator}</td>
+                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">{row.createDate}</td>
+                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">{row.stopDate}</td>
+                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-700 whitespace-nowrap text-[11px]">{row.stopType}</td>
+                            <td className="p-1 px-2 border-b border-[#e5edf5] font-bold text-[#008000] whitespace-nowrap text-[11px]">{row.status}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-
-                <ScrollArea className="flex-1 text-gray-700">
-                  <div className="p-1 space-y-2">
-                    <div>
-                      <div className="font-bold flex items-center gap-1 p-0.5 bg-[#cbd8e3]/30 border-b border-[#bdcddc]/50">
-                        <span>➖ Priority Items (0)</span>
-                      </div>
+              ) : (
+                <>
+                  {/* Left pane: Navigation menu */}
+                  <div className="w-[200px] bg-[#dbe6ef] border-r border-[#bdcddc] flex flex-col select-none text-[10.5px]">
+                    <div className="bg-[#789cbb] text-white font-bold p-1.5 flex justify-between items-center">
+                      <span>Inbox Summary</span>
+                      <Badge className="bg-[#002a46] hover:bg-[#002a46] text-white text-[9px] px-1 py-0 rounded-none h-4">1</Badge>
                     </div>
-                    <div>
-                      <div className="font-bold flex items-center gap-1 p-0.5">
-                        <span>➖ Messages (0/1)</span>
-                      </div>
-                      <div className="pl-3.5 mt-0.5">
-                        <div className="p-0.5 text-red-700 hover:bg-blue-100/30 rounded-sm cursor-pointer">
-                          General Messages (0/1)
+                    
+                    <div className="bg-[#cbd8e3] p-0.5 flex gap-0.5 border-b border-[#bdcddc] text-[10px]">
+                      <button 
+                        onClick={() => {
+                          setMessageCenterView('list');
+                          setSelectedMessage(null);
+                        }}
+                        className="flex-1 bg-white border border-[#bdcddc] py-0.5 font-bold text-center"
+                      >
+                        Inbox
+                      </button>
+                      <button className="flex-1 py-0.5 text-center hover:bg-white/40">Proxies</button>
+                      <button className="flex-1 py-0.5 text-center hover:bg-white/40">Pools</button>
+                    </div>
+
+                    <div className="p-1.5 border-b border-[#bdcddc] flex items-center gap-1.5 bg-[#e6edf3]">
+                      <span className="text-gray-600">Display:</span>
+                      <select className="bg-white border border-[#bdcddc] rounded-sm px-1 py-0.5 flex-1 focus:outline-none text-[9.5px]">
+                        <option>Last 30 Days</option>
+                        <option>Last 15 Days</option>
+                        <option>All History</option>
+                      </select>
+                      <button className="border border-[#bdcddc] px-1 bg-white hover:bg-gray-50 rounded-sm">...</button>
+                    </div>
+
+                    <ScrollArea className="flex-1 text-gray-700">
+                      <div className="p-1 space-y-2">
+                        <div>
+                          <div className="font-bold flex items-center gap-1 p-0.5 bg-[#cbd8e3]/30 border-b border-[#bdcddc]/50">
+                            <span>➖ Priority Items (0)</span>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-bold flex items-center gap-1 p-0.5">
+                            <span>➖ Messages (0/1)</span>
+                          </div>
+                          <div className="pl-3.5 mt-0.5">
+                            <div 
+                              onClick={() => {
+                                setMessageCenterView('list');
+                                setSelectedMessage(null);
+                              }}
+                              className="p-0.5 text-red-700 hover:bg-blue-100/30 rounded-sm cursor-pointer"
+                            >
+                              General Messages (0/1)
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-bold flex items-center gap-1 p-0.5 bg-[#cbd8e3]/30 border-b border-[#bdcddc]/50">
+                            <span>➖ Inbox Items (0)</span>
+                          </div>
+                          <div className="pl-2 space-y-0.5 mt-1 text-[10px]">
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Results FYI</div>
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Orders</div>
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Documents</div>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-bold flex items-center gap-1 p-0.5">
+                            <span>➖ Messages (0/1)</span>
+                          </div>
+                          <div className="pl-3.5 mt-0.5">
+                            <div className="p-0.5 bg-[#007cc0] text-white font-bold rounded-sm px-1.5 py-0.5 shadow-sm cursor-pointer">
+                              General Messages (0/1)
+                            </div>
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer mt-0.5">Results</div>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-bold flex items-center gap-1 p-0.5 bg-[#cbd8e3]/30 border-b border-[#bdcddc]/50">
+                            <span>➖ Work Items (0)</span>
+                          </div>
+                          <div className="pl-2 space-y-0.5 mt-1 text-[10px]">
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Saved Documents</div>
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Paper Based Documents</div>
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Deficient Documents (0)</div>
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Reminders</div>
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Anticipated Documents</div>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-bold flex items-center gap-1 p-0.5 bg-[#cbd8e3]/30 border-b border-[#bdcddc]/50">
+                            <span>➖ Notifications</span>
+                          </div>
+                          <div className="pl-2 space-y-0.5 mt-1 text-[10px] text-gray-600">
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Sent Items</div>
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Trash</div>
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Notify Receipts</div>
+                          </div>
                         </div>
                       </div>
+                    </ScrollArea>
+                  </div>
+
+                  {/* Right pane: Document Workspace */}
+                  <div className="flex-1 bg-[#f8f9fa] flex flex-col overflow-hidden text-[11px] p-2 space-y-2">
+                    <div className="bg-[#cbd8e3] border-b border-[#bdcddc] flex justify-between items-center px-1">
+                      <button className="bg-white border-t border-x border-[#bdcddc] px-3.5 py-1 font-bold text-[10.5px] flex items-center gap-2 rounded-t-sm">
+                        General Messages: {selectedMessage?.patientName || 'JOHN DOE'}
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setMessageCenterView('list');
+                          setSelectedMessage(null);
+                        }}
+                        className="text-[10px] text-[#002a46] hover:text-[#0f4471] font-bold px-2 py-0.5 hover:underline"
+                      >
+                        ❮ Back to Messages List
+                      </button>
                     </div>
-                    <div>
-                      <div className="font-bold flex items-center gap-1 p-0.5 bg-[#cbd8e3]/30 border-b border-[#bdcddc]/50">
-                        <span>➖ Inbox Items (0)</span>
-                      </div>
-                      <div className="pl-2 space-y-0.5 mt-1 text-[10px]">
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Results FYI</div>
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Orders</div>
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Documents</div>
+                    
+                    <div className="bg-[#fafbfc] border border-[#bdcddc] px-3 py-1 flex items-center gap-4 text-[#2c3e50] text-[10.5px] rounded-sm">
+                      <button className="hover:text-black flex items-center gap-1">✉️ Forward</button>
+                      <button className="hover:text-black flex items-center gap-1 text-red-600 font-semibold">❌ Delete</button>
+                      <button className="hover:text-black flex items-center gap-1">🖨️ Print</button>
+                      <span className="text-gray-300">|</span>
+                      <button className="hover:text-black flex items-center gap-1">⬆️ Previous</button>
+                      <button className="hover:text-black flex items-center gap-1">⬇️ Next</button>
+                      <span className="text-gray-300">|</span>
+                      <button className="hover:text-black flex items-center gap-1">✉️ Mark Unread</button>
+                      <button className="hover:text-black flex items-center gap-1 font-semibold">💬 Communicate <ChevronDown className="w-2.5 h-2.5 inline" /></button>
+                      <span className="text-gray-300">|</span>
+                      <button className="hover:text-black flex items-center gap-1 font-semibold text-[#0d7a86]">➕ Add</button>
+                    </div>
+
+                    <div 
+                      onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${selectedMessage?.patientName || 'JOHN DOE'}`, `patient-${selectedMessage ? (patientDemographics[selectedMessage.patientName]?.mrn || '1000245678') : '1000245678'}`)}
+                      className="bg-[#0f4471] text-white p-3 rounded-sm flex justify-between items-center shadow-md relative overflow-hidden cursor-pointer hover:bg-[#0c395f] transition-all"
+                    >
+                      {(() => {
+                        const currentDemo = selectedMessage ? (patientDemographics[selectedMessage.patientName] || {
+                          mrn: '1000245678',
+                          axioId: 'AXSL06-S1L2V3',
+                          gender: 'Male',
+                          age: '45Y 8M',
+                          allergies: 'Penicillin, Iodine',
+                          dob: '03/12/1979 (45Y)',
+                          weight: '80.2 kg (04/25/2024)',
+                          height: '175 cm',
+                          bloodType: 'O+',
+                          healthLife: 'Yes'
+                        }) : {
+                          mrn: '1000245678',
+                          axioId: 'AXSL06-S1L2V3',
+                          gender: 'Male',
+                          age: '45Y 8M',
+                          allergies: 'Penicillin, Iodine',
+                          dob: '03/12/1979 (45Y)',
+                          weight: '80.2 kg (04/25/2024)',
+                          height: '175 cm',
+                          bloodType: 'O+',
+                          healthLife: 'Yes'
+                        };
+                        return (
+                          <>
+                            <div className="space-y-1 z-10">
+                              <div className="flex items-center gap-2">
+                                <h2 className="text-lg font-bold tracking-wide">{selectedMessage?.patientName || 'JOHN DOE'}</h2>
+                                <span className="text-[9px] bg-[#0d7a86] px-1 py-0.2 rounded font-bold uppercase">View Profile</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-x-8 gap-y-0.5 text-[11px] text-gray-200">
+                                <div><span className="text-gray-400 font-medium">MRN:</span> {currentDemo.mrn}</div>
+                                <div><span className="text-gray-400 font-medium">Axio-ID:</span> {currentDemo.axioId}</div>
+                                <div><span className="text-gray-400 font-medium">Gender:</span> {currentDemo.gender}</div>
+                                <div><span className="text-gray-400 font-medium">Age:</span> {currentDemo.age}</div>
+                                <div className="col-span-2"><span className="text-gray-400 font-medium">Allergies:</span> {currentDemo.allergies}</div>
+                              </div>
+                            </div>
+                            <div className="space-y-1 text-right text-[11px] z-10">
+                              <div><span className="text-gray-400 font-medium">DOB:</span> {currentDemo.dob}</div>
+                              <div><span className="text-gray-400 font-medium">Weight:</span> {currentDemo.weight}</div>
+                              <div><span className="text-gray-400 font-medium">Height:</span> {currentDemo.height}</div>
+                              <div><span className="text-gray-400 font-medium">Blood Type:</span> {currentDemo.bloodType}</div>
+                              <div><span className="text-gray-400 font-medium">HealthLife:</span> {currentDemo.healthLife}</div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                      <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center border border-white/20 select-none">
+                        <span className="text-3xl">👤</span>
                       </div>
                     </div>
-                    <div>
-                      <div className="font-bold flex items-center gap-1 p-0.5">
-                        <span>➖ Messages (0/1)</span>
-                      </div>
-                      <div className="pl-3.5 mt-0.5">
-                        <div className="p-0.5 bg-[#007cc0] text-white font-bold rounded-sm px-1.5 py-0.5 shadow-sm cursor-pointer">
-                          General Messages (0/1)
+
+                    <div className="flex-1 bg-white border border-[#bdcddc] rounded-sm p-4 flex flex-col space-y-4 overflow-auto shadow-sm">
+                      <div className="border-b border-[#bdcddc] pb-3 space-y-1">
+                        <h3 className="font-bold text-xs text-gray-800">Message Details</h3>
+                        <div className="grid grid-cols-[80px_1fr] gap-y-1">
+                          <span className="text-gray-500 font-semibold">From:</span>
+                          <span className="font-semibold">System</span>
+                          <span className="text-gray-500 font-semibold">To:</span>
+                          <span>Axiovital Admin</span>
+                          <span className="text-gray-500 font-semibold">Subject:</span>
+                          <span className="font-semibold text-[#0f719b]">
+                            {selectedMessage 
+                              ? `Clinical Note Ready for Review - ${selectedMessage.orderPlanName}` 
+                              : 'Clinical Note Ready for Review'}
+                          </span>
+                          <span className="text-gray-500 font-semibold">Date/Time:</span>
+                          <span>{selectedMessage ? `${selectedMessage.createDate} PM` : '05/28/2025 03:42 PM'}</span>
                         </div>
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer mt-0.5">Results</div>
                       </div>
-                    </div>
-                    <div>
-                      <div className="font-bold flex items-center gap-1 p-0.5 bg-[#cbd8e3]/30 border-b border-[#bdcddc]/50">
-                        <span>➖ Work Items (0)</span>
-                      </div>
-                      <div className="pl-2 space-y-0.5 mt-1 text-[10px]">
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Saved Documents</div>
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Paper Based Documents</div>
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Deficient Documents (0)</div>
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Reminders</div>
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Anticipated Documents</div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="font-bold flex items-center gap-1 p-0.5 bg-[#cbd8e3]/30 border-b border-[#bdcddc]/50">
-                        <span>➖ Notifications</span>
-                      </div>
-                      <div className="pl-2 space-y-0.5 mt-1 text-[10px] text-gray-600">
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Sent Items</div>
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Trash</div>
-                        <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Notify Receipts</div>
+                      <div className="space-y-3 leading-relaxed text-gray-800">
+                        <div className="font-semibold border-b border-gray-100 pb-1">Message Content</div>
+                        <p>
+                          The clinical note for patient {selectedMessage?.patientName || 'JOHN DOE'} (MRN:{' '}
+                          {selectedMessage ? (patientDemographics[selectedMessage.patientName]?.mrn || '1000245678') : '1000245678'}) is ready to review and sign in AxioNote.
+                        </p>
+                        <p>Please click the link below or use the Clinical menu &gt; AxioNote - Edge Platform from the top toolbar to launch the platform.</p>
+                        <div className="py-2">
+                          <button className="text-[#0f719b] font-semibold underline hover:text-[#0b5475]">Launch AxioNote - Edge Platform</button>
+                        </div>
+                        <p className="text-gray-500 text-[10.5px]">Thank you,<br />AxioVital Clinical System</p>
                       </div>
                     </div>
                   </div>
-                </ScrollArea>
-              </div>
-
-              {/* Right pane: Document Workspace */}
-              <div className="flex-1 bg-[#f8f9fa] flex flex-col overflow-hidden text-[11px] p-2 space-y-2">
-                <div className="bg-[#cbd8e3] border-b border-[#bdcddc] flex items-center px-1">
-                  <button className="bg-white border-t border-x border-[#bdcddc] px-3.5 py-1 font-bold text-[10.5px] flex items-center gap-2 rounded-t-sm">
-                    General Messages: JOHN DOE
-                  </button>
-                </div>
-                
-                <div className="bg-[#fafbfc] border border-[#bdcddc] px-3 py-1 flex items-center gap-4 text-[#2c3e50] text-[10.5px] rounded-sm">
-                  <button className="hover:text-black flex items-center gap-1">✉️ Forward</button>
-                  <button className="hover:text-black flex items-center gap-1 text-red-600 font-semibold">❌ Delete</button>
-                  <button className="hover:text-black flex items-center gap-1">🖨️ Print</button>
-                  <span className="text-gray-300">|</span>
-                  <button className="hover:text-black flex items-center gap-1">⬆️ Previous</button>
-                  <button className="hover:text-black flex items-center gap-1">⬇️ Next</button>
-                  <span className="text-gray-300">|</span>
-                  <button className="hover:text-black flex items-center gap-1">✉️ Mark Unread</button>
-                  <button className="hover:text-black flex items-center gap-1 font-semibold">💬 Communicate <ChevronDown className="w-2.5 h-2.5 inline" /></button>
-                  <span className="text-gray-300">|</span>
-                  <button className="hover:text-black flex items-center gap-1 font-semibold text-[#0d7a86]">➕ Add</button>
-                </div>
-
-                <div 
-                  onClick={() => selectOrOpenTab('PatientProfile', 'Patient Profile: JOHN DOE', 'patient-doe')}
-                  className="bg-[#0f4471] text-white p-3 rounded-sm flex justify-between items-center shadow-md relative overflow-hidden cursor-pointer hover:bg-[#0c395f] transition-all"
-                >
-                  <div className="space-y-1 z-10">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold tracking-wide">JOHN DOE</h2>
-                      <span className="text-[9px] bg-[#0d7a86] px-1 py-0.2 rounded font-bold uppercase">View Profile</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-0.5 text-[11px] text-gray-200">
-                      <div><span className="text-gray-400 font-medium">MRN:</span> 1000245678</div>
-                      <div><span className="text-gray-400 font-medium">Axio-ID:</span> AXSL06-S1L2V3</div>
-                      <div><span className="text-gray-400 font-medium">Gender:</span> Male</div>
-                      <div><span className="text-gray-400 font-medium">Age:</span> 45Y 8M</div>
-                      <div className="col-span-2"><span className="text-gray-400 font-medium">Allergies:</span> Penicillin, Iodine</div>
-                    </div>
-                  </div>
-                  <div className="space-y-1 text-right text-[11px] z-10">
-                    <div><span className="text-gray-400 font-medium">DOB:</span> 03/12/1979 (45Y)</div>
-                    <div><span className="text-gray-400 font-medium">Weight:</span> 80.2 kg (04/25/2024)</div>
-                    <div><span className="text-gray-400 font-medium">Height:</span> 175 cm</div>
-                    <div><span className="text-gray-400 font-medium">Blood Type:</span> O+</div>
-                    <div><span className="text-gray-400 font-medium">HealthLife:</span> Yes</div>
-                  </div>
-                  <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center border border-white/20 select-none">
-                    <span className="text-3xl">👤</span>
-                  </div>
-                </div>
-
-                <div className="flex-1 bg-white border border-[#bdcddc] rounded-sm p-4 flex flex-col space-y-4 overflow-auto shadow-sm">
-                  <div className="border-b border-[#bdcddc] pb-3 space-y-1">
-                    <h3 className="font-bold text-xs text-gray-800">Message Details</h3>
-                    <div className="grid grid-cols-[80px_1fr] gap-y-1">
-                      <span className="text-gray-500 font-semibold">From:</span>
-                      <span className="font-semibold">System</span>
-                      <span className="text-gray-500 font-semibold">To:</span>
-                      <span>Axiovital Admin</span>
-                      <span className="text-gray-500 font-semibold">Subject:</span>
-                      <span className="font-semibold text-[#0f719b]">Clinical Note Ready for Review</span>
-                      <span className="text-gray-500 font-semibold">Date/Time:</span>
-                      <span>05/28/2025 03:42 PM</span>
-                    </div>
-                  </div>
-                  <div className="space-y-3 leading-relaxed text-gray-800">
-                    <div className="font-semibold border-b border-gray-100 pb-1">Message Content</div>
-                    <p>The clinical note for patient JOHN DOE (MRN: 1000245678) is ready to review and sign in AxioNote.</p>
-                    <p>Please click the link below or use the Clinical menu &gt; AxioNote - Edge Platform from the top toolbar to launch the platform.</p>
-                    <div className="py-2">
-                      <button className="text-[#0f719b] font-semibold underline hover:text-[#0b5475]">Launch AxioNote - Edge Platform</button>
-                    </div>
-                    <p className="text-gray-500 text-[10.5px]">Thank you,<br />AxioVital Clinical System</p>
-                  </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           )}
 
@@ -6795,71 +7118,200 @@ No qualifying data available.`;
           )}
 
           {activeTab.type === 'Orders' && (
-            <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-[#f8f9fa] text-[10.5px] select-text h-full flex flex-col min-h-0">
-              
-
-              {/* Main Table Container */}
-              <div className="flex-1 min-h-0 bg-white border border-[#bdcddc] rounded-sm overflow-hidden flex flex-col shadow-sm">
-                <div className="flex-1 overflow-auto">
-                  <table className="w-full text-left border-collapse text-[10.5px]">
-                    <thead>
-                      <tr className="bg-[#f0f4f8] text-gray-700 border-b border-gray-300 sticky top-0 font-bold select-none text-[10.5px]">
-                        <th className="p-2 border-r border-gray-200">Patient Name</th>
-                        <th className="p-2 border-r border-gray-200">Order/Plan Name</th>
-                        <th className="p-2 border-r border-gray-200">Order Action</th>
-                        <th className="p-2 border-r border-gray-200">Details</th>
-                        <th className="p-2 border-r border-gray-200">Details</th>
-                        <th className="p-2 border-r border-gray-200">Order Comment</th>
-                        <th className="p-2 border-r border-gray-200">Originator Name</th>
-                        <th className="p-2 border-r border-gray-200">Create Date</th>
-                        <th className="p-2 border-r border-gray-200">Stop Date</th>
-                        <th className="p-2 border-r border-gray-200">Stop Type</th>
-                        <th className="p-2">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-150 text-black">
-                      {mockOrdersData.map((order, idx) => (
-                        <tr 
-                          key={idx} 
-                          className="hover:bg-blue-50/30 transition-colors border-b border-gray-100"
-                        >
-                          <td 
-                            className="p-2 border-r border-gray-100 font-bold text-[#0d7a86] cursor-pointer hover:underline" 
-                            onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${order.patientName.toUpperCase()}`, 'patient-doe')}
-                            onContextMenu={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setPatientContextMenu({
-                                x: e.clientX,
-                                y: e.clientY,
-                                patientName: order.patientName,
-                                patientMrn: '1000245678'
-                              });
-                            }}
-                          >
-                            {order.patientName}
-                          </td>
-                          <td className="p-2 border-r border-gray-100 text-blue-900 font-bold">{order.orderPlanName}</td>
-                          <td className="p-2 border-r border-gray-100">{order.action}</td>
-                          <td className="p-2 border-r border-gray-100 text-gray-600">{order.detailsDate}...</td>
-                          <td className="p-2 border-r border-gray-100 text-gray-700 font-medium">{order.detailsDesc}</td>
-                          <td className="p-2 border-r border-gray-100 text-gray-500">{order.comment}</td>
-                          <td className="p-2 border-r border-gray-100 text-gray-600">{order.originator}</td>
-                          <td className="p-2 border-r border-gray-100 font-mono text-gray-600">{order.createDate}</td>
-                          <td className="p-2 border-r border-gray-100 font-mono text-gray-600">{order.stopDate}</td>
-                          <td className="p-2 border-r border-gray-100">{order.stopType}</td>
-                          <td className="p-2">
-                            <span className="px-2 py-0.5 rounded-sm font-bold text-[9px] bg-green-50 text-green-700 border border-green-200">
-                              {order.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+            <div className="flex-1 bg-white flex flex-col overflow-hidden text-[11px]">
+              {/* Toolbar matching the second image's icons perfectly */}
+              <div className="bg-[#fafbfc] border-b border-[#bdcddc] px-3 py-1 flex items-center gap-5 text-[#333333] text-[11px] select-none font-sans">
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#d1154f" className="inline mr-0.5">
+                    <path d="M14 3.25c-.41 0-.75.34-.75.75v16c0 .41.34.75.75.75s.75-.34.75-.75V4c0-.41-.34-.75-.75-.75zM3 9v6h3l5 5V4L6 9H3zm17.5 3c0-1.8-1.04-3.36-2.5-4.13v8.26c1.46-.77 2.5-2.33 2.5-4.13z"/>
+                  </svg>
+                  <span className="text-[#333333]">Communicate</span>
+                  <span className="text-[8px] text-gray-400">▼</span>
+                </button>
+                <div className="h-4 w-[1px] bg-gray-300 mx-1"></div>
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#ffb300" className="inline">
+                    <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                  </svg>
+                  <span className="text-[#333333]">Open</span>
+                </button>
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#1e88e5" className="inline">
+                    <path d="M21 5c-1.11-.9-2.45-1-4-1-1.48 0-2.75.1-4 1-1.25-.9-2.52-1-4-1-1.55 0-2.89.1-4 1v14.5c1.11-.9 2.45-1 4-1 1.48 0 2.75.1 4 1 1.25-.9 2.52-1 4-1 1.55 0 2.89.1 4 1V5zm-1 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-3.4.25-5 1V6.5c1.6-.75 3.3-1 5-1 1.2 0 2.4.15 3.5.5v13z"/>
+                  </svg>
+                  <span className="text-[#333333]">Message Journal</span>
+                </button>
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" className="inline">
+                    <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z" fill="#cbd8e3"/>
+                    <path d="M11 16v-3H8v-2h3V8l5 4-5 4z" fill="#d32f2f"/>
+                  </svg>
+                  <span className="text-[#333333]">Forward Only</span>
+                </button>
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#311b92" className="inline">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                  <span className="text-[#333333]">Select Patient</span>
+                </button>
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#37474f" className="inline">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                  <span className="text-[#333333]">Select All</span>
+                </button>
               </div>
 
+              {/* Table with custom font, high contrast text and border styles */}
+              <div className="flex-1 overflow-auto">
+                <table className="w-full text-left border-collapse font-sans">
+                  <thead>
+                    <tr className="bg-[#f0f4f8] text-[#333333] select-none sticky top-0 z-10 text-[11px]">
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Patient Name</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order/Plan Name</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Action</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Comment</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Originator Name</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Create Date</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Stop Date</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Stop Type</th>
+                      <th className="p-1 px-2 border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {mockOrdersData.map((row, idx) => (
+                      <tr
+                        key={idx}
+                        onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.patientName.toUpperCase()}`, 'patient-doe')}
+                        className={`hover:bg-[#eaf4fc] cursor-pointer transition-colors ${
+                          idx % 2 === 1 ? 'bg-[#f4f8fb]' : 'bg-white'
+                        }`}
+                      >
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] font-bold text-black uppercase whitespace-nowrap text-[11px]">
+                          {row.patientName}
+                        </td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-[#004b87] hover:underline whitespace-nowrap text-[11px]">
+                          {row.orderPlanName}
+                        </td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] whitespace-nowrap text-gray-800 text-[11px]">{row.action}</td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">
+                          {row.detailsDate}...
+                        </td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-700 whitespace-nowrap text-[11px]">
+                          {row.detailsDesc}
+                        </td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-600 whitespace-nowrap text-[11px]">{row.comment}</td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-600 whitespace-nowrap text-[11px]">{row.originator}</td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">{row.createDate}</td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">{row.stopDate}</td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-700 whitespace-nowrap text-[11px]">{row.stopType}</td>
+                        <td className="p-1 px-2 border-b border-[#e5edf5] font-bold text-[#008000] whitespace-nowrap text-[11px]">{row.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab.type === 'Labs' && (
+            <div className="flex-1 bg-white flex flex-col overflow-hidden text-[11px]">
+              {/* Toolbar matching the second image's icons perfectly */}
+              <div className="bg-[#fafbfc] border-b border-[#bdcddc] px-3 py-1 flex items-center gap-5 text-[#333333] text-[11px] select-none font-sans">
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#d1154f" className="inline mr-0.5">
+                    <path d="M14 3.25c-.41 0-.75.34-.75.75v16c0 .41.34.75.75.75s.75-.34.75-.75V4c0-.41-.34-.75-.75-.75zM3 9v6h3l5 5V4L6 9H3zm17.5 3c0-1.8-1.04-3.36-2.5-4.13v8.26c1.46-.77 2.5-2.33 2.5-4.13z"/>
+                  </svg>
+                  <span className="text-[#333333]">Communicate</span>
+                  <span className="text-[8px] text-gray-400">▼</span>
+                </button>
+                <div className="h-4 w-[1px] bg-gray-300 mx-1"></div>
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#ffb300" className="inline">
+                    <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                  </svg>
+                  <span className="text-[#333333]">Open</span>
+                </button>
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#1e88e5" className="inline">
+                    <path d="M21 5c-1.11-.9-2.45-1-4-1-1.48 0-2.75.1-4 1-1.25-.9-2.52-1-4-1-1.55 0-2.89.1-4 1v14.5c1.11-.9 2.45-1 4-1 1.48 0 2.75.1 4 1 1.25-.9 2.52-1 4-1 1.55 0 2.89.1 4 1V5zm-1 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-3.4.25-5 1V6.5c1.6-.75 3.3-1 5-1 1.2 0 2.4.15 3.5.5v13z"/>
+                  </svg>
+                  <span className="text-[#333333]">Message Journal</span>
+                </button>
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" className="inline">
+                    <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z" fill="#cbd8e3"/>
+                    <path d="M11 16v-3H8v-2h3V8l5 4-5 4z" fill="#d32f2f"/>
+                  </svg>
+                  <span className="text-[#333333]">Forward Only</span>
+                </button>
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#311b92" className="inline">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                  <span className="text-[#333333]">Select Patient</span>
+                </button>
+                <button className="hover:bg-gray-100 px-1.5 py-0.5 rounded flex items-center gap-1.5 text-gray-700 font-medium">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#37474f" className="inline">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                  <span className="text-[#333333]">Select All</span>
+                </button>
+              </div>
+
+              {/* Table with custom font, high contrast text and border styles */}
+              <div className="flex-1 overflow-auto">
+                <table className="w-full text-left border-collapse font-sans">
+                  <thead>
+                    <tr className="bg-[#f0f4f8] text-[#333333] select-none sticky top-0 z-10 text-[11px]">
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Patient Name</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order/Plan Name</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Action</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Comment</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Originator Name</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Create Date</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Stop Date</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Stop Type</th>
+                      <th className="p-1 px-2 border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {mockOrdersData.map((row, idx) => (
+                      <tr
+                        key={idx}
+                        onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.patientName.toUpperCase()}`, 'patient-doe')}
+                        className={`hover:bg-[#eaf4fc] cursor-pointer transition-colors ${
+                          idx % 2 === 1 ? 'bg-[#f4f8fb]' : 'bg-white'
+                        }`}
+                      >
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] font-bold text-black uppercase whitespace-nowrap text-[11px]">
+                          {row.patientName}
+                        </td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-[#004b87] hover:underline whitespace-nowrap text-[11px]">
+                          {row.orderPlanName}
+                        </td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] whitespace-nowrap text-gray-800 text-[11px]">{row.action}</td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">
+                          {row.detailsDate}...
+                        </td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-700 whitespace-nowrap text-[11px]">
+                          {row.detailsDesc}
+                        </td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-600 whitespace-nowrap text-[11px]">{row.comment}</td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-600 whitespace-nowrap text-[11px]">{row.originator}</td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">{row.createDate}</td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">{row.stopDate}</td>
+                        <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-700 whitespace-nowrap text-[11px]">{row.stopType}</td>
+                        <td className="p-1 px-2 border-b border-[#e5edf5] font-bold text-[#008000] whitespace-nowrap text-[11px]">{row.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
