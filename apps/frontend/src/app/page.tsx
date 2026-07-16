@@ -437,6 +437,51 @@ ${ioVal}`;
   const [profileTab, setProfileTab] = useState('Demographics');
   const [profileSidebarOption, setProfileSidebarOption] = useState('Op Note - Prod - Edge');
 
+  // Reconciliation Popup State
+  const [isReconcileOpen, setIsReconcileOpen] = useState(false);
+  const [reconcilePos, setReconcilePos] = useState({ x: 100, y: 80 });
+  const [isDraggingReconcile, setIsDraggingReconcile] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  // Sub-detail Popup State
+  const [isSubPopupOpen, setIsSubPopupOpen] = useState(false);
+  const [subPopupPos, setSubPopupPos] = useState({ x: 250, y: 150 });
+  const [isDraggingSub, setIsDraggingSub] = useState(false);
+  const [dragOffsetSub, setDragOffsetSub] = useState({ x: 0, y: 0 });
+  const [selectedMedReconcile, setSelectedMedReconcile] = useState<any>(null);
+
+  // Dragging handlers for Reconciliation and Sub-detail popups
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingReconcile) {
+        setReconcilePos({
+          x: Math.max(0, e.clientX - dragOffset.x),
+          y: Math.max(0, e.clientY - dragOffset.y),
+        });
+      }
+      if (isDraggingSub) {
+        setSubPopupPos({
+          x: Math.max(0, e.clientX - dragOffsetSub.x),
+          y: Math.max(0, e.clientY - dragOffsetSub.y),
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (isDraggingReconcile) setIsDraggingReconcile(false);
+      if (isDraggingSub) setIsDraggingSub(false);
+    };
+
+    if (isDraggingReconcile || isDraggingSub) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub]);
+
   // Edit Patient Form State matching John Doe credentials
   const [editLastName, setEditLastName] = useState('Doe');
   const [editFirstName, setEditFirstName] = useState('John');
@@ -4071,6 +4116,9 @@ ${ioVal}`;
                             onClick={() => {
                               if (item.name === 'Provider View' || item.name === 'Op Note - Prod - Edge') {
                                 setProfileSidebarOption(item.name);
+                              }
+                              if (item.name === 'Medication List') {
+                                setIsReconcileOpen(true);
                               }
                             }}
                             className={`px-3 py-1.5 flex justify-between items-center cursor-pointer hover:bg-white/10 ${
@@ -8170,6 +8218,447 @@ No qualifying data available.`;
               <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Opening Active Chart')}>Active Chart</div>
               <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white cursor-pointer" onClick={() => alert('Opening All Charts')}>All Charts</div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Draggable Outpatient Order Reconciliation Popup (Exact 1:1 Replica of Cerner PowerChart) */}
+      {isReconcileOpen && (
+        <div 
+          className="fixed bg-white border-2 border-[#194d7b] shadow-2xl rounded-none w-[1040px] max-h-[92vh] flex flex-col select-none z-[99990] overflow-hidden text-[10.5px] text-gray-800 font-sans"
+          style={{ left: `${reconcilePos.x}px`, top: `${reconcilePos.y}px` }}
+        >
+          {/* Window Title Bar */}
+          <div 
+            onMouseDown={(e) => {
+              setIsDraggingReconcile(true);
+              setDragOffset({ x: e.clientX - reconcilePos.x, y: e.clientY - reconcilePos.y });
+            }}
+            className="bg-gradient-to-r from-[#194d7b] via-[#216298] to-[#194d7b] text-white px-2 py-1 flex justify-between items-center cursor-move font-semibold text-[11.5px] border-b border-[#0d365a]"
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="bg-[#0b3c66] text-white font-bold px-1.5 py-0.2 rounded text-[10px] border border-sky-300 shadow-sm">P</span>
+              <span className="tracking-wide">Order Reconciliation: Outpatient - TESTPROD, ONE</span>
+            </div>
+            <div className="flex items-center gap-1 font-mono text-xs">
+              <button className="hover:bg-white/20 px-1.5 rounded transition-colors leading-none pb-0.5">_</button>
+              <button className="hover:bg-white/20 px-1.5 rounded transition-colors leading-none pb-0.5">□</button>
+              <button onClick={() => setIsReconcileOpen(false)} className="hover:bg-red-600 px-1.5 rounded transition-colors leading-none pb-0.5">✕</button>
+            </div>
+          </div>
+
+          {/* Demographics Dark Navy/Teal Banner */}
+          <div className="bg-[#0d4778] text-white px-2.5 py-2 border-b border-[#082d4c] flex items-start justify-between gap-4 text-[10px] leading-tight">
+            <div className="flex items-center gap-2">
+              <div className="bg-white/10 border border-white/30 rounded p-1 flex items-center justify-center w-[40px] h-[40px] shadow-inner">
+                <span className="text-2xl">👤</span>
+              </div>
+              <div className="space-y-0.5">
+                <div className="font-bold text-[11.5px] tracking-wide text-white">TESTPROD, ONE</div>
+                <div>Patient Portal: <strong className="text-white">YES</strong></div>
+                <div>Loc: <strong className="text-white">CHC Willard</strong></div>
+              </div>
+            </div>
+
+            <div className="space-y-0.5 border-l border-white/20 pl-3">
+              <div>PCP: <strong className="text-white">TestUser, PX Physician - Family Practice...</strong></div>
+              <div>Sex: <strong className="text-white">Male</strong></div>
+            </div>
+
+            <div className="space-y-0.5 border-l border-white/20 pl-3">
+              <div>Age: <strong className="text-white">46 years</strong></div>
+              <div>DOB: <strong className="text-white">11/12/1970</strong></div>
+            </div>
+
+            <div className="space-y-0.5 border-l border-white/20 pl-3">
+              <div>MRN: <strong className="text-white font-mono">AMB0000380</strong></div>
+              <div>Attending: <strong className="text-white">Krenn MD, Louis P</strong></div>
+              <div className="truncate max-w-[280px]">Outpatient <span className="font-mono">AMB000001313324</span> [10/25/2016 1:00... &lt;No - Discharge date&gt;]</div>
+            </div>
+
+            <div className="space-y-0.5 border-l border-white/20 pl-3 text-right">
+              <div className="font-mono font-bold">(417) 555-5555</div>
+              <div className="text-red-300 font-semibold truncate max-w-[210px]" title="Ultram, sulfa drugs, amoxicillin, m...">Allergies: Ultram, sulfa drugs, amoxicillin, m...</div>
+              <div className="text-sky-200 font-semibold">AMB-MEDICARE SERVICES-CARE</div>
+            </div>
+          </div>
+
+          {/* Action Toolbar & Tabs */}
+          <div className="bg-[#f0f2f5] border-b border-[#bdcddc] px-2.5 py-1 flex justify-between items-center text-[10.5px]">
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => {
+                  setSelectedMedReconcile({ name: 'New Medication Order', details: '10 mg, By mouth, Daily, 90 tab, 0 Refill(s)', status: 'Ordered', after: 'New Order Entry', afterStatus: 'Prescribed' });
+                  setIsSubPopupOpen(true);
+                }}
+                className="flex items-center gap-1 hover:bg-gray-200 px-1.5 py-0.5 rounded transition-colors"
+              >
+                <span className="text-blue-600 font-bold text-sm leading-none">+</span>
+                <span className="text-blue-700 font-semibold underline">Add</span>
+              </button>
+              <span className="text-gray-400">|</span>
+              <div className="flex items-center gap-1">
+                <span className="text-blue-700 font-semibold underline cursor-pointer hover:text-blue-900">Rx Plans</span>
+                <span className="text-gray-700 font-medium">(0): No Benefit Found *</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <span className="font-semibold text-gray-700">Reconciliation Status</span>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-1 cursor-pointer hover:text-black">
+                  <input type="radio" name="reconcileTab" className="cursor-pointer accent-[#194d7b]" />
+                  <span>Meds History</span>
+                </label>
+                <label className="flex items-center gap-1 cursor-pointer hover:text-black">
+                  <input type="radio" name="reconcileTab" className="cursor-pointer accent-[#194d7b]" />
+                  <span>Admission</span>
+                </label>
+                <label className="flex items-center gap-1 cursor-pointer font-bold text-[#194d7b]">
+                  <input type="radio" name="reconcileTab" defaultChecked className="cursor-pointer accent-[#194d7b]" />
+                  <span>Outpatient</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Sub-header (Show Formulary link) */}
+          <div className="bg-white px-3 py-0.5 flex justify-end border-b border-gray-200 text-[9.5px]">
+            <span className="text-blue-600 underline cursor-pointer hover:text-blue-800 italic">Show Formulary... ▼</span>
+          </div>
+
+          {/* Main Dual-Table Header with Action Columns */}
+          <div className="bg-[#e6ecf2] border-b border-gray-300 text-[10.5px] font-bold text-[#1c4d78] grid grid-cols-[1fr_26px_26px_26px_1fr] items-center text-center select-none shadow-sm">
+            <div className="text-left pl-4 py-1.5 border-r border-gray-300">
+              Orders Prior to Reconciliation
+            </div>
+            <div className="py-1 border-r border-gray-300 flex justify-center bg-[#def]" title="Continue / Reconcile">
+              <span className="w-4 h-4 rounded-full bg-green-600 text-white flex items-center justify-center text-[8px] shadow-sm">▶</span>
+            </div>
+            <div className="py-1 border-r border-gray-300 flex justify-center bg-[#def]" title="Prescribe / Modify">
+              <span className="w-4 h-4 rounded bg-blue-600 text-white flex items-center justify-center text-[8px] shadow-sm">📋</span>
+            </div>
+            <div className="py-1 border-r border-gray-300 flex justify-center bg-[#def]" title="Do Not Continue / Discontinue">
+              <span className="w-4 h-4 rounded bg-red-600 text-white flex items-center justify-center text-[8px] shadow-sm font-black">■</span>
+            </div>
+            <div className="text-left pl-4 py-1.5">
+              Orders After Reconciliation
+            </div>
+          </div>
+
+          {/* Scrollable Table Body */}
+          <div className="flex-1 overflow-y-auto bg-white min-h-[370px] max-h-[460px] divide-y divide-gray-200 font-sans">
+            
+            {/* Group Bar 1: Home Medications */}
+            <div className="grid grid-cols-[1fr_26px_26px_26px_1fr] bg-[#d3e3f3] border-b border-gray-300 font-bold text-[#0f4471] items-center text-[11px] sticky top-0 z-10">
+              <div className="px-2 py-1 flex items-center gap-1.5">
+                <span className="text-[9px]">▲</span>
+                <span>Home Medications</span>
+              </div>
+              <div className="border-l border-gray-300 h-full"></div>
+              <div className="border-l border-gray-300 h-full"></div>
+              <div className="border-l border-gray-300 h-full"></div>
+              <div className="border-l border-gray-300 h-full px-2 py-1 text-gray-500 font-normal text-[10px]">
+                {/* Empty column right space */}
+              </div>
+            </div>
+
+            {/* Exact Home Medication Rows */}
+            {[
+              { name: 'acetaminophen-hydrocodone (Norco 5 mg-...', details: '1 tab, By mouth, 6AM, PRN: for pain, 1 tab, PO...', status: 'Prescribed', sel: 'continue', after: 'acetaminophen-hydrocodone (Norco 5 mg-...', afterDetails: '1 tab, By mouth, 6AM, PRN: for pain, 1 tab, P... <Notes...>', afterStatus: 'Prescribed', icon: '💊' },
+              { name: 'ALPRAZolam (Xanax 0.5 mg oral tablet)', details: '0.5 mg, By mouth, BID, 60 tab, 0 Refill(s)', status: 'Prescribed', sel: 'continue', after: 'ALPRAZolam (Xanax 0.5 mg oral tablet)', afterDetails: '0.5 mg, By mouth, BID, 60 tab, 0 Re... <Notes...>', afterStatus: 'Prescribed', icon: '💊' },
+              { name: 'ibuprofen (Ibuprofen 800 mg oral tablet)', details: '800 mg, 1 tab, By mouth, TID, 270 tab, 0 Refill(s)', status: 'Documented', sel: 'continue', after: 'ibuprofen (Ibuprofen 800 mg oral tablet)', afterDetails: '800 mg, 1 tab, By mouth, TID, 270 t... <Notes...>', afterStatus: 'Acknowledged', icon: '💊' },
+              { name: 'lisinopril (lisinopril 10 mg oral tablet)', details: '10 mg, 1 tab, By mouth, Daily, 90 tab, 0 Refill(s)', status: 'Prescribed', sel: 'continue', after: 'lisinopril (lisinopril 10 mg oral tablet)', afterDetails: '10 mg, 1 tab, By mouth, Daily, 90 t... <Notes...>', afterStatus: 'Prescribed', icon: '💊' },
+              { name: 'lisinopril (lisinopril 30 mg oral tablet)', details: '30 mg, 1 tab, By mouth, Daily, 90 tab, 0 Refill(s)', status: 'Prescribed', sel: 'continue', after: 'lisinopril (lisinopril 30 mg oral tablet)', afterDetails: '30 mg, 1 tab, By mouth, Daily, 90 t... <Notes...>', afterStatus: 'Prescribed', icon: '💊' },
+              { name: 'medroxyPROGESTERone (Depo-Provera)', details: '150 mg, IM, 0 Refill(s)', status: 'Documented', sel: 'continue', after: 'medroxyPROGESTERone (Depo-Provera)', afterDetails: '150 mg, IM, 0 Refill(s) | <Notes for Patient >', afterStatus: 'Acknowledged', icon: '💊' },
+              { name: 'Miscellaneous (Medication/DME/supply) (Co...', details: 'See instructions, Wear daily for swelling. Patie...', status: 'Prescribed', sel: 'continue', after: 'Miscellaneous (Medication/DME/supply) (Co...', afterDetails: 'See instructions, Wear daily for sw... <Notes...>', afterStatus: 'Acknowledged', icon: '📦' },
+              { name: 'phenazopyridine (Pyridium 200 mg oral tabl...', details: '200 mg, 1 tab, By mouth, ONCE, 1 tab, 0 Refi...', status: 'Prescribed', sel: 'continue', after: 'phenazopyridine (Pyridium 200 mg oral tabl...', afterDetails: '200 mg, 1 tab, By mouth, ONCE, 1 t... <Notes...>', afterStatus: 'Acknowledged', icon: '💊' },
+              { name: 'rivaroxaban (Xarelto Starter Pack 15 mg-20...', details: 'See instructions, Voyager PAD Trial: Xarelto 2...', status: 'Prescribed', sel: 'continue', after: 'rivaroxaban (Xarelto Starter Pack 15 mg-20...', afterDetails: 'See instructions, Voyager PAD trial... <Notes...>', afterStatus: 'Acknowledged', icon: '💊' },
+              { name: 'solifenacin (VESIcare 5 mg oral tablet)', details: '5 mg, By mouth, Daily, 90 tab, 0 Refill(s)', status: 'Prescribed', sel: 'continue', after: 'solifenacin (VESIcare 5 mg oral tablet)', afterDetails: '5 mg, By mouth, Daily, 90 tab, 0 Re... <Notes...>', afterStatus: 'Acknowledged', icon: '💊' },
+              { name: 'Study Med (VOYAGER Study Drug (Rivaroxa...', details: 'See instructions, 2.5 mg By mouth BID, 0 Ref...', status: 'Discontinue', sel: 'discontinue', after: '', afterDetails: '', afterStatus: '', icon: '⚠️' },
+              { name: 'Study Med (VOYAGER Study Drug (Rivaroxa...', details: 'See instructions, QAM, Voyager PAD trial, 0 Re...', status: 'Discontinue', sel: 'discontinue', after: '', afterDetails: '', afterStatus: '', icon: '⚠️' },
+              { name: 'warfarin (Coumadin 1 mg oral tablet)', details: '1 mg, 1 tab, By mouth, Daily, 30 tab, 0 Refill(s)', status: 'Documented', sel: 'continue', after: 'warfarin (Coumadin 1 mg oral tablet)', afterDetails: '1 mg, 1 tab, By mouth, Daily, 30 ta... <Notes...>', afterStatus: 'Acknowledged', icon: '💊' },
+              { name: 'warfarin (Jantoven 1 mg oral tablet)', details: 'See instructions, 1 tab By mouth Daily, 60 tab,...', status: 'Prescribed', sel: 'continue', after: 'warfarin (Jantoven 1 mg oral tablet)', afterDetails: 'See instructions, 1 tab By mouth D... <Notes...>', afterStatus: 'Acknowledged', icon: '💊' },
+            ].map((med, idx) => (
+              <div 
+                key={idx}
+                onClick={() => {
+                  setSelectedMedReconcile(med);
+                  setIsSubPopupOpen(true);
+                }}
+                className={`grid grid-cols-[1fr_26px_26px_26px_1fr] items-stretch hover:bg-[#eaf3fa] transition-colors cursor-pointer border-b border-gray-200 ${
+                  idx % 2 === 1 ? 'bg-[#fcfdfe]' : 'bg-white'
+                }`}
+              >
+                {/* Left side column */}
+                <div className="p-1.5 pl-3 flex items-start gap-1.5 border-r border-gray-200">
+                  <span className="text-gray-400 text-[10px] mt-0.5">▼</span>
+                  <span className="text-[12px]">{med.icon}</span>
+                  <div className="flex-1 overflow-hidden">
+                    <div className="flex justify-between items-baseline gap-1">
+                      <span className="font-bold text-[#0f4471] hover:underline truncate">{med.name}</span>
+                      <span className="text-[9.5px] font-semibold text-gray-600 whitespace-nowrap">{med.status}</span>
+                    </div>
+                    <div className="text-gray-500 text-[9.5px] leading-tight truncate">{med.details}</div>
+                  </div>
+                </div>
+
+                {/* Column 2: Continue radio */}
+                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
+                  <input 
+                    type="radio" 
+                    name={`med_action_${idx}`} 
+                    defaultChecked={med.sel === 'continue'} 
+                    onClick={(e) => e.stopPropagation()} 
+                    className="cursor-pointer accent-green-600" 
+                  />
+                </div>
+
+                {/* Column 3: Prescribe radio */}
+                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
+                  <input 
+                    type="radio" 
+                    name={`med_action_${idx}`} 
+                    defaultChecked={med.sel === 'prescribe'} 
+                    onClick={(e) => e.stopPropagation()} 
+                    className="cursor-pointer accent-blue-600" 
+                  />
+                </div>
+
+                {/* Column 4: Discontinue radio */}
+                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
+                  <input 
+                    type="radio" 
+                    name={`med_action_${idx}`} 
+                    defaultChecked={med.sel === 'discontinue'} 
+                    onClick={(e) => e.stopPropagation()} 
+                    className="cursor-pointer accent-red-600" 
+                  />
+                </div>
+
+                {/* Right side column */}
+                <div className="p-1.5 pl-3 flex items-start gap-1.5">
+                  {med.after ? (
+                    <>
+                      <span className="text-[12px] text-gray-500">💊</span>
+                      <div className="flex-1 overflow-hidden">
+                        <div className="flex justify-between items-baseline gap-1">
+                          <span className="font-bold text-gray-800 truncate">{med.after}</span>
+                          <span className="text-[9.5px] font-semibold text-gray-600 whitespace-nowrap">{med.afterStatus}</span>
+                        </div>
+                        <div className="text-gray-500 text-[9.5px] leading-tight truncate">{med.afterDetails}</div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-gray-300 italic text-[10px] flex items-center h-full">Do not continue</div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* Group Bar 2: Medications (purple/mauve bar) */}
+            <div className="grid grid-cols-[1fr_26px_26px_26px_1fr] bg-[#d8cddc] border-t border-b border-gray-300 font-bold text-[#4a2650] items-center text-[11px] sticky top-0 z-10">
+              <div className="px-2 py-1 flex items-center gap-1.5">
+                <span className="text-[9px]">▲</span>
+                <span>Medications</span>
+              </div>
+              <div className="border-l border-gray-300 h-full"></div>
+              <div className="border-l border-gray-300 h-full"></div>
+              <div className="border-l border-gray-300 h-full"></div>
+              <div className="border-l border-gray-300 h-full px-2 py-1 text-gray-500 font-normal text-[10px]"></div>
+            </div>
+
+            {/* Exact Medications Rows */}
+            {[
+              { name: 'dexamethasone', details: '4 mg, IM, ONCE', status: 'Ordered', icon: '💉' },
+              { name: 'methylPREDNISolone (Depo-Medrol 40 mg/...', details: '40 mg, 1 ml, Intra-articular, ONCE', status: 'Ordered', icon: '💉' },
+              { name: 'methylPREDNISolone (Depo-Medrol 40 mg/...', details: '40 mg, 1 ml, Intra-articular, ONCE', status: 'Ordered', icon: '💉' },
+            ].map((med, idx) => (
+              <div 
+                key={`ordered_${idx}`}
+                onClick={() => {
+                  setSelectedMedReconcile(med);
+                  setIsSubPopupOpen(true);
+                }}
+                className="grid grid-cols-[1fr_26px_26px_26px_1fr] items-stretch hover:bg-[#eaf3fa] transition-colors cursor-pointer border-b border-gray-200 bg-[#faf8fb]"
+              >
+                <div className="p-1.5 pl-3 flex items-start gap-1.5 border-r border-gray-200">
+                  <span className="text-gray-400 text-[10px] mt-0.5">▼</span>
+                  <span className="text-[12px]">{med.icon}</span>
+                  <div className="flex-1 overflow-hidden">
+                    <div className="flex justify-between items-baseline gap-1">
+                      <span className="font-bold text-[#4a2650] hover:underline truncate">{med.name}</span>
+                      <span className="text-[9.5px] font-semibold text-gray-600 whitespace-nowrap">{med.status}</span>
+                    </div>
+                    <div className="text-gray-500 text-[9.5px] leading-tight truncate">{med.details}</div>
+                  </div>
+                </div>
+
+                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
+                  <input type="radio" name={`ord_action_${idx}`} onClick={(e) => e.stopPropagation()} className="cursor-pointer accent-green-600" />
+                </div>
+                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
+                  <input type="radio" name={`ord_action_${idx}`} onClick={(e) => e.stopPropagation()} className="cursor-pointer accent-blue-600" />
+                </div>
+                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
+                  <input type="radio" name={`ord_action_${idx}`} onClick={(e) => e.stopPropagation()} className="cursor-pointer accent-red-600" />
+                </div>
+
+                <div className="p-1.5 pl-3 flex items-center text-gray-400 italic text-[10px]">
+                  <span>Unreconciled order</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Action Bar beneath Table */}
+          <div className="bg-[#f8f9fa] border-t border-b border-gray-300 px-3 py-1.5 flex justify-end items-center gap-2 text-[10.5px]">
+            <button className="bg-[#e2e6ea] border border-[#adb5bd] text-gray-500 font-semibold px-3 py-0.5 rounded-sm shadow-inner cursor-not-allowed">
+              Acknowledge Remaining Home Meds
+            </button>
+            <button className="bg-white border border-[#6c757d] hover:bg-gray-100 text-gray-800 font-semibold px-3 py-0.5 rounded-sm shadow-sm">
+              Do Not Continue Remaining Orders
+            </button>
+          </div>
+
+          {/* Details Section right underneath */}
+          <div className="bg-[#eef2f6] border-b border-gray-300 px-2.5 py-1 flex justify-between items-center text-[10.5px] font-bold text-[#1c4d78]">
+            <div className="flex items-center gap-1 cursor-pointer">
+              <span className="text-[9px]">▲</span>
+              <span>Details</span>
+            </div>
+          </div>
+          <div className="h-[28px] bg-white border-b border-gray-300 px-3 py-1 text-gray-500 italic text-[10px] flex items-center">
+            {selectedMedReconcile ? `Selected Order: ${selectedMedReconcile.name} — Click anywhere on row or option to open full action response card.` : `0 Missing Required Details. Select any row above or + Add to open interactive action popup.`}
+          </div>
+
+          {/* Bottom Footer Bar */}
+          <div className="bg-[#f0f2f5] px-3 py-2 flex justify-between items-center text-[10.5px]">
+            <div className="flex items-center gap-3">
+              <span className="border border-gray-300 bg-white px-2 py-0.5 text-gray-600 rounded-sm font-semibold shadow-2xs">
+                0 Missing Required Details
+              </span>
+              <span className="border border-[#194d7b] bg-[#e6f0fa] text-[#194d7b] font-bold px-2 py-0.5 rounded-sm shadow-2xs">
+                6 Unreconciled Order(s)
+              </span>
+              <label className="flex items-center gap-1 cursor-pointer font-semibold text-gray-700 ml-2">
+                <input type="checkbox" className="cursor-pointer accent-[#194d7b]" />
+                <span>Rx Table</span>
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => { alert('Reconciled and Signed successfully.'); setIsReconcileOpen(false); }}
+                className="bg-white border border-[#194d7b] hover:bg-[#eef4f8] text-[#194d7b] font-bold px-5 py-1 rounded-sm shadow-sm transition-colors"
+              >
+                Reconcile And Sign
+              </button>
+              <button 
+                onClick={() => setIsReconcileOpen(false)}
+                className="bg-white border border-[#6c757d] hover:bg-gray-100 text-gray-800 font-semibold px-5 py-1 rounded-sm shadow-sm transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sub-detail Draggable Popup Card */}
+      {isSubPopupOpen && (
+        <div 
+          className="fixed bg-white border-2 border-[#194d7b] shadow-2xl rounded-none w-[540px] flex flex-col select-none z-[100000] overflow-hidden text-[11px] text-gray-800 font-sans"
+          style={{ left: `${subPopupPos.x}px`, top: `${subPopupPos.y}px` }}
+        >
+          {/* Sub Popup Title Bar */}
+          <div 
+            onMouseDown={(e) => {
+              setIsDraggingSub(true);
+              setDragOffsetSub({ x: e.clientX - subPopupPos.x, y: e.clientY - subPopupPos.y });
+            }}
+            className="bg-gradient-to-r from-[#194d7b] via-[#216298] to-[#194d7b] text-white px-2.5 py-1.5 flex justify-between items-center cursor-move font-semibold text-[11.5px] border-b border-[#0d365a]"
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="bg-[#0b3c66] text-white font-bold px-1.5 py-0.2 rounded text-[10px] border border-sky-300">P</span>
+              <span>Medication Order Response: {selectedMedReconcile?.name || 'New Medication Entry'}</span>
+            </div>
+            <button onClick={() => setIsSubPopupOpen(false)} className="hover:bg-red-600 px-1.5 rounded transition-colors font-mono pb-0.5">✕</button>
+          </div>
+
+          {/* Sub Popup Content */}
+          <div className="p-3 space-y-3 bg-[#f8fafc] max-h-[72vh] overflow-y-auto">
+            <div className="bg-white border border-[#cbd5e1] p-2.5 rounded shadow-sm space-y-2">
+              <div className="flex justify-between items-start border-b border-gray-150 pb-1.5">
+                <div>
+                  <div className="font-bold text-[#0f4471] text-[12px]">{selectedMedReconcile?.name || 'New Medication Order'}</div>
+                  <div className="text-gray-500 text-[10px]">{selectedMedReconcile?.details || 'Take as directed by provider'}</div>
+                </div>
+                <span className="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded text-[10px]">
+                  {selectedMedReconcile?.status || 'Active'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-[10.5px]">
+                <div><span className="text-gray-500 block text-[9.5px]">Dosage & Route</span><strong className="text-gray-900">Standard Dose / PO</strong></div>
+                <div><span className="text-gray-500 block text-[9.5px]">Prescriber</span><strong className="text-gray-900">Krenn MD, Louis P</strong></div>
+                <div><span className="text-gray-500 block text-[9.5px]">Indication / Problem</span><strong className="text-gray-900">Outpatient Profile Care</strong></div>
+                <div><span className="text-gray-500 block text-[9.5px]">Pharmacy Destination</span><strong className="text-gray-900">Retail Outpatient Pharmacy</strong></div>
+              </div>
+            </div>
+
+            {/* Reconciliation Action Selection */}
+            <div className="bg-white border border-[#cbd5e1] p-2.5 rounded shadow-sm space-y-2">
+              <div className="font-bold text-[#194d7b] text-[10.5px]">Select Action Response for this Order:</div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {['Continue (Prescribe)', 'Modify Dose / Sig', 'Discontinue Order', 'Document Only', 'Hold Temporary', 'Replace with Alt'].map((act) => (
+                  <button 
+                    key={act}
+                    onClick={() => setSelectedMedReconcile({ ...selectedMedReconcile, status: act })}
+                    className={`px-2 py-1 rounded-sm text-center border font-semibold text-[10px] transition-all ${
+                      selectedMedReconcile?.status === act
+                        ? 'bg-[#194d7b] text-white border-[#194d7b] shadow'
+                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-300'
+                    }`}
+                  >
+                    {act}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Provider Instructions / Comments */}
+            <div className="bg-white border border-[#cbd5e1] p-2 rounded shadow-sm space-y-1">
+              <label className="font-bold text-[#194d7b] text-[10.5px] block">Provider Notes & Clinical Rationale:</label>
+              <textarea 
+                rows={2}
+                placeholder="Enter clinical notes, sig changes, or patient counseling instructions..."
+                defaultValue="Reviewed during outpatient reconciliation. Patient compliant with therapy; continue regimen without modification."
+                className="w-full border border-gray-300 rounded p-1.5 text-[10.5px] focus:outline-none focus:border-[#194d7b]"
+              />
+            </div>
+
+            {/* Safety Check box */}
+            <div className="bg-emerald-50 border border-emerald-300 rounded p-2 text-emerald-900 text-[10px] flex items-center gap-2">
+              <span className="text-xs font-bold">✓</span>
+              <span><strong>Formulary & Allergy Verified:</strong> No adverse interaction with patient allergies (Ultram, sulfa drugs, amoxicillin).</span>
+            </div>
+          </div>
+
+          {/* Sub Popup Footer */}
+          <div className="bg-[#f0f2f5] border-t border-[#cbd5e1] px-3 py-2 flex justify-end gap-2 text-[10.5px]">
+            <button 
+              onClick={() => setIsSubPopupOpen(false)}
+              className="bg-white border border-[#6c757d] hover:bg-gray-100 font-semibold px-4 py-1 rounded-sm text-gray-800 shadow-sm transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={() => setIsSubPopupOpen(false)}
+              className="bg-white border border-[#194d7b] hover:bg-[#eef4f8] text-[#194d7b] font-bold px-4 py-1 rounded-sm shadow-sm transition-colors"
+            >
+              Apply Decision & Close
+            </button>
           </div>
         </div>
       )}
