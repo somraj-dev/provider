@@ -6524,184 +6524,127 @@ No qualifying data available.`;
           )}
 
           {activeTab.type === 'ReferralTransfer' && (
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f8f9fa] text-[10.5px] select-text h-full">
-              {/* Header Title & Controls */}
-              <div className="flex justify-between items-center bg-white border border-[#bdcddc] p-2 rounded-sm shadow-sm select-none">
-                <span className="font-bold text-xs text-[#002a46]">Referral & Transfer Management</span>
-                <div className="flex gap-2 items-center">
-                  <button className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-3 py-1.5 rounded text-[10px] flex items-center gap-1 font-semibold text-gray-700">
-                    📥 Export <ChevronDown className="w-3 h-3 text-gray-400 ml-1" />
+            <div className="flex-1 flex flex-col bg-[#f0f3f6] text-[10.5px] font-sans select-none overflow-hidden h-full">
+              {/* Top Cerner Toolbar */}
+              <div className="bg-[#f4f7fa] border-b border-[#bccada] px-2 py-1 flex items-center justify-between shadow-xs shrink-0">
+                <div className="flex items-center gap-1.5 text-[13px] text-[#2c5282]">
+                  <button className="p-1 hover:bg-[#d9ecff] hover:border hover:border-[#90cdf4] rounded flex items-center gap-1 text-[11px] font-semibold text-[#1c4d78] transition-colors" title="Add Patient / Referral">
+                    <span>👤+</span>
                   </button>
-                  <button className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2 py-1 rounded text-[10px] text-gray-600 font-bold">•••</button>
+                  <span className="text-gray-300">|</span>
+                  <button className="p-1 hover:bg-[#d9ecff] hover:border hover:border-[#90cdf4] rounded text-[12px] transition-colors" title="Remove">🗑️</button>
+                  <button className="p-1 hover:bg-[#d9ecff] hover:border hover:border-[#90cdf4] rounded text-[12px] transition-colors" title="Properties">📋</button>
+                  <button className="p-1 hover:bg-[#d9ecff] hover:border hover:border-[#90cdf4] rounded text-[12px] transition-colors" title="Transfer / Move">⏭️</button>
+                  <button className="p-1 hover:bg-[#d9ecff] hover:border hover:border-[#90cdf4] rounded text-[12px] transition-colors" title="Search List">🔍</button>
+                  <span className="text-gray-300">|</span>
+                  <button className="p-1 hover:bg-[#d9ecff] hover:border hover:border-[#90cdf4] rounded text-[12px] transition-colors" title="Schedule">🗓️</button>
+                  <button className="p-1 hover:bg-[#d9ecff] hover:border hover:border-[#90cdf4] rounded text-[12px] transition-colors" title="Clinical Notes">📝</button>
+                  <button className="p-1 hover:bg-[#d9ecff] hover:border hover:border-[#90cdf4] rounded text-[12px] transition-colors" title="Print List">🖨️</button>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-gray-600">
+                  <span className="font-semibold">View Mode:</span>
+                  <select className="bg-white border border-[#bccada] rounded px-1.5 py-0.5 text-[#1c4d78] font-bold focus:outline-none">
+                    <option>All Active Referrals & Transfers</option>
+                    <option>Inbound Transfers Only</option>
+                    <option>Outbound Referrals Only</option>
+                  </select>
                 </div>
               </div>
 
-              {/* Search Filters Row */}
-              <div className="bg-[#fafbfc] border border-[#bdcddc] p-3 rounded-sm shadow-sm grid grid-cols-6 gap-3 text-[10.5px] select-none">
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Search By</label>
-                  <select 
-                    value={rsSearchBy}
-                    onChange={(e) => setRsSearchBy(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  >
-                    <option>Patient Name</option>
-                    <option>Request ID</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Search Text</label>
-                  <input
-                    type="text"
-                    placeholder="Enter Patient Name / MRN"
-                    value={rsSearchText}
-                    onChange={(e) => setRsSearchText(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Request ID</label>
-                  <input
-                    type="text"
-                    placeholder="Enter Request ID"
-                    value={rsRequestId}
-                    onChange={(e) => setRsRequestId(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Provider</label>
-                  <select 
-                    value={rsProvider}
-                    onChange={(e) => setRsProvider(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  >
-                    <option>Select Provider</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Status</label>
-                  <select 
-                    value={rsStatus}
-                    onChange={(e) => setRsStatus(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  >
-                    <option>All</option>
-                  </select>
-                </div>
-                <div className="space-y-1 flex flex-col justify-end">
-                  <div className="flex gap-2">
-                    <button className="flex-1 bg-white border border-[#bdcddc] hover:bg-gray-50 py-1 text-[10px] font-semibold rounded">
-                      More Filters
-                    </button>
-                    <button className="flex-1 bg-[#0f4471] hover:bg-[#0b3355] text-white py-1 text-[10px] font-bold rounded">
-                      🔍 Search
-                    </button>
-                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-1 text-[10px] font-semibold rounded">
-                      Reset
-                    </button>
-                  </div>
-                </div>
+              {/* Sub-Header Filter Description Bar */}
+              <div className="bg-white px-3 py-1 border-b border-[#bccada] text-[10px] text-gray-600 shrink-0 truncate font-sans italic">
+                Admitting Physician, Attending Physician, Consulting Physician - Emergency, Inpatient, Observation, Referral & Transfer Requests...
               </div>
 
-              {/* Summary KPI Cards Row */}
-              <div className="grid grid-cols-5 gap-3.5 select-none">
-                {[
-                  { label: 'Total Referrals', value: '4', change: 'All time', icon: '🔗', bg: 'bg-[#faf5ff] border-[#f3e8ff]', color: 'text-[#8b5cf6]' },
-                  { label: 'Pending Approval', value: '2', change: '50.0%', icon: '⏱️', bg: 'bg-[#fffbeb] border-[#fef3c7]', color: 'text-amber-600' },
-                  { label: 'In Progress', value: '1', change: '25.0%', icon: 'ℹ️', bg: 'bg-[#eff6ff] border-[#dbeafe]', color: 'text-blue-600' },
-                  { label: 'Completed', value: '1', change: '25.0%', icon: '✅', bg: 'bg-[#f0fdf4] border-[#dcfce7]', color: 'text-green-600' },
-                  { label: 'Declined/Rejected', value: '0', change: '0.0%', icon: '❌', bg: 'bg-[#fef2f2] border-[#fee2e2]', color: 'text-red-600' }
-                ].map((kpi, idx) => (
-                  <div key={idx} className="bg-white border border-[#e2e8f0] p-3.5 rounded flex items-center gap-3.5 shadow-sm">
-                    <span className={`text-lg ${kpi.color} p-2.5 ${kpi.bg} rounded border font-bold`}>{kpi.icon}</span>
-                    <div>
-                      <div className="text-gray-500 font-bold text-[9.5px]">{kpi.label}</div>
-                      <div className="text-xl font-bold text-gray-900 leading-tight">{kpi.value}</div>
-                      <div className="text-[9px] text-gray-400 font-semibold">{kpi.change}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Data Table */}
-              <div className="bg-white border border-[#bdcddc] rounded shadow-sm overflow-hidden flex flex-col">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-[10px]">
-                    <thead>
-                      <tr className="bg-gray-100 text-gray-700 font-bold border-b border-[#bdcddc] select-none">
-                        <th className="p-2.5 border-r border-[#bdcddc] w-[30px] text-center">
-                          <input type="checkbox" className="rounded-sm" />
-                        </th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Referral ID</th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Patient Name<br/><span className="text-[9px] text-gray-400">MRN</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Referring Doctor<br/><span className="text-[9px] text-gray-400">Source Hospital</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Target Department<br/><span className="text-[9px] text-gray-400">Physician</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Admission/Transfer Requested Date</th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Type<br/><span className="text-[9px] text-gray-400">Clinical Reason</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Requested On<br/><span className="text-[9px] text-gray-400">Status Date</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Priority</th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Status</th>
-                        <th className="p-2.5 text-center">Actions</th>
+              {/* Scrollable Cerner Grid Container */}
+              <div className="flex-1 m-2 bg-white border border-[#a8b8c8] overflow-auto shadow-inner select-text">
+                <table className="w-full text-left border-collapse text-[10.5px] font-sans">
+                  <thead>
+                    <tr className="bg-[#e6ecf2] border-b border-[#a8b8c8] text-[#1c4d78] font-bold sticky top-0 z-10 select-none whitespace-nowrap shadow-xs">
+                      <th className="py-1.5 px-2 border-r border-[#bccada]">Location</th>
+                      <th className="py-1.5 px-1 border-r border-[#bccada] text-center w-[26px]">📁</th>
+                      <th className="py-1.5 px-2 border-r border-[#bccada]">Name</th>
+                      <th className="py-1.5 px-2 border-r border-[#bccada]">Length of Stay</th>
+                      <th className="py-1.5 px-2 border-r border-[#bccada]">MRN</th>
+                      <th className="py-1.5 px-2 border-r border-[#bccada]">FIN / Req ID</th>
+                      <th className="py-1.5 px-2 border-r border-[#bccada]">Age</th>
+                      <th className="py-1.5 px-2 border-r border-[#bccada]">DOB</th>
+                      <th className="py-1.5 px-2 border-r border-[#bccada]">Admitted / Requested</th>
+                      <th className="py-1.5 px-2 border-r border-[#bccada]">Admitting / Referring Physician</th>
+                      <th className="py-1.5 px-2 border-r border-[#bccada]">Visit Reason / Transfer Type</th>
+                      <th className="py-1.5 px-2">Primary Care Physician / Target Dept</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {[
+                      { loc: '2C CVH 2304 0', icon: '📁', name: 'TEST, NEWMERGE ONE', los: '46.7 Days', mrn: '64802090', fin: '1200209389', age: '56 years', dob: '01/01/61', adm: '05/29/17 20:00 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'TESTING MERGE ACCOUNTS', pcp: 'Sanders MD, Michael Lawrence' },
+                      { loc: '2E Card Interm 2416 0', icon: '📄', name: 'PHARMDRC, EIGHTMONTH', los: '43.0 Days', mrn: '64802042', fin: '1200209310', age: '9 months', dob: '09/22/16', adm: '05/22/17 17:00 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'pain', pcp: 'Sanders MD, Michael Lawrence' },
+                      { loc: '2E Card Interm 2420 0', icon: '📁', name: 'UCTEST, CPABBLINGCOMB', los: '120.0 Days', mrn: '64801201', fin: '1200208114', age: '8 years', dob: '03/14/09', adm: '03/06/17 15:00 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'headache', pcp: 'Sanders MD, Michael Lawrence' },
+                      { loc: '2E Card Interm 2422 0', icon: '📄', name: 'PHARMDRC, EIGHTYEAR', los: '43.0 Days', mrn: '64802043', fin: '1200209311', age: '8 years', dob: '05/22/09', adm: '05/22/17 17:12 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'pain', pcp: 'Dr. A. Verma (Cardiology)' },
+                      { loc: '2E Card Interm 2424 0', icon: '📄', name: 'PHARMDRC, EIGHTYEARCP', los: '43.0 Days', mrn: '64802044', fin: '1200209312', age: '8 years', dob: '05/22/09', adm: '05/22/17 17:17 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'pain', pcp: 'Dr. M. Roy (Oncology)' },
+                      { loc: '2E Card Interm 2429 0', icon: '📁', name: 'TESTRODNEY, INPATIENT', los: '18.2 Days', mrn: '64802647', fin: '1200209259', age: '39 years', dob: '05/25/78', adm: '05/24/17 08:30 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'lkj / Transfer Req', pcp: 'Dr. S. Nair (Neurology)' },
+                      { loc: '2N Cardiology 2212 0', icon: '📄', name: 'MEDTEST, JR', los: '16.1 Days', mrn: '64801906', fin: '1200209168', age: '41 years', dob: '09/24/75', adm: '06/19/17 09:15 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'chest pain', pcp: 'Moulder MD, Rebekah Wilbourn' },
+                      { loc: '2N Cardiology 2220 0', icon: '📁', name: 'UCTEST, CPADEFECTTVVO', los: '117.9 Days', mrn: '64801227', fin: '1200208168', age: '25 years', dob: '10/14/91', adm: '03/09/17 13:18 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'headache', pcp: 'Sanders MD, Michael Lawrence' },
+                      { loc: '2S Telemetry 2505 0', icon: '📄', name: 'ZZZTEST, BRADADMISSIONTWO', los: '173.9 Days', mrn: '64802066', fin: '1200207523', age: '26 years', dob: '11/11/90', adm: '01/12/17 14:10 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'chest pain', pcp: 'Shekoni MD, Nurudeen Areliku' },
+                      { loc: '2S Telemetry 2514 0', icon: '📁', name: 'AWESOMEDUDEONE, MEME', los: '42.9 Days', mrn: '64802086', fin: '1200209374', age: '54 years', dob: '12/23/62', adm: '05/23/17 16:20 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'CHEST PAIN', pcp: 'LayneTEST MD, Scott Christopher' },
+                      { loc: '3E Renal/Urol 3403 0', icon: '📄', name: 'QUALITYCONNECT, AMY', los: '225.0 Days', mrn: '64800472', fin: '1200206758', age: '29 years', dob: '02/10/88', adm: '11/22/16 10:54 CST', doc: 'Sanders MD, Michael Lawrence', reason: 'abnormal lab', pcp: 'Sanders MD, Michael Lawrence' },
+                      { loc: '3E Renal/Urol 3406 0', icon: '📁', name: 'NURSING, RENAL', los: '49.9 Days', mrn: '64801954', fin: '1200209175', age: '65 years', dob: '02/02/52', adm: '05/16/17 14:04 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'UTI', pcp: 'Dr. P. Das (ENT)' },
+                      { loc: '3E Renal/Urol 3416 0', icon: '📄', name: 'PHARMDRC, THIRTEEN', los: '43.9 Days', mrn: '64802029', fin: '1200209277', age: '13 years', dob: '05/21/04', adm: '05/22/17 14:53 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'NAUSEA/VOMITING', pcp: 'City Hospital Referral' },
+                      { loc: '3S PostOp Surg 3502 0', icon: '📁', name: 'QUALITYCONNECT, OMNICELL ONE', los: '217.9 Days', mrn: '64800575', fin: '1200207186', age: '43 years', dob: '06/23/74', adm: '11/28/16 13:33 CST', doc: 'Sanders MD, Michael Lawrence', reason: 'back pain', pcp: 'Apex Clinic Referral' },
+                      { loc: '3S PostOp Surg 3503 0', icon: '📄', name: 'QUALITYCONNECT, SENTRE SEVEN', los: '217.9 Days', mrn: '64800576', fin: '1200207187', age: '71 years', dob: '05/33/46', adm: '11/28/16 13:46 CST', doc: 'Sanders MD, Michael Lawrence', reason: 'surgery', pcp: 'Dr. D. Patel (Oncology)' },
+                      { loc: '3S PostOp Surg 3512 0', icon: '📁', name: 'PHARMDRC, ONEMONTH', los: '43.9 Days', mrn: '64802036', fin: '1200209284', age: '2 months', dob: '04/22/17', adm: '05/22/17 15:35 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'HIGH FEVER', pcp: 'Torrey MD, Brian Scott' },
+                      { loc: '3W-W ICU 3611 0', icon: '📄', name: 'NURSING, ICUWEST', los: '49.8 Days', mrn: '64801364', fin: '1200209187', age: '65 years', dob: '02/02/52', adm: '05/16/17 18:00 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'trouble breathing', pcp: 'ICU Transfer Bed Req' },
+                      { loc: '4E Med Surg 4402 0', icon: '📁', name: 'TESTANGY, DONOTDISCHARGE', los: '132.0 Days', mrn: '64800761', fin: '1200207454', age: '25 years', dob: '01/04/92', adm: '01/04/17 11:23 CST', doc: 'Sanders MD, Michael Lawrence', reason: 'Chest Pain', pcp: 'LayneTEST MD, Scott Christopher' },
+                      { loc: '4E Med Surg 4403 0', icon: '📄', name: 'TEST, ALLERGY', los: '47.9 Days', mrn: '64801995', fin: '1200209224', age: '22 years', dob: '06/04/95', adm: '05/18/17 15:47 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'testing', pcp: 'Dr. G. Jones' },
+                      { loc: '4E Med Surg 4404 0', icon: '📁', name: 'QUALITYCONNECT, SUSAN', los: '29.9 Days', mrn: '64800983', fin: '1200207673', age: '38 years', dob: '10/08/78', adm: '06/05/17 08:14 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'test / Second Opinion', pcp: 'Torrey MD, Brian Scott' },
+                      { loc: '4E Med Surg 4407 0', icon: '📄', name: 'WBTPATIENT, TESTFIVE', los: '32.9 Days', mrn: '64801314', fin: '1200209043', age: '27 years', dob: '05/27/90', adm: '06/02/17 13:42 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'pace maker checkup', pcp: 'Cardiology Referral' },
+                      { loc: '4E Med Surg 4416 0', icon: '📁', name: 'SOFTBALL, TEST HC', los: '29.5 Days', mrn: '64801114', fin: '1200209529', age: '46 years', dob: '10/31/70', adm: '06/05/17 23:29 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'Pain', pcp: 'Torrey MD, Brian Scott' },
+                      { loc: '4N Observation 4210 0', icon: '📄', name: 'MEDTEST, XR', los: '16.1 Days', mrn: '64802557', fin: '1200209170', age: '58 years', dob: '06/27/58', adm: '06/19/17 09:21 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'Abdominal pain', pcp: 'Torrey MD, Brian Scott' },
+                      { loc: '4S Oncology 4503 0', icon: '📁', name: 'ITFIVE, PATIENTONE DIRECTADMIT', los: '38.2 Days', mrn: '64802325', fin: '1200209054', age: '35 years', dob: '02/18/62', adm: '06/05/17 08:14 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'ILL / Direct Admit Req', pcp: 'LayneTEST MD, Scott Christopher' },
+                      { loc: '4S Oncology 4504 0', icon: '📄', name: 'NURSING, ONC', los: '49.7 Days', mrn: '64801367', fin: '1200209190', age: '52 years', dob: '01/15/65', adm: '05/16/17 18:10 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'tumor / Transfer Req', pcp: 'Oncology Consult' },
+                      { loc: '4W-S ICU 4602 0', icon: '📁', name: 'WBTPATIENT, TESTFOUR', los: '32.9 Days', mrn: '64802315', fin: '1200209042', age: '36 years', dob: '07/27/80', adm: '06/02/17 13:34 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'MVA', pcp: 'ICU Critical Care' },
+                      { loc: '5E Womens 5405 0', icon: '📄', name: 'SMITH-WILLIAMS, AMANDA', los: '64.9 Days', mrn: '645017808', fin: '1200209535', age: '30 years', dob: '04/04/87', adm: '05/01/17 13:50 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'testing / OB Transfer', pcp: 'Womens Specialty Req' },
+                      { loc: '5E Womens 5406 0', icon: '📁', name: 'REGISTER, PENNY', los: '97.9 Days', mrn: '64801434', fin: '1200208444', age: '31 years', dob: '01/01/86', adm: '03/29/17 13:47 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'Pain', pcp: 'Sanders MD, Michael Lawrence' }
+                    ].map((row, idx) => (
+                      <tr 
+                        key={idx} 
+                        onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.split(',')[0]}`, 'patient-doe')}
+                        className={`hover:bg-[#d9ecff] cursor-pointer transition-colors whitespace-nowrap ${
+                          idx % 2 === 1 ? 'bg-[#fcfdfe]' : 'bg-white'
+                        }`}
+                      >
+                        <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-700">{row.loc}</td>
+                        <td className="py-1 px-1 border-r border-[#e2e8f0] text-center">
+                          <span className="text-[12px]" title="View Record">{row.icon}</span>
+                        </td>
+                        <td className="py-1 px-2 border-r border-[#e2e8f0] font-bold text-[#1c4d78] hover:underline">{row.name}</td>
+                        <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-700">{row.los}</td>
+                        <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-600 font-mono">{row.mrn}</td>
+                        <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-600 font-mono">{row.fin}</td>
+                        <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-700">{row.age}</td>
+                        <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-600">{row.dob}</td>
+                        <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-700">{row.adm}</td>
+                        <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-800">{row.doc}</td>
+                        <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-800">{row.reason}</td>
+                        <td className="py-1 px-2 text-gray-700">{row.pcp}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { id: 'REF-2025-000841', name: 'Rohan Sharma', mrn: '1000245690', current: '28/05/2025, 02:30 PM', dept: 'Dr. A. Verma (Cardiology)', requested: '30/05/2025, 10:00 AM', reason: 'Transfer: Specialty Care', requestedOn: '28/05/2025, 10:00 AM by City Hospital', priority: 'High', status: 'Pending', priorityColor: 'bg-red-50 text-red-800 border-red-200', statusColor: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-                        { id: 'REF-2025-000842', name: 'Samantha Miller', mrn: '1000245691', current: '28/05/2025, 04:00 PM', dept: 'Dr. M. Roy (Oncology)', requested: '31/05/2025, 11:30 AM', reason: 'Referral: Second Opinion', requestedOn: '28/05/2025, 11:15 AM by Dr. D. Patel', priority: 'Normal', status: 'Pending', priorityColor: 'bg-blue-50 text-blue-800 border-blue-200', statusColor: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-                        { id: 'REF-2025-000843', name: 'Aarav Mehta', mrn: '1000245692', current: '29/05/2025, 10:00 AM', dept: 'Dr. S. Nair (Neurology)', requested: '29/05/2025, 03:00 PM', reason: 'Transfer: ICU Bed', requestedOn: '28/05/2025, 11:40 AM by Apex Clinic', priority: 'High', status: 'In Progress', priorityColor: 'bg-red-50 text-red-800 border-red-200', statusColor: 'bg-blue-100 text-blue-800 border-blue-200' },
-                        { id: 'REF-2025-000844', name: 'Lily Evans', mrn: '1000245693', current: '29/05/2025, 11:00 AM', dept: 'Dr. P. Das (ENT)', requested: '29/05/2025, 01:00 PM', reason: 'Referral: Routine Consult', requestedOn: '28/05/2025, 12:05 PM by Dr. G. Jones', priority: 'Normal', status: 'Completed', priorityColor: 'bg-blue-50 text-blue-800 border-blue-200', statusColor: 'bg-green-100 text-green-800 border-green-200' }
-                      ].map((row, idx) => (
-                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50/50">
-                          <td className="p-2.5 border-r border-gray-200 text-center select-none">
-                            <input type="checkbox" className="rounded-sm" />
-                          </td>
-                          <td className="p-2.5 border-r border-gray-200 font-bold text-gray-700">{row.id}</td>
-                          <td className="p-2.5 border-r border-gray-200">
-                            <div className="font-bold text-[#0d7a86] cursor-pointer hover:underline" onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.toUpperCase()}`, 'patient-doe')}>{row.name}</div>
-                            <div className="text-[9px] text-gray-500 font-mono">{row.mrn}</div>
-                          </td>
-                          <td className="p-2.5 border-r border-gray-200 font-semibold">{row.requestedOn.split(' by ')[1]}</td>
-                          <td className="p-2.5 border-r border-gray-200">{row.dept}</td>
-                          <td className="p-2.5 border-r border-gray-200 text-blue-900 font-bold">{row.requested}</td>
-                          <td className="p-2.5 border-r border-gray-200">{row.reason}</td>
-                          <td className="p-2.5 border-r border-gray-200 text-gray-500">{row.requestedOn.split(' by ')[0]}</td>
-                          <td className="p-2.5 border-r border-gray-200">
-                            <span className={`px-2 py-0.5 rounded-sm font-bold text-[9px] border ${row.priorityColor}`}>
-                              {row.priority}
-                            </span>
-                          </td>
-                          <td className="p-2.5 border-r border-gray-200">
-                            <span className={`px-2.5 py-0.5 rounded-sm font-bold text-[9px] border ${row.statusColor}`}>
-                              {row.status}
-                            </span>
-                          </td>
-                          <td className="p-2.5 text-center select-none">
-                            <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">•••</button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                <div className="bg-[#fafbfc] border-t border-[#bdcddc] p-2 flex justify-between items-center text-[10px] select-none">
-                  <div className="flex items-center gap-1.5">
-                    <span>Show</span>
-                    <select className="bg-white border border-[#bdcddc] rounded px-1.5 py-0.5">
-                      <option>25</option>
-                      <option>50</option>
-                    </select>
-                    <span>entries</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="px-1.5 py-0.5 hover:bg-gray-100 rounded text-gray-400">❮</button>
-                    <button className="px-2 py-0.5 bg-[#0f4471] text-white font-bold rounded">1</button>
-                    <button className="px-1.5 py-0.5 hover:bg-gray-100 rounded">❯</button>
-                  </div>
-                  <div className="text-gray-500">
-                    Showing 1 to 4 of 4 entries
-                  </div>
+              {/* Bottom Cerner Status/Footer Bar */}
+              <div className="bg-[#f0f3f6] border-t border-[#bccada] px-3 py-1 flex items-center justify-between text-[10px] text-gray-600 shrink-0 font-sans">
+                <div className="flex items-center gap-3">
+                  <span>List: <b>Referrals & Transfers (19)</b></span>
+                  <span>|</span>
+                  <span>Sort Order: <b>Location, ascending</b></span>
+                  <span>|</span>
+                  <span>Filter: <b>Active</b></span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>Showing 28 of 28 records</span>
+                  <button className="bg-white border border-[#bccada] hover:bg-gray-100 px-2 py-0.5 rounded text-[9.5px]">Refresh List</button>
                 </div>
               </div>
             </div>
@@ -8327,19 +8270,10 @@ No qualifying data available.`;
             <span className="text-blue-600 underline cursor-pointer hover:text-blue-800 italic">Show Formulary... ▼</span>
           </div>
 
-          {/* Main Dual-Table Header with Action Columns */}
-          <div className="bg-[#e6ecf2] border-b border-gray-300 text-[10.5px] font-bold text-[#1c4d78] grid grid-cols-[1fr_26px_26px_26px_1fr] items-center text-center select-none shadow-sm">
-            <div className="text-left pl-4 py-1.5 border-r border-gray-300">
+          {/* Main Dual-Table Header without Action Columns */}
+          <div className="bg-[#e6ecf2] border-b border-gray-300 text-[10.5px] font-bold text-[#1c4d78] grid grid-cols-2 divide-x divide-gray-300 items-center select-none shadow-sm">
+            <div className="text-left pl-4 py-1.5">
               Orders Prior to Reconciliation
-            </div>
-            <div className="py-1 border-r border-gray-300 flex justify-center bg-[#def]" title="Continue / Reconcile">
-              <span className="w-4 h-4 rounded-full bg-green-600 text-white flex items-center justify-center text-[8px] shadow-sm">▶</span>
-            </div>
-            <div className="py-1 border-r border-gray-300 flex justify-center bg-[#def]" title="Prescribe / Modify">
-              <span className="w-4 h-4 rounded bg-blue-600 text-white flex items-center justify-center text-[8px] shadow-sm">📋</span>
-            </div>
-            <div className="py-1 border-r border-gray-300 flex justify-center bg-[#def]" title="Do Not Continue / Discontinue">
-              <span className="w-4 h-4 rounded bg-red-600 text-white flex items-center justify-center text-[8px] shadow-sm font-black">■</span>
             </div>
             <div className="text-left pl-4 py-1.5">
               Orders After Reconciliation
@@ -8350,15 +8284,12 @@ No qualifying data available.`;
           <div className="flex-1 overflow-y-auto bg-white min-h-[370px] max-h-[460px] divide-y divide-gray-200 font-sans">
             
             {/* Group Bar 1: Home Medications */}
-            <div className="grid grid-cols-[1fr_26px_26px_26px_1fr] bg-[#d3e3f3] border-b border-gray-300 font-bold text-[#0f4471] items-center text-[11px] sticky top-0 z-10">
+            <div className="grid grid-cols-2 divide-x divide-gray-300 bg-[#d3e3f3] border-b border-gray-300 font-bold text-[#0f4471] items-center text-[11px] sticky top-0 z-10">
               <div className="px-2 py-1 flex items-center gap-1.5">
                 <span className="text-[9px]">▲</span>
                 <span>Home Medications</span>
               </div>
-              <div className="border-l border-gray-300 h-full"></div>
-              <div className="border-l border-gray-300 h-full"></div>
-              <div className="border-l border-gray-300 h-full"></div>
-              <div className="border-l border-gray-300 h-full px-2 py-1 text-gray-500 font-normal text-[10px]">
+              <div className="px-2 py-1 text-gray-500 font-normal text-[10px]">
                 {/* Empty column right space */}
               </div>
             </div>
@@ -8386,12 +8317,12 @@ No qualifying data available.`;
                   setSelectedMedReconcile(med);
                   setIsSubPopupOpen(true);
                 }}
-                className={`grid grid-cols-[1fr_26px_26px_26px_1fr] items-stretch hover:bg-[#eaf3fa] transition-colors cursor-pointer border-b border-gray-200 ${
+                className={`grid grid-cols-2 divide-x divide-gray-200 items-stretch hover:bg-[#eaf3fa] transition-colors cursor-pointer border-b border-gray-200 ${
                   idx % 2 === 1 ? 'bg-[#fcfdfe]' : 'bg-white'
                 }`}
               >
                 {/* Left side column */}
-                <div className="p-1.5 pl-3 flex items-start gap-1.5 border-r border-gray-200">
+                <div className="p-1.5 pl-3 flex items-start gap-1.5">
                   <span className="text-gray-400 text-[10px] mt-0.5">▼</span>
                   <span className="text-[12px]">{med.icon}</span>
                   <div className="flex-1 overflow-hidden">
@@ -8401,39 +8332,6 @@ No qualifying data available.`;
                     </div>
                     <div className="text-gray-500 text-[9.5px] leading-tight truncate">{med.details}</div>
                   </div>
-                </div>
-
-                {/* Column 2: Continue radio */}
-                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
-                  <input 
-                    type="radio" 
-                    name={`med_action_${idx}`} 
-                    defaultChecked={med.sel === 'continue'} 
-                    onClick={(e) => e.stopPropagation()} 
-                    className="cursor-pointer accent-green-600" 
-                  />
-                </div>
-
-                {/* Column 3: Prescribe radio */}
-                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
-                  <input 
-                    type="radio" 
-                    name={`med_action_${idx}`} 
-                    defaultChecked={med.sel === 'prescribe'} 
-                    onClick={(e) => e.stopPropagation()} 
-                    className="cursor-pointer accent-blue-600" 
-                  />
-                </div>
-
-                {/* Column 4: Discontinue radio */}
-                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
-                  <input 
-                    type="radio" 
-                    name={`med_action_${idx}`} 
-                    defaultChecked={med.sel === 'discontinue'} 
-                    onClick={(e) => e.stopPropagation()} 
-                    className="cursor-pointer accent-red-600" 
-                  />
                 </div>
 
                 {/* Right side column */}
@@ -8457,15 +8355,12 @@ No qualifying data available.`;
             ))}
 
             {/* Group Bar 2: Medications (purple/mauve bar) */}
-            <div className="grid grid-cols-[1fr_26px_26px_26px_1fr] bg-[#d8cddc] border-t border-b border-gray-300 font-bold text-[#4a2650] items-center text-[11px] sticky top-0 z-10">
+            <div className="grid grid-cols-2 divide-x divide-gray-300 bg-[#d8cddc] border-t border-b border-gray-300 font-bold text-[#4a2650] items-center text-[11px] sticky top-0 z-10">
               <div className="px-2 py-1 flex items-center gap-1.5">
                 <span className="text-[9px]">▲</span>
                 <span>Medications</span>
               </div>
-              <div className="border-l border-gray-300 h-full"></div>
-              <div className="border-l border-gray-300 h-full"></div>
-              <div className="border-l border-gray-300 h-full"></div>
-              <div className="border-l border-gray-300 h-full px-2 py-1 text-gray-500 font-normal text-[10px]"></div>
+              <div className="px-2 py-1 text-gray-500 font-normal text-[10px]"></div>
             </div>
 
             {/* Exact Medications Rows */}
@@ -8480,9 +8375,9 @@ No qualifying data available.`;
                   setSelectedMedReconcile(med);
                   setIsSubPopupOpen(true);
                 }}
-                className="grid grid-cols-[1fr_26px_26px_26px_1fr] items-stretch hover:bg-[#eaf3fa] transition-colors cursor-pointer border-b border-gray-200 bg-[#faf8fb]"
+                className="grid grid-cols-2 divide-x divide-gray-200 items-stretch hover:bg-[#eaf3fa] transition-colors cursor-pointer border-b border-gray-200 bg-[#faf8fb]"
               >
-                <div className="p-1.5 pl-3 flex items-start gap-1.5 border-r border-gray-200">
+                <div className="p-1.5 pl-3 flex items-start gap-1.5">
                   <span className="text-gray-400 text-[10px] mt-0.5">▼</span>
                   <span className="text-[12px]">{med.icon}</span>
                   <div className="flex-1 overflow-hidden">
@@ -8492,16 +8387,6 @@ No qualifying data available.`;
                     </div>
                     <div className="text-gray-500 text-[9.5px] leading-tight truncate">{med.details}</div>
                   </div>
-                </div>
-
-                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
-                  <input type="radio" name={`ord_action_${idx}`} onClick={(e) => e.stopPropagation()} className="cursor-pointer accent-green-600" />
-                </div>
-                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
-                  <input type="radio" name={`ord_action_${idx}`} onClick={(e) => e.stopPropagation()} className="cursor-pointer accent-blue-600" />
-                </div>
-                <div className="border-r border-gray-200 flex items-center justify-center bg-gray-50/50">
-                  <input type="radio" name={`ord_action_${idx}`} onClick={(e) => e.stopPropagation()} className="cursor-pointer accent-red-600" />
                 </div>
 
                 <div className="p-1.5 pl-3 flex items-center text-gray-400 italic text-[10px]">
