@@ -435,6 +435,7 @@ ${ioVal}`;
 
   // Patient Profile Section State
   const [profileTab, setProfileTab] = useState('Demographics');
+  const [profileSidebarOption, setProfileSidebarOption] = useState('Op Note - Prod - Edge');
 
   // Edit Patient Form State matching John Doe credentials
   const [editLastName, setEditLastName] = useState('Doe');
@@ -1348,15 +1349,17 @@ ${ioVal}`;
               AxioVital Developer Panel
             </span>
           </div>
-          <div className="flex items-center gap-4 text-[10px]">
-            <div className="flex items-center gap-1.5 text-white/80">
-              <span className="cursor-pointer hover:underline">Logout</span>
-              <span>|</span>
-              <span className="cursor-pointer hover:underline">Help</span>
-              <span>|</span>
-              <span className="cursor-pointer hover:underline">Refresh Page</span>
-            </div>
-            
+          <div className="flex items-center gap-1.5 text-white/80">
+            <span className="cursor-pointer hover:underline">Logout</span>
+            <span>|</span>
+            <span 
+              onClick={() => window.open('https://support.trackcodex.com/', '_blank')} 
+              className="cursor-pointer hover:underline"
+            >
+              Help
+            </span>
+            <span>|</span>
+            <span className="cursor-pointer hover:underline">Refresh Page</span>
           </div>
         </div>
 
@@ -2672,7 +2675,6 @@ ${ioVal}`;
         >
           Labs
         </button>
-        <button className="flex items-center gap-1 hover:text-black">Imaging</button>
         <button 
           onClick={() => selectOrOpenTab('Analytics', 'Analytics Overview', 'analytics-overview')}
           className="flex items-center gap-1 hover:text-black font-semibold"
@@ -3960,800 +3962,524 @@ ${ioVal}`;
             </div>
           )}
 
-          {activeTab.type === 'PatientProfile' && (
-            <div className="flex flex-1 overflow-hidden">
-              
-              {/* Left Column: Patient Profile Content Workspace */}
-              <div className="flex-1 bg-white flex flex-col overflow-auto text-[10.5px] p-3 space-y-3">
-                
-                {/* Patient Profile Header Banner Card */}
-                <div className="bg-[#0f4471] text-white p-3 rounded-sm flex justify-between items-start shadow-sm border border-[#0d3455] h-auto">
-                  <div className="space-y-2 w-full">
-                    <h2 className="text-base font-bold tracking-wide -mt-1 font-sans">JOHN DOE</h2>
-                    <div className="grid grid-cols-[1fr_1.8fr_1fr] gap-x-8 gap-y-1.5 text-[9.5px] text-gray-200">
-                      <div className="space-y-1">
-                        <div><span className="text-gray-400 font-semibold inline-block w-[50px]">ABHA:</span> 1000245678</div>
-                        <div><span className="text-gray-400 font-semibold inline-block w-[50px]">Axio-ID:</span> AXSL06-S1L2V3</div>
-                        <div><span className="text-gray-400 font-semibold inline-block w-[50px]">DOB:</span> 03/12/1979 (45Y)</div>
-                        <div><span className="text-gray-400 font-semibold inline-block w-[50px]">Gender:</span> Male</div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div><span className="text-gray-400 font-semibold inline-block w-[100px]">Phone:</span> (305) 666-5599</div>
-                        <div><span className="text-gray-400 font-semibold inline-block w-[100px]">Email:</span> jenwatts@aol.net</div>
-                        <div><span className="text-gray-400 font-semibold inline-block w-[100px]">Address:</span> 7235 SW 48th St, Miami, FL 33155</div>
-                        <div><span className="text-gray-400 font-semibold inline-block w-[100px]">Primary Insurance:</span> Blue Cross / Blue Shield</div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div><span className="text-gray-400 font-semibold inline-block w-[105px]">Attending Physician:</span> Dr. Herman Stewart</div>
-                        <div><span className="text-gray-400 font-semibold inline-block w-[105px]">Referring Physician:</span> Dr. W. Garland</div>
-                        <div><span className="text-gray-400 font-semibold inline-block w-[105px]">First Visit:</span> 07/15/2004</div>
-                        <div><span className="text-gray-400 font-semibold inline-block w-[105px]">Patient Status:</span> Active</div>
-                      </div>
+          {activeTab.type === 'PatientProfile' && (() => {
+            const displayName = activeTab.title.includes('Patient Profile:') 
+              ? activeTab.title.replace('Patient Profile:', '').trim() 
+              : 'JOHN DOE';
+
+            return (
+              <div className="flex-1 flex flex-col overflow-hidden text-[11px] font-sans bg-white select-none">
+                {/* Classic Demographic Bar Header */}
+                <div 
+                  className="bg-[#005a94] text-white px-3 py-1 flex items-center select-none border-b border-[#003c63]"
+                  style={{ minHeight: '52px' }}
+                >
+                  {/* Blue avatar icon container */}
+                  <div className="flex items-center gap-2 border-r border-white/20 pr-4">
+                    <div className="w-[32px] h-[32px] bg-white rounded-full flex items-center justify-center border border-gray-400 overflow-hidden">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="#80a0c0">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="font-extrabold text-[12px] uppercase text-white tracking-wide">{displayName}</div>
+                      <div className="text-[9.5px] text-gray-300">Allergies: shellfish</div>
+                      <div className="text-[9.5px] text-[#80c0ff] hover:underline cursor-pointer">Care Team: View Details</div>
                     </div>
                   </div>
-                  <div className="flex flex-col justify-end self-end h-full">
-                    <button 
-                      onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
-                      className="bg-white border border-[#bdcddc] hover:bg-gray-100 text-[#0f4471] font-bold px-3 py-1 rounded text-[9.5px]"
-                    >
-                      Edit Profile
-                    </button>
+
+                  {/* Demographic columns */}
+                  <div className="flex-1 grid grid-cols-4 gap-4 px-4 text-[9.5px] leading-tight text-white/90">
+                    <div className="space-y-0.5">
+                      <div><span className="text-gray-300">DOB:</span> 3/22/1984</div>
+                      <div><span className="text-gray-300">Dose Wt:</span> 80.000 kg (04/25/2021)</div>
+                      <div><span className="text-gray-300">HealtheLife:</span> No</div>
+                    </div>
+                    <div className="space-y-0.5">
+                      <div><span className="text-gray-300">Age:</span> 39 years</div>
+                      <div><span className="text-gray-300">Advance Directive:</span></div>
+                      <div><span className="text-gray-300">Clinical Trial:</span> &lt;No Data Available&gt;</div>
+                    </div>
+                    <div className="space-y-0.5">
+                      <div><span className="text-gray-300">Sex:</span> Female</div>
+                      <div><span className="text-gray-300">Code Status:</span> &lt;No Data Available&gt;</div>
+                      <div><span className="text-gray-300">Loc:</span> NU02</div>
+                    </div>
+                    <div className="space-y-0.5">
+                      <div><span className="text-gray-300">MRN:</span> 00490248563</div>
+                      <div><span className="text-gray-300">Isolation:</span> &lt;No Data Available&gt;</div>
+                      <div className="truncate"><span className="text-gray-300">Inpatient FIN:</span> 00096526415 [Admit Dt: 10/6/2020 3:14:12 PM CDT]</div>
+                    </div>
+                  </div>
+
+                  {/* Bell/Notification Area */}
+                  <div className="flex items-center pl-4 border-l border-white/20">
+                    <div className="relative cursor-pointer hover:bg-white/10 p-1 rounded">
+                      <span className="text-xs">🔔</span>
+                      <span className="absolute -top-1 -right-1 bg-red-600 text-[8px] text-white px-1 rounded-full font-bold">0</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Sub Tab Navigation Ribbon */}
-                <div className="flex border-b border-[#bdcddc] gap-1 text-[10.5px]">
-                  {['Demographics', 'Insurance', 'Contacts', 'Clinical', 'Visit History', 'Notes'].map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setProfileTab(t)}
-                      className={`px-3 py-1 font-semibold border-t border-x rounded-t transition-all ${
-                        profileTab === t 
-                          ? 'bg-white border-[#bdcddc] text-blue-900 border-b-transparent relative z-10 font-bold border-t-2 border-t-blue-600' 
-                          : 'bg-gray-100/70 border-transparent text-gray-600 hover:bg-gray-200/50'
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
+                {/* Main Split Layout Workspace */}
+                <div className="flex-1 flex overflow-hidden">
+                  
+                  {/* Left Sidebar Navigation Panel */}
+                  <div className="w-[190px] bg-[#164d6e] text-white flex flex-col border-r border-[#0f3a55] select-none">
+                    <div className="bg-[#0d344d] border-b border-[#0f3a55] px-3 py-1.5 flex justify-between items-center text-[10px] font-bold">
+                      <span>Menu</span>
+                      <div className="flex items-center gap-1.5 text-gray-400">
+                        <span className="cursor-pointer hover:text-white">📌</span>
+                        <span className="cursor-pointer hover:text-white">❮</span>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto text-[10px] py-1">
+                      {[
+                        { name: 'Provider View' },
+                        { name: 'Results Review' },
+                        { name: 'Orders', add: true },
+                        { name: 'Documentation', add: true },
+                        { name: 'Outside Records' },
+                        { divider: true },
+                        { name: 'Allergies', add: true },
+                        { name: 'Clinical Media', add: true },
+                        { name: 'Diagnoses and Problems' },
+                        { name: 'Form Browser' },
+                        { name: 'Growth Chart' },
+                        { name: 'Histories' },
+                        { name: 'Interactive View and I&O' },
+                        { name: 'MAR Summary' },
+                        { name: 'Medication List', add: true },
+                        { name: 'Patient Information' },
+                        { name: 'Recommendations' },
+                        { name: 'Smart App Validator' },
+                        { name: 'mTuitive - OpNote Test - IE' },
+                        { name: 'mTuitive - OpNote Test - Edge' },
+                        { name: 'Op Note - Prod - Edge' },
+                        { name: 'WorkflowView Edge' },
+                        { name: 'mTuitive Dev - Edge' },
+                        { name: 'OpNote Debug EDGE' }
+                      ].map((item, idx) => {
+                        if (item.divider) {
+                          return <div key={idx} className="border-t border-white/10 my-1" />;
+                        }
+                        const isActive = profileSidebarOption === item.name;
+                        return (
+                          <div 
+                            key={idx}
+                            onClick={() => {
+                              if (item.name === 'Provider View' || item.name === 'Op Note - Prod - Edge') {
+                                setProfileSidebarOption(item.name);
+                              }
+                            }}
+                            className={`px-3 py-1.5 flex justify-between items-center cursor-pointer hover:bg-white/10 ${
+                              isActive ? 'bg-[#123c56] border-l-4 border-sky-400 font-semibold' : ''
+                            }`}
+                          >
+                            <span>{item.name}</span>
+                            {item.add && <span className="text-[8.5px] text-sky-300 font-bold hover:text-white">+ Add</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Right Document Workspace Area */}
+                  {profileSidebarOption === 'Provider View' ? (
+                    <div className="flex-1 bg-white flex flex-col overflow-hidden">
+                      {/* Demographics upper tab selector */}
+                      <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-1 flex justify-between items-center h-[32px]">
+                        <div className="flex border-b border-transparent gap-1 text-[10.5px]">
+                          {['Demographics', 'Insurance', 'Contacts', 'Clinical', 'Visit History', 'Notes'].map((t) => (
+                            <button
+                              key={t}
+                              onClick={() => setProfileTab(t)}
+                              className={`px-3 py-1 font-semibold border-t border-x rounded-t transition-all ${
+                                profileTab === t 
+                                  ? 'bg-white border-[#bdcddc] text-blue-900 border-b-transparent relative z-10 font-bold border-t-2 border-t-blue-600' 
+                                  : 'bg-gray-100/70 border-transparent text-gray-600 hover:bg-gray-200/50'
+                              }`}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-1 overflow-hidden">
+                        {/* Left Column: Demographics Cards Workspace */}
+                        <div className="flex-1 bg-white flex flex-col overflow-auto text-[10.5px] p-4 space-y-4">
+                          {profileTab === 'Demographics' && (
+                            <div className="grid grid-cols-2 gap-4">
+                              {/* Panel 1: Personal Information */}
+                              <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col">
+                                <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
+                                  <span className="text-[11px]">Personal Information</span>
+                                  <button 
+                                    onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
+                                    className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
+                                  >
+                                    ✏️ Edit
+                                  </button>
+                                </div>
+                                <div className="p-3 grid grid-cols-[150px_1fr_120px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
+                                  <span className="text-gray-500 font-medium">Last Name</span>
+                                  <span className="font-semibold text-gray-900">{editLastName}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Occupation</span>
+                                  <span className="font-semibold text-gray-900">{editOccupation}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">First Name</span>
+                                  <span className="font-semibold text-gray-900">{editFirstName}</span>
+
+                                  <span className="text-gray-500 font-medium">Ethnicity</span>
+                                  <span className="font-semibold text-gray-900">{editEthnicity}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Middle Initial</span>
+                                  <span className="text-gray-900">{editMiddleInitial}</span>
+
+                                  <span className="text-gray-500 font-medium">Language</span>
+                                  <span className="font-semibold text-gray-900">{editLanguage}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">ABHA-ID</span>
+                                  <span className="font-bold text-gray-900">{editMrn}</span>
+
+                                  <span className="text-gray-500 font-medium">Nationality</span>
+                                  <span className="font-semibold text-gray-900">{editNationality}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Axio-ID</span>
+                                  <span className="text-gray-900">{editSsn}</span>
+
+                                  <span className="text-gray-500 font-medium">Blood Type</span>
+                                  <span className="font-bold text-red-700">O+</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Date of Birth</span>
+                                  <span className="text-gray-900">{editDob}</span>
+
+                                  <span className="text-gray-500 font-medium">HealthLife</span>
+                                  <span className="font-semibold text-green-700">Yes</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Age</span>
+                                  <span className="text-gray-900">45 Years</span>
+
+                                  <span className="text-gray-500 font-medium"></span>
+                                  <span className="text-gray-900"></span>
+                                  
+                                  <span className="text-gray-500 font-medium">Gender</span>
+                                  <span className="text-gray-900">{editSex}</span>
+
+                                  <span className="text-gray-500 font-medium"></span>
+                                  <span className="text-gray-900"></span>
+                                  
+                                  <span className="text-gray-500 font-medium">Marital Status</span>
+                                  <span className="text-gray-900">{editMaritalStatus}</span>
+                                </div>
+                              </div>
+
+                              {/* Panel 2: Address Information */}
+                              <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col h-fit">
+                                <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
+                                  <span className="text-[11px]">Address Information</span>
+                                  <button 
+                                    onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
+                                    className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
+                                  >
+                                    ✏️ Edit
+                                  </button>
+                                </div>
+                                <div className="p-3 grid grid-cols-[100px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
+                                  <span className="text-gray-500 font-medium">Address</span>
+                                  <span className="text-gray-900">{editAddress}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">City</span>
+                                  <span className="font-semibold text-gray-900">{editCity}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">State / Province</span>
+                                  <span className="font-semibold text-gray-900">{editState}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">ZIP / Postal Code</span>
+                                  <span className="text-gray-900">{editZip}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Country</span>
+                                  <span className="font-semibold text-gray-900">USA</span>
+                                </div>
+                              </div>
+
+                              {/* Panel 3: Contact Information */}
+                              <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col">
+                                <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
+                                  <span className="text-[11px]">Contact Information</span>
+                                  <button 
+                                    onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
+                                    className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
+                                  >
+                                    ✏️ Edit
+                                  </button>
+                                </div>
+                                <div className="p-3 grid grid-cols-[100px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
+                                  <span className="text-gray-500 font-medium">Phone</span>
+                                  <span className="text-gray-900">{editPhone}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Mobile / Pager</span>
+                                  <span className="text-gray-900">{editMobile}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Fax</span>
+                                  <span className="text-gray-900">{editFax}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Email</span>
+                                  <span className="text-blue-600 hover:underline cursor-pointer">{editEmail}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Alternate Email</span>
+                                  <span className="text-gray-900">—</span>
+                                </div>
+                              </div>
+
+                              {/* Panel 4: Physician Information */}
+                              <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col h-fit">
+                                <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
+                                  <span className="text-[11px]">Physician Information</span>
+                                  <button 
+                                    onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
+                                    className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
+                                  >
+                                    ✏️ Edit
+                                  </button>
+                                </div>
+                                <div className="p-3 grid grid-cols-[140px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
+                                  <span className="text-gray-500 font-medium">Referring Physician</span>
+                                  <span className="font-semibold text-gray-900">{editReferringPhysician}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Attending Physician</span>
+                                  <span className="font-semibold text-gray-900">{editAttendingPhysician}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Date of First Visit</span>
+                                  <span className="text-gray-900">{editFirstVisit}</span>
+                                  
+                                  <span className="text-gray-500 font-medium">Patient Status</span>
+                                  <span className="font-semibold text-green-700">Active</span>
+                                </div>
+                              </div>
+
+                              {/* Panel 5: Additional Information */}
+                              <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col h-fit col-span-2">
+                                <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
+                                  <span className="text-[11px]">Additional Information</span>
+                                  <button 
+                                    onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
+                                    className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
+                                  >
+                                    ✏️ Edit
+                                  </button>
+                                </div>
+                                <div className="p-3 grid grid-cols-[150px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
+                                  <span className="text-gray-500 font-medium">Insurance / Coverage</span>
+                                  <span className="text-gray-900">{editPrimaryInsurance}</span>
+
+                                  <span className="text-gray-500 font-medium">Insurance ID</span>
+                                  <span className="text-gray-900">{editInsuranceId}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {profileTab === 'Insurance' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2">
+                                <h3 className="font-bold text-sm text-[#0f4471]">Insurance Details</h3>
+                              </div>
+                              <div className="grid grid-cols-[150px_1fr] gap-y-3">
+                                <span className="text-gray-500 font-medium">Primary Insurer:</span>
+                                <span className="font-semibold text-gray-900">{editPrimaryInsurance}</span>
+                                
+                                <span className="text-gray-500 font-medium">Policy ID:</span>
+                                <span className="text-gray-900">{editInsuranceId}</span>
+                                
+                                <span className="text-gray-500 font-medium">Group Number:</span>
+                                <span className="text-gray-900">BCBS123456</span>
+                                
+                                <span className="text-gray-500 font-medium">Coverage Status:</span>
+                                <span className="font-bold text-green-700">Active / Verified</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {profileTab === 'Contacts' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2">
+                                <h3 className="font-bold text-sm text-[#0f4471]">Emergency Contacts</h3>
+                              </div>
+                              <div className="space-y-3">
+                                <div className="p-3 bg-gray-50 rounded border border-gray-100">
+                                  <div className="font-bold text-gray-900">Mary Doe</div>
+                                  <div className="text-[10px] text-gray-500">Spouse • Primary Emergency Contact</div>
+                                  <div className="mt-1 text-gray-700">📞 (305) 555-0199 • 📍 Same as patient address</div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {profileTab === 'Clinical' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2 flex justify-between items-center">
+                                <h3 className="font-bold text-sm text-[#0f4471]">Clinical Overview</h3>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <h4 className="font-bold text-[#0f4471] border-b border-gray-100 pb-1 text-[11px]">Active Diagnoses</h4>
+                                  <ul className="list-disc pl-4 space-y-1">
+                                    <li>Essential Hypertension (I10)</li>
+                                    <li>Type 2 Diabetes Mellitus (E11.9)</li>
+                                    <li>Hyperlipidemia (E78.5)</li>
+                                  </ul>
+                                </div>
+                                <div className="space-y-2">
+                                  <h4 className="font-bold text-[#0f4471] border-b border-gray-100 pb-1 text-[11px]">Allergies</h4>
+                                  <ul className="list-disc pl-4 space-y-1 text-red-700 font-semibold">
+                                    <li>Penicillin G (Severe - Anaphylaxis)</li>
+                                    <li>Shellfish (Moderate - Hives)</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {profileTab === 'Visit History' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2">
+                                <h3 className="font-bold text-sm text-[#0f4471]">Recent Visit Log</h3>
+                              </div>
+                              <table className="w-full text-left border-collapse text-[10.5px]">
+                                <thead>
+                                  <tr className="bg-gray-100 text-gray-700 border-b border-gray-200">
+                                    <th className="p-2">Date</th>
+                                    <th className="p-2">Provider</th>
+                                    <th className="p-2">Department / Location</th>
+                                    <th className="p-2">Visit Reason</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr className="border-b border-gray-100">
+                                    <td className="p-2">12/04/2024</td>
+                                    <td className="p-2 font-medium">Dr. Herman Stewart</td>
+                                    <td className="p-2">Family Practice Center</td>
+                                    <td className="p-2">Quarterly Diabetes Follow-up</td>
+                                  </tr>
+                                  <tr className="border-b border-gray-100">
+                                    <td className="p-2">09/10/2024</td>
+                                    <td className="p-2 font-medium">Dr. Herman Stewart</td>
+                                    <td className="p-2">Family Practice Center</td>
+                                    <td className="p-2">Routine Wellness Exam</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+
+                          {profileTab === 'Notes' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 flex flex-col space-y-3">
+                              <div className="border-b border-gray-100 pb-2 flex justify-between items-center">
+                                <h3 className="font-bold text-sm text-[#0f4471]">Clinical Progress Notes</h3>
+                              </div>
+                              <div className="space-y-3">
+                                <div className="border border-gray-200 rounded p-3 bg-[#fafbfc]">
+                                  <div className="flex justify-between items-center text-[10px] text-gray-500">
+                                    <span>Progress Note • 12/04/2024 10:15 AM</span>
+                                    <span className="font-semibold text-gray-700">Dr. Herman Stewart, MD</span>
+                                  </div>
+                                  <p className="mt-2 text-gray-800 leading-relaxed text-[10.5px]">
+                                    Patient reports good compliance with metformin 500mg BID. BP is controlled at 128/78. Lungs clear, heart regular rhythm. Will monitor HbA1c in 3 months.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-1 bg-white flex flex-col overflow-hidden">
+                      {/* Top document toolbar row */}
+                      <div className="bg-[#cbd8e3] border-b border-[#bdcddc] px-3 py-1 flex justify-between items-center text-[10.5px] h-[28px]">
+                        <div className="flex gap-2 font-bold text-[#0f4471]"></div>
+                        <div className="flex items-center gap-2"></div>
+                      </div>
+
+                      {/* Interactive Form Content Area */}
+                      <div className="flex-1 overflow-auto bg-white p-6 text-[11px] text-gray-800 space-y-5">
+                        
+                        {/* Form Row 1: Implant Lot */}
+                        <div className="grid grid-cols-[200px_400px] items-start gap-4">
+                          <span className="text-gray-500 font-semibold pt-1">Implant Lot #: <span className="text-gray-400 font-normal italic">(optional)</span></span>
+                          <textarea 
+                            rows={3} 
+                            className="w-full border border-gray-300 rounded p-1.5 focus:outline-none focus:border-[#005a94] font-mono text-[11px]" 
+                            placeholder=""
+                          />
+                        </div>
+
+                        {/* Form Row 2: Was dermal matrix used */}
+                        <div className="grid grid-cols-[200px_400px] items-start gap-4">
+                          <span className="text-gray-500 font-semibold pt-0.5">Was dermal matrix used?: <span className="text-gray-400 font-normal italic">(optional)</span></span>
+                          <div className="space-y-1.5">
+                            {['Yes', 'No', 'Unknown'].map((opt) => (
+                              <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="dermal_matrix" className="accent-[#005a94]" />
+                                <span>{opt}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Form Row 3: Operative Description */}
+                        <div className="grid grid-cols-[200px_400px] items-center gap-4">
+                          <span className="text-gray-500 font-semibold">Operative Description: <span className="text-gray-400 font-normal italic">(optional)</span></span>
+                          <div className="flex items-center gap-3">
+                            <select className="border border-gray-300 rounded p-1 w-full bg-white focus:outline-none">
+                              <option>Choose an option</option>
+                            </select>
+                            <span className="text-[#005a94] hover:underline cursor-pointer whitespace-nowrap font-bold">Other...</span>
+                          </div>
+                        </div>
+
+                        {/* Form Row 4: Comments */}
+                        <div className="grid grid-cols-[200px_400px] items-start gap-4">
+                          <span className="text-gray-500 font-semibold pt-1">Comments: <span className="text-gray-400 font-normal italic">(optional)</span></span>
+                          <textarea 
+                            rows={3} 
+                            className="w-full border border-gray-300 rounded p-1.5 focus:outline-none focus:border-[#005a94] text-[11px]" 
+                            placeholder=""
+                          />
+                        </div>
+
+                        {/* Section: Other Comments */}
+                        <div className="space-y-3 pt-4 border-t border-gray-200">
+                          {/* Bright yellow header bar */}
+                          <div className="bg-[#fff200] font-extrabold text-[12px] px-3 py-1 text-black select-none w-fit tracking-wide shadow-sm">
+                            Other Comments
+                          </div>
+
+                          {/* Yellow highlighted label and text display */}
+                          <div className="grid grid-cols-[200px_400px] items-start gap-4">
+                            <div className="bg-[#fff200] font-bold px-2 py-0.5 text-black w-fit text-[11px]">
+                              Other Comments:
+                            </div>
+                            <textarea 
+                              rows={3} 
+                              defaultValue="I am signing this report at the direction of administration, in the absence of Cerner Surgeon 1."
+                              className="w-full border border-gray-300 rounded p-1.5 focus:outline-none focus:border-[#005a94] text-[11px] text-gray-800 font-sans" 
+                            />
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  )}
+
                 </div>
-
-                {/* Main Tab Panels Content */}
-                {profileTab === 'Demographics' && (
-                  <div className="grid grid-cols-2 gap-3">
-                    
-                    {/* Panel 1: Personal Information */}
-                    <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col">
-                      <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
-                        <span className="text-[11px]">Personal Information</span>
-                        <button 
-                          onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
-                          className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
-                        >
-                          ✏️ Edit
-                        </button>
-                      </div>
-                      <div className="p-3 grid grid-cols-[150px_1fr_120px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
-                        <span className="text-gray-500 font-medium">Last Name</span>
-                        <span className="font-semibold text-gray-900">{editLastName}</span>
-                        
-                        <span className="text-gray-500 font-medium">Occupation</span>
-                        <span className="font-semibold text-gray-900">{editOccupation}</span>
-                        
-                        <span className="text-gray-500 font-medium">First Name</span>
-                        <span className="font-semibold text-gray-900">{editFirstName}</span>
-
-                        <span className="text-gray-500 font-medium">Ethnicity</span>
-                        <span className="font-semibold text-gray-900">{editEthnicity}</span>
-                        
-                        <span className="text-gray-500 font-medium">Middle Initial</span>
-                        <span className="text-gray-900">{editMiddleInitial}</span>
-
-                        <span className="text-gray-500 font-medium">Language</span>
-                        <span className="font-semibold text-gray-900">{editLanguage}</span>
-                        
-                        <span className="text-gray-500 font-medium">ABHA-ID</span>
-                        <span className="font-bold text-gray-900">{editMrn}</span>
-
-                        <span className="text-gray-500 font-medium">Nationality</span>
-                        <span className="font-semibold text-gray-900">{editNationality}</span>
-                        
-                        <span className="text-gray-500 font-medium">Axio-ID</span>
-                        <span className="text-gray-900">{editSsn}</span>
-
-                        <span className="text-gray-500 font-medium">Blood Type</span>
-                        <span className="font-bold text-red-700">O+</span>
-                        
-                        <span className="text-gray-500 font-medium">Date of Birth</span>
-                        <span className="text-gray-900">{editDob}</span>
-
-                        <span className="text-gray-500 font-medium">HealthLife</span>
-                        <span className="font-semibold text-green-700">Yes</span>
-                        
-                        <span className="text-gray-500 font-medium">Age</span>
-                        <span className="text-gray-900">45 Years</span>
-
-                        <span className="text-gray-500 font-medium"></span>
-                        <span className="text-gray-900"></span>
-                        
-                        <span className="text-gray-500 font-medium">Gender</span>
-                        <span className="text-gray-900">{editSex}</span>
-
-                        <span className="text-gray-500 font-medium"></span>
-                        <span className="text-gray-900"></span>
-                        
-                        <span className="text-gray-500 font-medium">Marital Status</span>
-                        <span className="text-gray-900">{editMaritalStatus}</span>
-                      </div>
-                    </div>
-
-                    {/* Panel 2: Address Information */}
-                    <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col h-fit">
-                      <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
-                        <span className="text-[11px]">Address Information</span>
-                        <button 
-                          onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
-                          className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
-                        >
-                          ✏️ Edit
-                        </button>
-                      </div>
-                      <div className="p-3 grid grid-cols-[120px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
-                        <span className="text-gray-500 font-medium">Address</span>
-                        <span className="text-gray-900">{editAddress}</span>
-                        
-                        <span className="text-gray-500 font-medium">City</span>
-                        <span className="text-gray-900">{editCity}</span>
-                        
-                        <span className="text-gray-500 font-medium">State / Province</span>
-                        <span className="text-gray-900">{editState}</span>
-                        
-                        <span className="text-gray-500 font-medium">ZIP / Postal Code</span>
-                        <span className="text-gray-900">{editZip}</span>
-                        
-                        <span className="text-gray-500 font-medium">Country</span>
-                        <span className="text-gray-900">{editCountry}</span>
-                      </div>
-                    </div>
-
-                    {/* Panel 3: Contact Information */}
-                    <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col">
-                      <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
-                        <span className="text-[11px]">Contact Information</span>
-                        <button 
-                          onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
-                          className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
-                        >
-                          ✏️ Edit
-                        </button>
-                      </div>
-                      <div className="p-3 grid grid-cols-[120px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
-                        <span className="text-gray-500 font-medium">Phone</span>
-                        <span className="text-gray-900">{editPhone}</span>
-
-                        <span className="text-gray-500 font-medium">Mobile / Pager</span>
-                        <span className="text-gray-900">{editMobile}</span>
-
-                        <span className="text-gray-500 font-medium">Fax</span>
-                        <span className="text-gray-900">{editFax}</span>
-
-                        <span className="text-gray-500 font-medium">Email</span>
-                        <span className="font-semibold text-blue-800">{editEmail}</span>
-
-                        <span className="text-gray-500 font-medium">Alternate Email</span>
-                        <span className="text-gray-900">{editAlternateEmail || '—'}</span>
-                      </div>
-                    </div>
-
-                    {/* Panel 4: Physician Information */}
-                    <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col">
-                      <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
-                        <span className="text-[11px]">Physician Information</span>
-                        <button 
-                          onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
-                          className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
-                        >
-                          ✏️ Edit
-                        </button>
-                      </div>
-                      <div className="p-3 grid grid-cols-[120px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
-                        <span className="text-gray-500 font-medium">Referring Physician</span>
-                        <span className="text-gray-900">{editReferringPhysician}</span>
-
-                        <span className="text-gray-500 font-medium">Attending Physician</span>
-                        <span className="text-gray-900">{editAttendingPhysician}</span>
-
-                        <span className="text-gray-500 font-medium">Date of First Visit</span>
-                        <span className="text-gray-900">{editFirstVisit}</span>
-
-                        <span className="text-gray-500 font-medium">Patient Status</span>
-                        <span className="text-gray-900">{editStatus}</span>
-                      </div>
-                    </div>
-
-                    {/* Panel 5: Additional Information */}
-                    <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col h-fit col-span-2">
-                      <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
-                        <span className="text-[11px]">Additional Information</span>
-                        <button 
-                          onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
-                          className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
-                        >
-                          ✏️ Edit
-                        </button>
-                      </div>
-                      <div className="p-3 grid grid-cols-[150px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
-                        <span className="text-gray-500 font-medium">Insurance / Coverage</span>
-                        <span className="text-gray-900">{editPrimaryInsurance}</span>
-
-                        <span className="text-gray-500 font-medium">Insurance ID</span>
-                        <span className="text-gray-900">{editInsuranceId}</span>
-                      </div>
-                    </div>
-
-                  </div>
-                )}
-
-                {profileTab === 'Insurance' && (
-                  <div className="flex-1 space-y-4 text-gray-800 text-[10.5px]">
-                    
-                    {/* Header */}
-                    <div className="flex justify-between items-center select-none">
-                      <div>
-                        <h3 className="font-bold text-sm text-[#0f4471]">Insurance</h3>
-                        <p className="text-gray-500 text-[9.5px]">View patient's insurance history and current coverage details.</p>
-                      </div>
-                      <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1.5 rounded shadow-sm flex items-center gap-1 text-[9.5px]">
-                        ➕ Add New Insurance
-                      </button>
-                    </div>
-
-                    {/* Sub-navigation Menu Ribbon */}
-                    <div className="flex gap-4 border-b border-gray-150 pb-1.5 select-none font-semibold text-[10px]">
-                      <button className="text-[#0f4471] border-b-2 border-[#0f4471] pb-1">Insurance History</button>
-                      <button className="text-gray-500 hover:text-gray-700 pb-1">Coverage Summary</button>
-                      <button className="text-gray-500 hover:text-gray-700 pb-1">Authorizations</button>
-                    </div>
-
-
-
-                    {/* History Timeline block */}
-                    <div className="space-y-3">
-                      <div className="font-bold text-[11px] text-gray-700 select-none">
-                        Insurance History Timeline
-                        <p className="text-gray-400 font-normal text-[9px] mt-0.5">Complete history of patient's insurance coverage from earliest to current.</p>
-                      </div>
-
-                      <div className="relative border-l-2 border-gray-200 pl-4 ml-2.5 space-y-4">
-                        
-                        {/* Timeline Item 3 (Active) */}
-                        <div className="relative">
-                          <span className="absolute -left-[27.5px] top-0 w-5 h-5 rounded-full bg-green-500 text-white font-bold text-[10px] flex items-center justify-center select-none border-2 border-white">3</span>
-                          
-                          <div className="bg-[#f0fdf4]/30 border border-green-200 rounded p-3 shadow-sm grid grid-cols-[160px_1fr_1.2fr_auto] gap-4">
-                            <div className="bg-gradient-to-r from-red-400 to-pink-500 rounded p-2 text-white font-sans flex flex-col justify-between h-[90px] shadow-sm select-none border border-red-300">
-                              <div className="flex justify-between items-start text-[8px]">
-                                <span className="font-bold">XYZ Insurance Company</span>
-                                <span>ABC Brokerage</span>
-                              </div>
-                              <div className="font-mono text-[10px] font-bold text-center tracking-wider">X12356632</div>
-                              <div className="flex justify-between items-end text-[7px] text-gray-100">
-                                <div>
-                                  <div>EFFECTIVE DATE</div>
-                                  <div>06 Jun 2017</div>
-                                </div>
-                                <div>
-                                  <div>EXPIRY DATE</div>
-                                  <div>06 Jun 2018</div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-bold text-gray-900 text-[11px]">XYZ Insurance Company</h4>
-                                <span className="bg-green-100 text-green-800 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase select-none">Active</span>
-                              </div>
-                              <p className="text-gray-500 text-[9px]">ABC Brokerage</p>
-                              <p className="text-gray-500 text-[9px]">123 First Avenue, Calgary, AB</p>
-                              <div className="grid grid-cols-3 gap-2 pt-1 text-[9px]">
-                                <div><span className="text-gray-400">Policy Number</span><div className="font-semibold">X12356632</div></div>
-                                <div><span className="text-gray-400">Effective Date</span><div className="font-semibold">06 Jun 2017</div></div>
-                                <div><span className="text-gray-400">Expiry Date</span><div className="font-semibold">06 Jun 2018</div></div>
-                              </div>
-                              <div className="grid grid-cols-3 gap-2 text-[9px]">
-                                <div><span className="text-gray-400">Insured</span><div className="font-semibold">John Doe (Self)</div></div>
-                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
-                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[9.5px]">
-                              <div><span className="text-gray-400 block">Insurance Type</span><span className="font-semibold">Motor Vehicle Liability</span></div>
-                              <div><span className="text-gray-400 block">Insured Number</span><span className="font-semibold">—</span></div>
-                              <div><span className="text-gray-400 block">Group Number</span><span className="font-semibold">—</span></div>
-                              <div><span className="text-gray-400 block">Plan / Coverage</span><span className="font-semibold">Liability Insurance</span></div>
-                            </div>
-
-                            <div className="flex flex-col justify-center items-end select-none">
-                              <div className="flex border border-gray-200 rounded overflow-hidden">
-                                <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
-                                <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Timeline Item 2 (Expired) */}
-                        <div className="relative">
-                          <span className="absolute -left-[27.5px] top-0 w-5 h-5 rounded-full bg-gray-400 text-white font-bold text-[10px] flex items-center justify-center select-none border-2 border-white">2</span>
-                          
-                          <div className="bg-white border border-gray-200 rounded p-3 shadow-sm grid grid-cols-[160px_1fr_1.2fr_auto] gap-4">
-                            <div className="bg-gradient-to-r from-blue-400 to-indigo-500 rounded p-2 text-white font-sans flex flex-col justify-between h-[90px] shadow-sm select-none border border-blue-300">
-                              <div className="flex justify-between items-start text-[8px]">
-                                <span className="font-bold">HealthFirst Insurance</span>
-                                <span>HealthFirst Network</span>
-                              </div>
-                              <div className="font-mono text-[10px] font-bold text-center tracking-wider">HF7894562</div>
-                              <div className="flex justify-between items-end text-[7px] text-gray-100">
-                                <div>
-                                  <div>EFFECTIVE DATE</div>
-                                  <div>01 Jan 2015</div>
-                                </div>
-                                <div>
-                                  <div>EXPIRY DATE</div>
-                                  <div>31 Dec 2016</div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-bold text-gray-900 text-[11px]">HealthFirst Insurance</h4>
-                                <span className="bg-gray-100 text-gray-800 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase select-none">Expired</span>
-                              </div>
-                              <p className="text-gray-500 text-[9px]">HealthFirst Network</p>
-                              <p className="text-gray-500 text-[9px]">456 Health Blvd, Calgary, AB</p>
-                              <div className="grid grid-cols-3 gap-2 pt-1 text-[9px]">
-                                <div><span className="text-gray-400">Policy Number</span><div className="font-semibold">HF7894562</div></div>
-                                <div><span className="text-gray-400">Effective Date</span><div className="font-semibold">01 Jan 2015</div></div>
-                                <div><span className="text-gray-400">Expiry Date</span><div className="font-semibold">31 Dec 2016</div></div>
-                              </div>
-                              <div className="grid grid-cols-3 gap-2 text-[9px]">
-                                <div><span className="text-gray-400">Insured</span><div className="font-semibold">John Doe (Self)</div></div>
-                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
-                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[9.5px]">
-                              <div><span className="text-gray-400 block">Insurance Type</span><span className="font-semibold">Health Insurance</span></div>
-                              <div><span className="text-gray-400 block">Insured Number</span><span className="font-semibold">—</span></div>
-                              <div><span className="text-gray-400 block">Group Number</span><span className="font-semibold">HF-20215</span></div>
-                              <div><span className="text-gray-400 block">Plan / Coverage</span><span className="font-semibold">Family Health Plan</span></div>
-                            </div>
-
-                            <div className="flex flex-col justify-center items-end select-none">
-                              <div className="flex border border-gray-200 rounded overflow-hidden">
-                                <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
-                                <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Timeline Item 1 (Expired) */}
-                        <div className="relative">
-                          <span className="absolute -left-[27.5px] top-0 w-5 h-5 rounded-full bg-gray-400 text-white font-bold text-[10px] flex items-center justify-center select-none border-2 border-white">1</span>
-                          
-                          <div className="bg-white border border-gray-200 rounded p-3 shadow-sm grid grid-cols-[160px_1fr_1.2fr_auto] gap-4">
-                            <div className="bg-gradient-to-r from-yellow-400 to-amber-500 rounded p-2 text-white font-sans flex flex-col justify-between h-[90px] shadow-sm select-none border border-yellow-300">
-                              <div className="flex justify-between items-start text-[8px]">
-                                <span className="font-bold">SecureLife Insurance</span>
-                                <span>SecureLife Group</span>
-                              </div>
-                              <div className="font-mono text-[10px] font-bold text-center tracking-wider">SL45678901</div>
-                              <div className="flex justify-between items-end text-[7px] text-gray-100">
-                                <div>
-                                  <div>EFFECTIVE DATE</div>
-                                  <div>10 Mar 2012</div>
-                                </div>
-                                <div>
-                                  <div>EXPIRY DATE</div>
-                                  <div>31 Dec 2014</div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-bold text-gray-900 text-[11px]">SecureLife Insurance</h4>
-                                <span className="bg-gray-100 text-gray-800 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase select-none">Expired</span>
-                              </div>
-                              <p className="text-gray-500 text-[9px]">SecureLife Group</p>
-                              <p className="text-gray-500 text-[9px]">789 Secure Way, Calgary, AB</p>
-                              <div className="grid grid-cols-3 gap-2 pt-1 text-[9px]">
-                                <div><span className="text-gray-400">Policy Number</span><div className="font-semibold">SL45678901</div></div>
-                                <div><span className="text-gray-400">Effective Date</span><div className="font-semibold">10 Mar 2012</div></div>
-                                <div><span className="text-gray-400">Expiry Date</span><div className="font-semibold">31 Dec 2014</div></div>
-                              </div>
-                              <div className="grid grid-cols-3 gap-2 text-[9px]">
-                                <div><span className="text-gray-400">Insured</span><div className="font-semibold">John Doe (Self)</div></div>
-                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
-                                <div><span className="text-gray-400">Insured DOB</span><div className="font-semibold">{editDob}</div></div>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[9.5px]">
-                              <div><span className="text-gray-400 block">Insurance Type</span><span className="font-semibold">Health Insurance</span></div>
-                              <div><span className="text-gray-400 block">Insured Number</span><span className="font-semibold">—</span></div>
-                              <div><span className="text-gray-400 block">Group Number</span><span className="font-semibold">SL-12012</span></div>
-                              <div><span className="text-gray-400 block">Plan / Coverage</span><span className="font-semibold">Basic Health Plan</span></div>
-                            </div>
-
-                            <div className="flex flex-col justify-center items-end select-none">
-                              <div className="flex border border-gray-200 rounded overflow-hidden">
-                                <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
-                                <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                      </div>
-                    </div>
-
-                    {/* Footer Info Notice */}
-                    <div className="bg-[#eff6ff] border border-[#bfdbfe] rounded p-2 text-blue-800 text-[9.5px] flex items-center gap-2 select-none">
-                      <span className="text-[10px]">ℹ️</span>
-                      <span>Insurance history is displayed from oldest to newest. The most recent active insurance is shown at the top.</span>
-                    </div>
-
-                  </div>
-                )}
-
-                {profileTab === 'Clinical' && (
-                  <div className="flex-1 space-y-4 text-gray-800 text-[10.5px]">
-                    
-                    {/* Header */}
-                    <div className="flex justify-between items-center select-none">
-                      <div>
-                        <h3 className="font-bold text-sm text-[#0f4471]">Clinical History & Health Journey</h3>
-                        <p className="text-gray-500 text-[9.5px]">Complete chronological logs of clinics and hospitals visited during the patient's health journey.</p>
-                      </div>
-                      <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1.5 rounded shadow-sm flex items-center gap-1 text-[9.5px]">
-                        🔍 Filter History
-                      </button>
-                    </div>
-
-                    {/* Timeline Container */}
-                    <div className="relative border-l-2 border-gray-200 pl-6 ml-14 space-y-6">
-                      
-                      {/* Timeline Item 1 */}
-                      <div className="relative">
-                        {/* Left absolute date */}
-                        <div className="absolute -left-[95px] top-1 text-right w-[75px] select-none">
-                          <div className="font-bold text-gray-900 text-[9.5px]">2 days ago</div>
-                          <div className="text-gray-400 text-[9px] mt-0.5">28 May 2025</div>
-                        </div>
-                        {/* Dot marker */}
-                        <span className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-[#0d7a86] border-2 border-white shadow-sm flex items-center justify-center"></span>
-                        
-                        {/* Content Card */}
-                        <div className="bg-white border border-[#e2e8f0] hover:border-gray-300 rounded p-3.5 shadow-sm grid grid-cols-[80px_1.6fr_1fr_1fr_1.2fr_auto] gap-4 items-center">
-                          <div className="relative overflow-hidden rounded border border-gray-200 h-14 w-14 flex items-center justify-center bg-gray-50">
-                            <img src="/rockyview_hospital.png" alt="Rockyview Hospital" className="h-full w-full object-cover" />
-                          </div>
-                          
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-gray-900 text-[11px]">Rockyview General Hospital</h4>
-                              <span className="bg-green-150 text-green-800 text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase">Hospital</span>
-                            </div>
-                            <p className="text-gray-400 text-[9px] mt-0.5">7007 14 St SW, Calgary, AB T2R 1P8</p>
-                            <p className="text-gray-500 font-semibold text-[9px] mt-1">Department: Cardiology  |  Dr. P. Singh (Cardiologist)</p>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">Visit Type</span>
-                            <span className="font-semibold text-gray-800">Outpatient Visit</span>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">Reason</span>
-                            <span className="font-semibold text-gray-800">Chest Pain Follow-up</span>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">MRN / Visit No.</span>
-                            <span className="font-mono text-gray-800 font-bold">RGH-2025-001245</span>
-                          </div>
-
-                          <div className="flex border border-gray-200 rounded overflow-hidden select-none">
-                            <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
-                            <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Timeline Item 2 */}
-                      <div className="relative">
-                        {/* Left absolute date */}
-                        <div className="absolute -left-[95px] top-1 text-right w-[75px] select-none">
-                          <div className="font-semibold text-gray-500 text-[9.5px]">12 May 2025</div>
-                        </div>
-                        {/* Dot marker */}
-                        <span className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-white border-2 border-gray-300 shadow-sm flex items-center justify-center"></span>
-                        
-                        {/* Content Card */}
-                        <div className="bg-white border border-[#e2e8f0] hover:border-gray-300 rounded p-3.5 shadow-sm grid grid-cols-[80px_1.6fr_1fr_1fr_1.2fr_auto] gap-4 items-center">
-                          <div className="relative overflow-hidden rounded border border-gray-200 h-14 w-14 flex items-center justify-center bg-gray-50">
-                            <img src="/sunridge_clinic.png" alt="Sunridge Clinic" className="h-full w-full object-cover" />
-                          </div>
-                          
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-gray-900 text-[11px]">Sunridge Medical Clinic</h4>
-                              <span className="bg-blue-50 text-blue-800 text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase">Clinic</span>
-                            </div>
-                            <p className="text-gray-400 text-[9px] mt-0.5">2555 32 Ave NE, Calgary, AB T1Y 6J7</p>
-                            <p className="text-gray-500 font-semibold text-[9px] mt-1">Provider: Dr. A. Mehta (Family Physician)</p>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">Visit Type</span>
-                            <span className="font-semibold text-gray-800">Clinic Visit</span>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">Reason</span>
-                            <span className="font-semibold text-gray-800">Regular Checkup</span>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">MRN / Visit No.</span>
-                            <span className="font-mono text-gray-800 font-bold">SMC-2025-000987</span>
-                          </div>
-
-                          <div className="flex border border-gray-200 rounded overflow-hidden select-none">
-                            <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
-                            <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Timeline Item 3 */}
-                      <div className="relative">
-                        {/* Left absolute date */}
-                        <div className="absolute -left-[95px] top-1 text-right w-[75px] select-none">
-                          <div className="font-semibold text-gray-500 text-[9.5px]">22 Apr 2025</div>
-                        </div>
-                        {/* Dot marker */}
-                        <span className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-white border-2 border-gray-300 shadow-sm flex items-center justify-center"></span>
-                        
-                        {/* Content Card */}
-                        <div className="bg-white border border-[#e2e8f0] hover:border-gray-300 rounded p-3.5 shadow-sm grid grid-cols-[80px_1.6fr_1fr_1fr_1.2fr_auto] gap-4 items-center">
-                          <div className="relative overflow-hidden rounded border border-gray-200 h-14 w-14 flex items-center justify-center bg-gray-50">
-                            <img src="/foothills_centre.png" alt="Foothills Centre" className="h-full w-full object-cover" />
-                          </div>
-                          
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-gray-900 text-[11px]">Foothills Medical Centre</h4>
-                              <span className="bg-green-150 text-green-800 text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase">Hospital</span>
-                            </div>
-                            <p className="text-gray-400 text-[9px] mt-0.5">1403 29 St NW, Calgary, AB T2N 2T9</p>
-                            <p className="text-gray-500 font-semibold text-[9px] mt-1">Department: Emergency  |  Dr. R. Wilson (ER Physician)</p>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">Visit Type</span>
-                            <span className="font-semibold text-gray-800">Emergency Visit</span>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">Reason</span>
-                            <span className="font-semibold text-gray-800">Shortness of Breath</span>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">MRN / Visit No.</span>
-                            <span className="font-mono text-gray-800 font-bold">FMC-2025-000762</span>
-                          </div>
-
-                          <div className="flex border border-gray-200 rounded overflow-hidden select-none">
-                            <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
-                            <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Timeline Item 4 */}
-                      <div className="relative">
-                        {/* Left absolute date */}
-                        <div className="absolute -left-[95px] top-1 text-right w-[75px] select-none">
-                          <div className="font-semibold text-gray-500 text-[9.5px]">05 Feb 2025</div>
-                        </div>
-                        {/* Dot marker */}
-                        <span className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-white border-2 border-gray-300 shadow-sm flex items-center justify-center"></span>
-                        
-                        {/* Content Card */}
-                        <div className="bg-white border border-[#e2e8f0] hover:border-gray-300 rounded p-3.5 shadow-sm grid grid-cols-[80px_1.6fr_1fr_1fr_1.2fr_auto] gap-4 items-center">
-                          <div className="relative overflow-hidden rounded border border-gray-200 h-14 w-14 flex items-center justify-center bg-gray-50">
-                            <img src="/rockyview_hospital.png" alt="Edmonton Hospital" className="h-full w-full object-cover" />
-                          </div>
-                          
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-gray-900 text-[11px]">Edmonton General Hospital</h4>
-                              <span className="bg-green-150 text-green-800 text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase">Hospital</span>
-                            </div>
-                            <p className="text-gray-400 text-[9px] mt-0.5">11111 Jasper Ave, Edmonton, AB T5K 0L4</p>
-                            <p className="text-gray-500 font-semibold text-[9px] mt-1">Department: Pulmonology  |  Dr. S. Verma (Pulmonologist)</p>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">Visit Type</span>
-                            <span className="font-semibold text-gray-800">Outpatient Visit</span>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">Reason</span>
-                            <span className="font-semibold text-gray-800">Asthma Management</span>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">MRN / Visit No.</span>
-                            <span className="font-mono text-gray-800 font-bold">EGH-2025-000531</span>
-                          </div>
-
-                          <div className="flex border border-gray-200 rounded overflow-hidden select-none">
-                            <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
-                            <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Timeline Item 5 */}
-                      <div className="relative">
-                        {/* Left absolute date */}
-                        <div className="absolute -left-[95px] top-1 text-right w-[75px] select-none">
-                          <div className="font-semibold text-gray-500 text-[9.5px]">18 Dec 2024</div>
-                        </div>
-                        {/* Dot marker */}
-                        <span className="absolute -left-[35px] top-1.5 w-4 h-4 rounded-full bg-white border-2 border-gray-300 shadow-sm flex items-center justify-center"></span>
-                        
-                        {/* Content Card */}
-                        <div className="bg-white border border-[#e2e8f0] hover:border-gray-300 rounded p-3.5 shadow-sm grid grid-cols-[80px_1.6fr_1fr_1fr_1.2fr_auto] gap-4 items-center">
-                          <div className="relative overflow-hidden rounded border border-gray-200 h-14 w-14 flex items-center justify-center bg-gray-50">
-                            <img src="/sunridge_clinic.png" alt="HealthPlus Clinic" className="h-full w-full object-cover" />
-                          </div>
-                          
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-gray-900 text-[11px]">HealthPlus Clinic Downtown</h4>
-                              <span className="bg-blue-50 text-blue-800 text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase">Clinic</span>
-                            </div>
-                            <p className="text-gray-400 text-[9px] mt-0.5">999 Burrard St, Vancouver, BC V6Z 2R9</p>
-                            <p className="text-gray-500 font-semibold text-[9px] mt-1">Provider: Dr. K. Lee (General Practitioner)</p>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">Visit Type</span>
-                            <span className="font-semibold text-gray-800">Clinic Visit</span>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">Reason</span>
-                            <span className="font-semibold text-gray-800">Flu Symptoms</span>
-                          </div>
-
-                          <div className="text-[9.5px]">
-                            <span className="text-gray-400 block">MRN / Visit No.</span>
-                            <span className="font-mono text-gray-800 font-bold">HPC-2024-000321</span>
-                          </div>
-
-                          <div className="flex border border-gray-200 rounded overflow-hidden select-none">
-                            <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3 py-1 text-[9px] shadow-sm">View Details</button>
-                            <button className="bg-white border-l border-gray-200 hover:bg-gray-50 px-1.5 py-1 text-[9px] text-gray-500 font-semibold">▼</button>
-                          </div>
-                        </div>
-                      </div>
-
-                    </div>
-
-                  </div>
-                )}
               </div>
-
-              {/* Right Column: Profile Picture & Quick Demographics Sidebar */}
-              <div className="w-[230px] bg-white border-l border-[#bdcddc] flex flex-col p-3 space-y-4 overflow-y-auto text-[10px]">
-                
-                {/* Profile Photo Area */}
-                <div className="border border-[#e2e8f0] p-2 bg-white rounded flex justify-center text-[10px]">
-                  <div className="w-[150px] h-[150px] relative bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200 rounded">
-                    <img 
-                      src="/avatar.png" 
-                      alt="Patient Profile Avatar"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-
-                {/* Quick Demographics Summary Panel */}
-                <div className="border border-[#bdcddc] rounded-sm overflow-hidden bg-white">
-                  <div className="bg-[#cbd8e3]/30 p-1.5 border-b border-[#bdcddc] font-bold text-[10.5px] text-[#0f4471]">
-                    Quick Demographics
-                  </div>
-                  <div className="p-2 space-y-1.5 text-gray-800">
-                    <div className="flex justify-between border-b border-gray-50 pb-0.5">
-                      <span className="text-gray-500">Age</span>
-                      <span className="font-semibold">45 Years</span>
-                    </div>
-                    <div className="flex justify-between border-b border-gray-50 pb-0.5">
-                      <span className="text-gray-500">Gender</span>
-                      <span className="font-semibold">Male</span>
-                    </div>
-                    <div className="flex justify-between border-b border-gray-50 pb-0.5">
-                      <span className="text-gray-500">DOB</span>
-                      <span className="font-semibold">{editDob}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-gray-50 pb-0.5">
-                      <span className="text-gray-500">Blood Type</span>
-                      <span className="font-semibold text-red-700">O+</span>
-                    </div>
-                    <div className="flex justify-between border-b border-gray-50 pb-0.5">
-                      <span className="text-gray-500">Height</span>
-                      <span className="font-semibold">175 cm</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Weight</span>
-                      <span className="font-semibold">80.2 kg (04/25/2024)</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Insurance Summary Panel */}
-                <div className="border border-[#bdcddc] rounded-sm overflow-hidden bg-white">
-                  <div className="bg-[#cbd8e3]/30 p-1.5 border-b border-[#bdcddc] font-bold text-[10.5px] text-[#0f4471]">
-                    Insurance Summary
-                  </div>
-                  <div className="p-2 space-y-1.5 text-gray-800">
-                    <div className="flex flex-col">
-                      <span className="text-gray-500">Primary Payer</span>
-                      <span className="font-semibold">{editPrimaryInsurance}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500">Insurance ID</span>
-                      <span className="font-semibold">{editInsuranceId}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500">Group Number</span>
-                      <span className="font-semibold">BCBS123456</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500">Plan</span>
-                      <span className="font-semibold">PPO</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Important Notes Scrollable Area */}
-                <div className="border border-[#bdcddc] rounded-sm overflow-hidden bg-white">
-                  <div className="bg-[#cbd8e3]/30 p-1.5 border-b border-[#bdcddc] font-bold text-[10.5px] text-[#0f4471]">
-                    Important Note
-                  </div>
-                  <div className="p-2 text-gray-800 h-[100px] overflow-y-auto text-[9.5px] leading-relaxed whitespace-pre-line">
-                    {patientNotesMap[editMrn] || "11/25/2004: Allergic rhinitis | Nasal polyps | Acute sinusitis."}
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-          )}
+            );
+          })()}
 
           {activeTab.type === 'EditPatientProfile' && (
             <div className="flex flex-1 overflow-hidden select-none">
