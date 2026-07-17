@@ -32,7 +32,7 @@ import {
 interface TabItem {
   id: string;
   title: string;
-  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs';
+  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs' | 'BillingReceipt';
 }
 
 const CHART_OPTIONS = [
@@ -600,7 +600,7 @@ ${ioVal}`;
     setActiveTabId('patient-doe');
   };
 
-  const selectOrOpenTab = (type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs', title: string, id: string) => {
+  const selectOrOpenTab = (type: TabItem['type'], title: string, id: string) => {
     if (type === 'MessageCenter') {
       setMessageCenterView('list');
       setSelectedMessage(null);
@@ -781,7 +781,12 @@ ${ioVal}`;
     { time: '08:55', dns: 35, conn: 360, secure: 250, req: 1400, resp: 0.1, total: 1700, status: 1, success: 100 }
   ];
 
-  // F10 Person Search popup states
+  // F10 Person Search and Treatment popup states
+  const [showTreatmentPopup, setShowTreatmentPopup] = useState(false);
+  const [treatmentTopTab, setTreatmentTopTab] = useState<'Pt. Info' | 'Encounter' | 'Physical' | 'Hub'>('Hub');
+  const [treatmentSubTab, setTreatmentSubTab] = useState<'Gonococcal' | 'Others'>('Gonococcal');
+  const [treatmentPopUpChecked, setTreatmentPopUpChecked] = useState(true);
+  const [treatmentGenerateHxBy, setTreatmentGenerateHxBy] = useState<'Id' | 'Code' | 'Group'>('Id');
   const [showPersonSearch, setShowPersonSearch] = useState(false);
   const [showPrescriptionRenewal, setShowPrescriptionRenewal] = useState(false);
   const [prescriptionSearchTo, setPrescriptionSearchTo] = useState('');
@@ -2747,6 +2752,7 @@ ${ioVal}`;
           {activeTab.type === 'Labs' && 'Labs'}
           {(activeTab.type as string) === 'Home' && 'Home'}
           {(activeTab.type as string) === 'DeveloperTools' && 'Developer Configuration & System Administration'}
+          {activeTab.type === 'BillingReceipt' && 'Billing & Payments Receipt'}
         </span>
         
         <div className="flex items-center gap-2">
@@ -4057,12 +4063,53 @@ ${ioVal}`;
                     </div>
                   </div>
 
-                  {/* Bell/Notification Area */}
+                  {/* Hamburger Actions Menu Area */}
                   <div className="flex items-center pl-4 border-l border-white/20">
-                    <div className="relative cursor-pointer hover:bg-white/10 p-1 rounded">
-                      <span className="text-xs">🔔</span>
-                      <span className="absolute -top-1 -right-1 bg-red-600 text-[8px] text-white px-1 rounded-full font-bold">0</span>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="relative cursor-pointer hover:bg-white/10 p-1.5 rounded flex items-center justify-center outline-none border-none bg-transparent text-left transition-colors">
+                        <svg className="w-5 h-4 text-white drop-shadow-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" sideOffset={6} className="w-[220px] bg-white border border-[#b0b0b0] text-[#333333] text-[11.5px] p-0 shadow-xl rounded-none select-none z-[9999] py-1 font-sans">
+                        {[
+                          'Bed Transfer',
+                          'Cancel Discharge',
+                          'Cancel Pending Discharge',
+                          'Cancel Pending Transfer',
+                          'Cancel Transfer',
+                          'Clozapine Registry',
+                          'Discharge Encounter',
+                          'Facility Transfer',
+                          'Leave of Absence',
+                          'Modify Discharge',
+                          'Pending Discharge',
+                          'Pending Facility Transfer',
+                          'Pending Transfer',
+                          'Print Labels',
+                          'Process Alert',
+                          'Update Patient Information',
+                          'View Encounter',
+                          'View Person'
+                        ].map((item) => (
+                          <DropdownMenuItem
+                            key={item}
+                            onClick={() => {
+                              if (item === 'Process Alert') {
+                                setTimeout(() => alert('Process Alert initiated for ' + displayName), 10);
+                              } else if (item === 'Update Patient Information') {
+                                selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: ' + displayName, 'edit-patient-doe');
+                              } else {
+                                setTimeout(() => alert(`${item} selected`), 10);
+                              }
+                            }}
+                            className="px-4 py-1 rounded-none hover:bg-[#0f4471] hover:text-white cursor-pointer transition-colors text-[11.5px] text-[#333333] focus:bg-[#0f4471] focus:text-white data-[highlighted]:bg-[#0f4471] data-[highlighted]:text-white flex items-center justify-between"
+                          >
+                            <span>{item}</span>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
 
@@ -4164,12 +4211,6 @@ ${ioVal}`;
                               <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col">
                                 <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
                                   <span className="text-[11px]">Personal Information</span>
-                                  <button 
-                                    onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
-                                    className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
-                                  >
-                                    ✏️ Edit
-                                  </button>
                                 </div>
                                 <div className="p-3 grid grid-cols-[150px_1fr_120px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
                                   <span className="text-gray-500 font-medium">Last Name</span>
@@ -4229,12 +4270,6 @@ ${ioVal}`;
                               <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col h-fit">
                                 <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
                                   <span className="text-[11px]">Address Information</span>
-                                  <button 
-                                    onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
-                                    className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
-                                  >
-                                    ✏️ Edit
-                                  </button>
                                 </div>
                                 <div className="p-3 grid grid-cols-[100px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
                                   <span className="text-gray-500 font-medium">Address</span>
@@ -4258,12 +4293,6 @@ ${ioVal}`;
                               <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col">
                                 <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
                                   <span className="text-[11px]">Contact Information</span>
-                                  <button 
-                                    onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
-                                    className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
-                                  >
-                                    ✏️ Edit
-                                  </button>
                                 </div>
                                 <div className="p-3 grid grid-cols-[100px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
                                   <span className="text-gray-500 font-medium">Phone</span>
@@ -4287,12 +4316,6 @@ ${ioVal}`;
                               <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col h-fit">
                                 <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
                                   <span className="text-[11px]">Physician Information</span>
-                                  <button 
-                                    onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
-                                    className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
-                                  >
-                                    ✏️ Edit
-                                  </button>
                                 </div>
                                 <div className="p-3 grid grid-cols-[140px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
                                   <span className="text-gray-500 font-medium">Referring Physician</span>
@@ -4313,12 +4336,6 @@ ${ioVal}`;
                               <div className="bg-white border border-[#e2e8f0] rounded shadow-sm flex flex-col h-fit col-span-2">
                                 <div className="bg-[#f8fafc] px-3 py-2 font-bold border-b border-[#e2e8f0] flex justify-between items-center text-[#1e293b]">
                                   <span className="text-[11px]">Additional Information</span>
-                                  <button 
-                                    onClick={() => selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe')}
-                                    className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2.5 py-0.5 rounded text-[9.5px] font-semibold text-gray-700 flex items-center gap-1"
-                                  >
-                                    ✏️ Edit
-                                  </button>
                                 </div>
                                 <div className="p-3 grid grid-cols-[150px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
                                   <span className="text-gray-500 font-medium">Insurance / Coverage</span>
@@ -7116,6 +7133,181 @@ No qualifying data available.`;
               </div>
             </div>
           )}
+
+          {activeTab.type === 'BillingReceipt' && (
+            <div className="flex-1 overflow-y-auto bg-[#f4f7f9] p-6 select-text text-gray-800">
+              <div className="max-w-[1200px] mx-auto space-y-6">
+                
+                {/* Top Patient Banner */}
+                <div className="bg-[#0f4471] text-white p-4 rounded-lg shadow-md flex justify-between items-center">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[16px] font-bold tracking-wide">Araceli Test</span>
+                      <span className="bg-[#1b7a2a] text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Active Encounter</span>
+                    </div>
+                    <div className="text-[11.5px] text-blue-100 flex gap-4">
+                      <span><strong>MRN:</strong> MRN-98203</span>
+                      <span><strong>DOB:</strong> 01/04/1985 (39 Y)</span>
+                      <span><strong>Encounter:</strong> ENC-40291 (OBV)</span>
+                      <span><strong>Guarantor:</strong> Araceli Test (Self)</span>
+                    </div>
+                  </div>
+                  <div className="text-right space-y-1">
+                    <div className="text-[18px] font-black tracking-wider text-emerald-300">RECEIPT #RCP-2026-88492</div>
+                    <div className="text-[11px] text-blue-100">Date Issued: 17/07/2026 03:30 PM</div>
+                  </div>
+                </div>
+
+                {/* Action Strip & Status */}
+                <div className="bg-white border border-[#cbd5e1] rounded-lg p-3.5 shadow-xs flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => alert('Printing official patient receipt...')} className="bg-[#0f4471] hover:bg-[#0b3355] text-white text-[11px] font-bold px-3.5 py-1.5 rounded flex items-center gap-1.5 shadow-sm transition-all cursor-pointer">
+                      <span>🖨️</span> Print Official Receipt
+                    </button>
+                    <button onClick={() => alert('Receipt emailed to patient securely.')} className="bg-white border border-[#0f4471] text-[#0f4471] hover:bg-blue-50 text-[11px] font-bold px-3.5 py-1.5 rounded flex items-center gap-1.5 transition-all cursor-pointer">
+                      <span>📧</span> Email Receipt
+                    </button>
+                    <button onClick={() => alert('PDF Statement downloaded.')} className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-[11px] font-bold px-3.5 py-1.5 rounded flex items-center gap-1.5 transition-all cursor-pointer">
+                      <span>📥</span> Download PDF Statement
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[11px] text-gray-500 font-bold uppercase">Account Status:</span>
+                    <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-3 py-1 rounded text-[11.5px] tracking-wide">
+                      ✔ PAID / SETTLED IN FULL
+                    </span>
+                  </div>
+                </div>
+
+                {/* Financial Summary Cards */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="bg-white border border-[#cbd5e1] rounded-lg p-4 shadow-xs space-y-1">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Total Charges</span>
+                    <span className="text-[22px] font-black text-gray-900">$1,450.00</span>
+                    <span className="text-[10px] text-gray-400 block">4 Clinical & Diagnostic Services</span>
+                  </div>
+                  <div className="bg-white border border-[#cbd5e1] rounded-lg p-4 shadow-xs space-y-1 border-l-4 border-l-blue-600">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Insurance Payment</span>
+                    <span className="text-[22px] font-black text-blue-700">-$1,150.00</span>
+                    <span className="text-[10px] text-blue-600 font-medium block">Blue Cross Blue Shield (PPO)</span>
+                  </div>
+                  <div className="bg-white border border-[#cbd5e1] rounded-lg p-4 shadow-xs space-y-1 border-l-4 border-l-emerald-600">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Patient Paid / Copay</span>
+                    <span className="text-[22px] font-black text-emerald-700">$300.00</span>
+                    <span className="text-[10px] text-emerald-600 font-medium block">Visa ending in 4092 (Auth #88412)</span>
+                  </div>
+                  <div className="bg-white border border-[#cbd5e1] rounded-lg p-4 shadow-xs space-y-1 bg-gray-50">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">Balance Due</span>
+                    <span className="text-[22px] font-black text-gray-500">$0.00</span>
+                    <span className="text-[10px] text-gray-400 font-medium block">No further payments required</span>
+                  </div>
+                </div>
+
+                {/* Itemized Services Table */}
+                <div className="bg-white border border-[#cbd5e1] rounded-lg shadow-xs overflow-hidden">
+                  <div className="bg-[#cbd8e3]/40 border-b border-[#bdcddc] px-4 py-2.5 font-bold text-xs text-[#002a46] flex justify-between items-center">
+                    <span>Itemized Statement & Service Breakdown</span>
+                    <span className="text-[10.5px] text-gray-600 font-normal">Encounter Date: 01/04/2017</span>
+                  </div>
+                  <table className="w-full text-left text-[11px]">
+                    <thead className="bg-[#eaeaea] text-gray-700 font-bold border-b border-gray-300">
+                      <tr>
+                        <th className="p-2.5">Service Date</th>
+                        <th className="p-2.5">CPT / Code</th>
+                        <th className="p-2.5">Description</th>
+                        <th className="p-2.5">Department</th>
+                        <th className="p-2.5 text-right">Unit Price</th>
+                        <th className="p-2.5 text-center">Qty</th>
+                        <th className="p-2.5 text-right">Total</th>
+                        <th className="p-2.5 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      <tr className="hover:bg-gray-50">
+                        <td className="p-2.5 font-mono">01/04/2017</td>
+                        <td className="p-2.5 font-mono font-bold text-[#0f4471]">99214</td>
+                        <td className="p-2.5 font-medium">Office Visit - Level 4 (Established Patient)</td>
+                        <td className="p-2.5 text-gray-600">Outpatient Clinic</td>
+                        <td className="p-2.5 text-right font-mono">$250.00</td>
+                        <td className="p-2.5 text-center">1</td>
+                        <td className="p-2.5 text-right font-mono font-bold">$250.00</td>
+                        <td className="p-2.5 text-center"><span className="bg-blue-100 text-blue-800 text-[9.5px] px-2 py-0.5 rounded font-bold">Covered</span></td>
+                      </tr>
+                      <tr className="hover:bg-gray-50">
+                        <td className="p-2.5 font-mono">01/04/2017</td>
+                        <td className="p-2.5 font-mono font-bold text-[#0f4471]">76805</td>
+                        <td className="p-2.5 font-medium">Ultrasound : (OB) Complete After First Trimester</td>
+                        <td className="p-2.5 text-gray-600">Diagnostic Imaging</td>
+                        <td className="p-2.5 text-right font-mono">$450.00</td>
+                        <td className="p-2.5 text-center">1</td>
+                        <td className="p-2.5 text-right font-mono font-bold">$450.00</td>
+                        <td className="p-2.5 text-center"><span className="bg-blue-100 text-blue-800 text-[9.5px] px-2 py-0.5 rounded font-bold">Covered</span></td>
+                      </tr>
+                      <tr className="hover:bg-gray-50">
+                        <td className="p-2.5 font-mono">01/04/2017</td>
+                        <td className="p-2.5 font-mono font-bold text-[#0f4471]">80050</td>
+                        <td className="p-2.5 font-medium">General Health Panel (CBC & Comprehensive Metabolic)</td>
+                        <td className="p-2.5 text-gray-600">Laboratory</td>
+                        <td className="p-2.5 text-right font-mono">$350.00</td>
+                        <td className="p-2.5 text-center">1</td>
+                        <td className="p-2.5 text-right font-mono font-bold">$350.00</td>
+                        <td className="p-2.5 text-center"><span className="bg-blue-100 text-blue-800 text-[9.5px] px-2 py-0.5 rounded font-bold">Covered</span></td>
+                      </tr>
+                      <tr className="hover:bg-gray-50">
+                        <td className="p-2.5 font-mono">01/04/2017</td>
+                        <td className="p-2.5 font-mono font-bold text-[#0f4471]">90471</td>
+                        <td className="p-2.5 font-medium">Immunization Administration & Consultation</td>
+                        <td className="p-2.5 text-gray-600">Preventive Med</td>
+                        <td className="p-2.5 text-right font-mono">$400.00</td>
+                        <td className="p-2.5 text-center">1</td>
+                        <td className="p-2.5 text-right font-mono font-bold">$400.00</td>
+                        <td className="p-2.5 text-center"><span className="bg-blue-100 text-blue-800 text-[9.5px] px-2 py-0.5 rounded font-bold">Covered</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Transaction & Payment Audit Trail */}
+                <div className="bg-white border border-[#cbd5e1] rounded-lg shadow-xs overflow-hidden">
+                  <div className="bg-[#cbd8e3]/40 border-b border-[#bdcddc] px-4 py-2.5 font-bold text-xs text-[#002a46] flex justify-between items-center">
+                    <span>Payment & Transaction History</span>
+                    <span className="text-[10.5px] text-emerald-700 font-bold">Total Received: $1,450.00</span>
+                  </div>
+                  <table className="w-full text-left text-[11px]">
+                    <thead className="bg-[#eaeaea] text-gray-700 font-bold border-b border-gray-300">
+                      <tr>
+                        <th className="p-2.5">Date & Time</th>
+                        <th className="p-2.5">Payment Method</th>
+                        <th className="p-2.5">Reference / TXN</th>
+                        <th className="p-2.5 text-right">Amount</th>
+                        <th className="p-2.5">Processed By</th>
+                        <th className="p-2.5">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      <tr className="hover:bg-gray-50">
+                        <td className="p-2.5 font-mono">01/04/2017 04:15 PM</td>
+                        <td className="p-2.5 font-bold text-emerald-800">Credit Card (Visa ending 4092)</td>
+                        <td className="p-2.5 font-mono">TXN-99812401</td>
+                        <td className="p-2.5 text-right font-mono font-bold text-emerald-700">$300.00</td>
+                        <td className="p-2.5 text-gray-600">Cashier / Billing Dept</td>
+                        <td className="p-2.5 text-gray-600">Copay & co-insurance settled at discharge</td>
+                      </tr>
+                      <tr className="hover:bg-gray-50">
+                        <td className="p-2.5 font-mono">15/04/2017 10:00 AM</td>
+                        <td className="p-2.5 font-bold text-blue-800">Electronic Remittance (BCBS)</td>
+                        <td className="p-2.5 font-mono">ERA-88210344</td>
+                        <td className="p-2.5 text-right font-mono font-bold text-blue-700">$1,150.00</td>
+                        <td className="p-2.5 text-gray-600">Auto-Posting / Clearinghouse</td>
+                        <td className="p-2.5 text-gray-600">Claim #CLM-2017-901 adjudicated and paid in full</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </div>
+          )}
         </div>
 
       </div>
@@ -7415,6 +7607,323 @@ No qualifying data available.`;
         </div>
       )}
 
+      {/* First Sub-Popup Card: Treatment & Clinical / Billing Hub (Cerner PowerChart Style - input_file_0.png) */}
+      {showTreatmentPopup && (
+        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-xs flex items-center justify-center select-none font-sans text-[#333333] text-[11px]">
+          <div className="bg-[#ececec] w-[1100px] h-[680px] rounded shadow-2xl border border-[#7a7a7a] flex flex-col overflow-hidden">
+            
+            {/* Title Bar */}
+            <div className="bg-[#ffffff] text-[#333333] px-2.5 py-1 flex justify-between items-center border-b border-[#a0a0a0] shrink-0 h-[26px]">
+              <div className="flex items-center gap-1.5 font-bold text-[11.5px]">
+                <span className="text-[13px]">📄</span>
+                <span>Treatment (Test, Araceli - 01/04/2017 03:30 PM, OBV) *</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button onClick={() => setShowTreatmentPopup(false)} className="w-5 h-4 bg-[#e0e0e0] hover:bg-[#d0d0d0] border border-[#a0a0a0] flex items-center justify-center text-[10px] leading-none">—</button>
+                <button onClick={() => setShowTreatmentPopup(false)} className="w-5 h-4 bg-[#e0e0e0] hover:bg-[#d0d0d0] border border-[#a0a0a0] flex items-center justify-center text-[10px] leading-none">⬜</button>
+                <button onClick={() => setShowTreatmentPopup(false)} className="w-5 h-4 bg-[#e0e0e0] hover:bg-red-600 hover:text-white border border-[#a0a0a0] flex items-center justify-center text-[10px] leading-none font-bold">✕</button>
+              </div>
+            </div>
+
+            {/* Top Tabs Bar */}
+            <div className="bg-[#e4e4e4] px-2 pt-1 flex gap-1 border-b border-gray-400 shrink-0 select-none text-[11px]">
+              {(['Pt. Info', 'Encounter', 'Physical', 'Hub'] as const).map(tabName => (
+                <button
+                  key={tabName}
+                  type="button"
+                  onClick={() => setTreatmentTopTab(tabName)}
+                  className={`px-3 py-1 font-bold rounded-t transition-all ${
+                    treatmentTopTab === tabName
+                      ? 'bg-[#ececec] border-t border-l border-r border-gray-400 text-black shadow-xs -mb-[1px] z-10'
+                      : 'bg-[#cfcfcf] border border-gray-400 text-gray-700 hover:bg-[#dcdcdc]'
+                  }`}
+                >
+                  {tabName}
+                </button>
+              ))}
+            </div>
+
+            {/* Classic Cerner Toolbar across top */}
+            <div className="bg-[#dcdcdc] px-1.5 py-1 flex items-center justify-between border-b border-[#999999] shadow-xs shrink-0 select-none gap-1 text-[11px] overflow-x-auto">
+              <div className="flex items-center gap-1 shrink-0">
+                {[
+                  { id: 'allergies', label: 'Allergies & Adverse Reactions (A)', icon: <span className="w-4 h-4 rounded-full bg-[#a31c1c] text-white font-bold text-[10px] flex items-center justify-center shadow-xs border border-[#6b1010]">A</span> },
+                  { id: 'copy', label: 'Copy Existing Order / Note', icon: <span className="text-[13px] font-black text-[#6d28d9]">📑</span> },
+                  { id: 'meds', label: 'Medication Administration Record (Rx)', icon: <span className="text-[14px]">💊</span> },
+                  { id: 'vitals', label: 'Clinical Vitals & Assessment', icon: <span className="text-[14px]">🩺</span> },
+                  { id: 'docs', label: 'Clinical Documentation & Forms', icon: <span className="text-[14px]">📋</span> },
+                  { id: 'notes', label: 'Progress Notes & Clinical Journal', icon: <span className="text-[14px]">📁</span> },
+                  { id: 'subjective', label: 'Subjective / Chief Complaint (S)', icon: <span className="font-serif font-bold text-[#0e5a64] text-[14px] leading-none">S</span> },
+                  { id: 'surgery', label: 'Surgical Procedures & Interventions', icon: <span className="text-[14px]">✂️</span> },
+                  { id: 'review', label: 'Review of Systems & History (R)', icon: <span className="font-serif font-bold text-[#1e6f3d] text-[14px] leading-none">R</span> },
+                  { id: 'glasses', label: 'Ophthalmology & Optometry Exams', icon: <span className="text-[14px]">👓</span> },
+                  { id: 'remedy', label: 'Therapeutic Remedies & Orders (Re)', icon: <span className="font-serif font-bold text-[#14478f] text-[13px] leading-none">R<sub className="text-[8px] font-sans">e</sub></span> },
+                  { id: 'bag', label: 'Clinical Supplies & Equipment Kit', icon: <span className="text-[14px]">💼</span> },
+                  { id: 'diagnosis', label: 'Problem List & Diagnoses (Dx)', icon: <span className="font-serif font-bold text-[#333333] text-[13px] leading-none">D<sub className="text-[8px] font-sans">x</sub></span> },
+                  { id: 'pinned', label: 'Pinned Orders & Reminders', icon: <span className="text-[14px]">📌</span> },
+                  { id: 'schedule', label: 'Patient Schedule & Appointments', icon: <span className="text-[14px]">📅</span> },
+                  { id: 'infusion', label: 'IV Infusion & Fluid Management', icon: <span className="text-[14px]">💉</span> },
+                  { id: 'labs', label: 'Laboratory Results & Specimen', icon: <span className="text-[14px]">🧪</span> },
+                  { id: 'radiology', label: 'Radiology & Imaging Reports', icon: <span className="text-[14px]">🩻</span> },
+                  { id: 'alerts', label: 'Patient Alerts & Notifications', icon: <span className="text-[14px]">🔔</span> },
+                  { id: 'signoff', label: 'Sign & Document Verification', icon: <span className="text-[14px]">📝</span> },
+                  { id: 'echeck', label: 'ePrescribe & eCheck Verification', icon: <span className="relative font-bold text-[#14478f] text-[13px] leading-none">e<span className="absolute -bottom-0.5 -right-1 text-[8.5px] text-[#1b7a2a] font-black">✔</span></span> },
+                  { id: 'flowsheet', label: 'Interactive Flowsheets & Tracking', icon: <span className="text-[14px]">📊</span> },
+                  { id: 'tasks', label: 'Task List & Action Items (T)', icon: <span className="w-3.5 h-3.5 bg-[#4b3c8c] text-white font-bold text-[9px] flex items-center justify-center rounded-2xs border border-[#31265e]">T</span> },
+                  { id: 'folders', label: 'Clinical Files & Folders (F)', icon: <span className="relative text-[13px] flex items-center justify-center">📁<span className="absolute inset-0 flex items-center justify-center text-[7.5px] font-black text-black">F</span></span> },
+                  { id: 'billing', label: 'Billing, Charges & Financials ($) - Second Image Icon', icon: <span className="font-bold text-[#186b23] text-[13px] leading-none flex items-center">$<span className="text-[10px]">📄</span></span> },
+                  { id: 'specimen', label: 'Specimen Collection & Blood Bank', icon: <span className="text-[14px]">⚗️</span> },
+                  { id: 'orderset', label: 'Order Set Catalog (OS)', icon: <span className="w-3.5 h-3.5 rounded-full bg-[#d0d0d0] text-[#333] border border-[#666] font-bold text-[7.5px] flex items-center justify-center">OS</span> }
+                ].map((opt, idx) => (
+                  <React.Fragment key={opt.id}>
+                    <button
+                      type="button"
+                      title={opt.label}
+                      onClick={() => {
+                        if (opt.id === 'billing') {
+                          // Second image icon clicked inside popup: open Billing Receipt new page!
+                          setShowTreatmentPopup(false);
+                          setShowPersonSearch(false);
+                          selectOrOpenTab('BillingReceipt', 'Billing & Payments Receipt', 'billing-receipt-tab');
+                        } else {
+                          alert(`Treatment Option: ${opt.label}`);
+                        }
+                      }}
+                      className={`w-[24px] h-[24px] flex items-center justify-center rounded-2xs bg-[#d8d8d8] hover:bg-[#e8e8e8] border transition-all shadow-none cursor-pointer ${
+                        opt.id === 'billing'
+                          ? 'border-[#186b23] bg-[#e6f4e8] ring-1 ring-[#186b23]/50 animate-pulse'
+                          : 'border-transparent hover:border-t-white hover:border-l-white hover:border-b-gray-600 hover:border-r-gray-600 active:border-t-gray-600 active:border-l-gray-600 active:border-b-white active:border-r-white'
+                      }`}
+                    >
+                      {opt.icon}
+                    </button>
+                    {(idx === 4 || idx === 8 || idx === 13 || idx === 18 || idx === 23) && (
+                      <div className="w-[2px] h-5 bg-gradient-to-r from-gray-500 to-white mx-0.5 shrink-0" />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+
+            {/* Rx & Orders Bar */}
+            <div className="bg-[#eaeaea] px-2 py-1.5 border-b border-gray-400 flex items-center justify-between text-[11px] shrink-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-gray-800">Rx</span>
+                <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded flex items-center gap-1 text-gray-800">
+                  <span>Cur Rx</span> <span className="text-[8px]">▼</span>
+                </button>
+                <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded flex items-center gap-1 text-blue-800 font-bold">
+                  <span>+ Add</span> <span className="text-[8px]">▼</span>
+                </button>
+                <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded text-red-700 font-bold">
+                  - Remove
+                </button>
+                <div className="w-[1px] h-4 bg-gray-400 mx-1" />
+                <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded flex items-center gap-1 text-gray-800">
+                  <span>Education</span> <span className="text-[8px]">▼</span>
+                </button>
+                <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded text-gray-700">
+                  Formulary
+                </button>
+                <label className="flex items-center gap-1 cursor-pointer select-none ml-1">
+                  <input
+                    type="checkbox"
+                    checked={treatmentPopUpChecked}
+                    onChange={(e) => setTreatmentPopUpChecked(e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="font-medium text-gray-800">Pop Up</span>
+                </label>
+              </div>
+
+              <div className="flex items-center gap-2 bg-[#dfdfdf] px-2 py-0.5 rounded border border-gray-400">
+                <span className="text-gray-700 font-medium">Generate Hx By</span>
+                {(['Id', 'Code', 'Group'] as const).map(hx => (
+                  <label key={hx} className="flex items-center gap-1 cursor-pointer select-none">
+                    <input
+                      type="radio"
+                      name="genHx"
+                      checked={treatmentGenerateHxBy === hx}
+                      onChange={() => setTreatmentGenerateHxBy(hx)}
+                    />
+                    <span className="font-bold text-gray-800">{hx}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Sub-Tabs Bar */}
+            <div className="bg-[#dcdcdc] px-2 pt-1 flex gap-1 border-b border-gray-400 shrink-0 select-none text-[11px]">
+              {(['Gonococcal', 'Others'] as const).map(sub => (
+                <button
+                  key={sub}
+                  type="button"
+                  onClick={() => setTreatmentSubTab(sub)}
+                  className={`px-3 py-1 font-bold rounded-t transition-all ${
+                    treatmentSubTab === sub
+                      ? 'bg-white border-t border-l border-r border-gray-400 text-black shadow-xs -mb-[1px] z-10'
+                      : 'bg-[#cfcfcf] border border-gray-400 text-gray-700 hover:bg-[#e2e2e2]'
+                  }`}
+                >
+                  {sub === 'Gonococcal' ? 'Gonococcal infection' : 'Others'}
+                </button>
+              ))}
+            </div>
+
+            {/* Medications Table Grid */}
+            <div className="bg-white border-b border-gray-400 h-[135px] overflow-y-auto shrink-0 select-text">
+              <table className="w-full text-left border-collapse text-[11px]">
+                <thead className="bg-[#4a5c8c] text-white font-bold sticky top-0">
+                  <tr>
+                    <th className="p-1 border-r border-[#6a7cac] w-6 text-center">⚠️</th>
+                    <th className="p-1 border-r border-[#6a7cac]">Comme</th>
+                    <th className="p-1 border-r border-[#6a7cac]">Name</th>
+                    <th className="p-1 border-r border-[#6a7cac]">Strength</th>
+                    <th className="p-1 border-r border-[#6a7cac]">Formul</th>
+                    <th className="p-1 border-r border-[#6a7cac]">Take</th>
+                    <th className="p-1 border-r border-[#6a7cac]">Route</th>
+                    <th className="p-1 border-r border-[#6a7cac]">Frequenc</th>
+                    <th className="p-1 border-r border-[#6a7cac]">Duration</th>
+                    <th className="p-1 border-r border-[#6a7cac]">Disp</th>
+                    <th className="p-1 border-r border-[#6a7cac]">Refill</th>
+                    <th className="p-1 border-r border-[#6a7cac]">Auth</th>
+                    <th className="p-1 border-r border-[#6a7cac] text-right">AWP</th>
+                    <th className="p-1">Stop Da</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  <tr className="hover:bg-blue-50 bg-[#fffde8]">
+                    <td className="p-1 text-center font-bold text-amber-600">⚠️</td>
+                    <td className="p-1 text-gray-600">Initial</td>
+                    <td className="p-1 font-bold text-[#0f4471]">Ceftriaxone (ceftriaxone 250 mg IM)</td>
+                    <td className="p-1 font-mono">250 mg</td>
+                    <td className="p-1 text-emerald-700 font-bold">Formulary</td>
+                    <td className="p-1">1 injection</td>
+                    <td className="p-1 font-bold">IM</td>
+                    <td className="p-1">Once</td>
+                    <td className="p-1">1 Day</td>
+                    <td className="p-1 text-center">1</td>
+                    <td className="p-1 text-center">0</td>
+                    <td className="p-1 text-center"><span className="bg-emerald-100 text-emerald-800 px-1 rounded">Auth</span></td>
+                    <td className="p-1 text-right font-mono">$45.00</td>
+                    <td className="p-1 text-gray-500">02/04/2017</td>
+                  </tr>
+                  <tr className="hover:bg-blue-50">
+                    <td className="p-1 text-center"></td>
+                    <td className="p-1 text-gray-600">Adjunct</td>
+                    <td className="p-1 font-bold text-[#0f4471]">Azithromycin (azithromycin 1,000 mg PO)</td>
+                    <td className="p-1 font-mono">1,000 mg</td>
+                    <td className="p-1 text-emerald-700 font-bold">Formulary</td>
+                    <td className="p-1">1 packet</td>
+                    <td className="p-1 font-bold">PO</td>
+                    <td className="p-1">Once</td>
+                    <td className="p-1">1 Day</td>
+                    <td className="p-1 text-center">1</td>
+                    <td className="p-1 text-center">0</td>
+                    <td className="p-1 text-center"><span className="bg-emerald-100 text-emerald-800 px-1 rounded">Auth</span></td>
+                    <td className="p-1 text-right font-mono">$28.50</td>
+                    <td className="p-1 text-gray-500">02/04/2017</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Three Lower Panels: Labs, Diagnostic Imaging, Procedures */}
+            <div className="grid grid-cols-3 gap-1 bg-[#d0d0d0] p-1 h-[130px] shrink-0 border-b border-gray-400">
+              {/* Labs */}
+              <div className="bg-white border border-gray-400 flex flex-col overflow-hidden">
+                <div className="bg-[#4a5c8c] text-white px-2 py-0.5 font-bold flex justify-between items-center text-[11px] shrink-0">
+                  <span>Labs</span>
+                  <button className="bg-[#e0e0e0] text-gray-800 border border-gray-400 px-1.5 py-0 rounded text-[9.5px]">Browse...</button>
+                </div>
+                <div className="flex-1 p-1.5 overflow-y-auto text-gray-400 italic text-[11px]">
+                  No active laboratory orders selected.
+                </div>
+              </div>
+
+              {/* Diagnostic Imaging */}
+              <div className="bg-white border border-gray-400 flex flex-col overflow-hidden">
+                <div className="bg-[#4a5c8c] text-white px-2 py-0.5 font-bold flex justify-between items-center text-[11px] shrink-0">
+                  <span>Diagnostic Imaging</span>
+                  <button className="bg-[#e0e0e0] text-gray-800 border border-gray-400 px-1.5 py-0 rounded text-[9.5px]">Browse...</button>
+                </div>
+                <div className="flex-1 p-1.5 overflow-y-auto font-medium text-gray-800 space-y-1">
+                  <div className="p-1 bg-blue-50 border border-blue-200 rounded font-bold text-[#0f4471]">
+                    Ultrasound : (OB) Complete After 1...
+                  </div>
+                </div>
+              </div>
+
+              {/* Procedures */}
+              <div className="bg-white border border-gray-400 flex flex-col overflow-hidden">
+                <div className="bg-[#4a5c8c] text-white px-2 py-0.5 font-bold flex justify-between items-center text-[11px] shrink-0">
+                  <span>Procedures</span>
+                  <button className="bg-[#e0e0e0] text-gray-800 border border-gray-400 px-1.5 py-0 rounded text-[9.5px]">Browse...</button>
+                </div>
+                <div className="flex-1 p-1.5 overflow-y-auto text-gray-400 italic text-[11px]">
+                  No procedure items recorded.
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Notes & Action Section */}
+            <div className="flex-1 bg-[#e4e4e4] p-1.5 flex flex-col gap-1 overflow-hidden">
+              <div className="flex items-center justify-between gap-1">
+                <div className="flex items-center gap-1">
+                  <span className="font-bold text-gray-800">Notes</span>
+                  <button className="bg-white border border-gray-400 px-2 py-0.5 rounded font-bold text-gray-800 flex items-center gap-1">
+                    <span>Clinical Notes</span> <span className="text-[8px]">▼</span>
+                  </button>
+                  <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded text-gray-800">Browse...</button>
+                  <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded text-gray-800">Spell chk</button>
+                  <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded text-gray-800">Clr</button>
+                  <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded text-blue-800 font-bold">▲</button>
+                  <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded text-gray-800">Outgoing Referral</button>
+                  <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded text-gray-800">eCliniSense</button>
+                  <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded text-gray-800">Add Info</button>
+                  <button className="bg-[#dcdcdc] hover:bg-[#e8e8e8] border border-gray-400 px-2 py-0.5 rounded font-bold text-blue-900 border-b-2 border-b-blue-800">New Action</button>
+                </div>
+              </div>
+              <textarea
+                className="w-full flex-1 bg-white border border-gray-400 p-1.5 font-sans text-[11px] text-gray-800 focus:outline-none resize-none"
+                defaultValue="Patient presenting for routine OB evaluation and follow-up on diagnostic imaging. Ultrasound completed satisfactorily. All prescriptions reviewed and authorized."
+              />
+            </div>
+
+            {/* Bottom Footer Bar */}
+            <div className="bg-[#d8d8d8] px-2 py-1.5 border-t border-gray-400 flex justify-between items-center text-[11px] shrink-0">
+              <div className="flex items-center gap-1.5">
+                <button className="bg-[#eaeaea] hover:bg-white border border-gray-400 px-2.5 py-1 rounded font-bold text-gray-800 flex items-center gap-1">
+                  <span>◄</span> <span>Preventive Med</span>
+                </button>
+                <button className="bg-[#eaeaea] hover:bg-white border border-gray-400 px-2.5 py-1 rounded font-bold text-gray-800 flex items-center gap-1">
+                  <span>Print Orders</span> <span className="text-[8px]">▼</span>
+                </button>
+                <button className="bg-[#eaeaea] hover:bg-white border border-gray-400 px-2.5 py-1 rounded font-bold text-gray-800 flex items-center gap-1">
+                  <span>Send Rx</span> <span className="text-[8px]">▼</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button className="bg-[#c4c4c4] border border-gray-500 px-4 py-1 rounded font-bold text-gray-800 shadow-inner">
+                  Allergies
+                </button>
+                <button className="bg-white border border-gray-400 px-4 py-1 rounded font-bold text-gray-800 hover:bg-gray-50">
+                  Interaction
+                </button>
+              </div>
+
+              <div>
+                <button className="bg-[#eaeaea] hover:bg-white border border-gray-400 px-4 py-1 rounded font-bold text-gray-800 flex items-center gap-1.5">
+                  <span>CDSS</span> <span>►</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* Person Search Modal Overlay */}
       {showPersonSearch && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs select-none">
@@ -7448,41 +7957,85 @@ No qualifying data available.`;
               </div>
             </div>
 
-            {/* Tab Bar */}
-            <div className="bg-[#e4e4e4] px-2 pt-1 flex gap-1 border-b border-gray-300 shrink-0 select-none">
-              <button 
-                onClick={() => setPsActiveTab('Person')}
-                className={`px-4 py-1.5 border-t border-x rounded-t-sm font-semibold transition-all ${
-                  psActiveTab === 'Person'
-                    ? 'bg-[#f0f0f0] border-gray-300 border-b-[#f0f0f0] text-black'
-                    : 'bg-[#d8d8d8] border-transparent border-b-gray-300 hover:bg-[#dfdfdf] text-gray-700'
-                }`}
-              >
-                Person
-              </button>
-              <button 
-                onClick={() => setPsActiveTab('Guarantor')}
-                className={`px-4 py-1.5 border-t border-x rounded-t-sm font-semibold transition-all ${
-                  psActiveTab === 'Guarantor'
-                    ? 'bg-[#f0f0f0] border-gray-300 border-b-[#f0f0f0] text-black'
-                    : 'bg-[#d8d8d8] border-transparent border-b-gray-300 hover:bg-[#dfdfdf] text-gray-700'
-                }`}
-              >
-                Guarantor
-              </button>
-              
-              <div className="flex-1" />
-              
-              <button 
-                onClick={() => setPsShowSettings(prev => !prev)}
-                className={`px-4 py-1.5 border-t border-x rounded-t-sm font-semibold transition-all flex items-center gap-1 ${
-                  psShowSettings
-                    ? 'bg-[#e0eaf3] border-blue-300 border-b-[#e0eaf3] text-[#0f4471] font-bold'
-                    : 'bg-[#d8d8d8] border-transparent border-b-gray-300 hover:bg-[#dfdfdf] text-gray-700'
-                }`}
-              >
-                ⚙️ Search Settings Customization
-              </button>
+            {/* Classic Cerner Toolbar & Tab Bar (replacing standard tab bar) */}
+            <div className="bg-[#dcdcdc] px-1.5 py-1 flex items-center justify-between border-b border-[#999999] shadow-xs shrink-0 select-none gap-1 text-[11px] overflow-x-auto">
+              <div className="flex items-center gap-1 flex-wrap">
+                {/* Person & Guarantor Tabs styled as classic pressed/unpressed buttons */}
+                <button 
+                  onClick={() => setPsActiveTab('Person')}
+                  className={`px-2.5 py-1 font-bold rounded-2xs transition-all flex items-center gap-1 border ${
+                    psActiveTab === 'Person'
+                      ? 'bg-[#f0f0f0] border-t-gray-600 border-l-gray-600 border-b-white border-r-white text-black shadow-inner'
+                      : 'bg-[#d8d8d8] border-t-white border-l-white border-b-gray-600 border-r-gray-600 hover:bg-[#e4e4e4] text-gray-800'
+                  }`}
+                >
+                  <span>Person</span>
+                </button>
+                <button 
+                  onClick={() => setPsActiveTab('Guarantor')}
+                  className={`px-2.5 py-1 font-bold rounded-2xs transition-all flex items-center gap-1 border ${
+                    psActiveTab === 'Guarantor'
+                      ? 'bg-[#f0f0f0] border-t-gray-600 border-l-gray-600 border-b-white border-r-white text-black shadow-inner'
+                      : 'bg-[#d8d8d8] border-t-white border-l-white border-b-gray-600 border-r-gray-600 hover:bg-[#e4e4e4] text-gray-800'
+                  }`}
+                >
+                  <span>Guarantor</span>
+                </button>
+
+                {/* Classic Etched Divider */}
+                <div className="w-[2px] h-5 bg-gradient-to-r from-gray-500 to-white mx-0.5 shrink-0" />
+
+                {/* Classic Cerner PowerChart Toolbar Options (Image 1 style) */}
+                {[
+                  { id: 'allergies', label: 'Allergies & Adverse Reactions', icon: <span className="w-4 h-4 rounded-full bg-[#b31414] text-white font-bold text-[10px] flex items-center justify-center leading-none border border-[#7a0d0d] shadow-2xs">A</span> },
+                  { id: 'copy', label: 'Copy / Clinical Documents', icon: <span className="text-[14px]">📑</span> },
+                  { id: 'meds', label: 'Medication Administration Record (MAR)', icon: <span className="text-[14px]">💊</span> },
+                  { id: 'vitals', label: 'Vitals & Measurements', icon: <span className="text-[14px]">🩺</span> },
+                  { id: 'review', label: 'Review & Results Summary', icon: <span className="text-[14px]">📋</span> },
+                  { id: 'chart', label: 'Patient Chart & History', icon: <span className="text-[14px] flex items-center">📁<sub className="text-[9px] -ml-1">👤</sub></span> },
+                  { id: 'summary', label: 'Clinical Summary (S)', icon: <span className="font-serif font-black text-[#0f606b] text-[14px] leading-none">S</span> },
+                  { id: 'surgery', label: 'Surgical Procedures & Notes', icon: <span className="text-[14px]">✂️</span> },
+                  { id: 'orders', label: 'PowerOrders (R)', icon: <span className="font-serif font-black text-[#1e7a2b] text-[14px] leading-none">R</span> },
+                  { id: 'vision', label: 'Ophthalmology / Vision Care', icon: <span className="text-[14px]">👓</span> },
+                  { id: 'renewals', label: 'Prescription Renewals (Re)', icon: <span className="font-serif font-bold text-[#1a5c41] text-[13px] leading-none flex items-baseline">R<sub className="text-[9px]">e</sub></span> },
+                  { id: 'emergency', label: 'Emergency / First Aid Record', icon: <span className="text-[14px]">🧰</span> },
+                  { id: 'diagnosis', label: 'Problem List & Diagnosis (Dx)', icon: <span className="font-serif font-black text-[#111111] text-[13px] leading-none flex items-baseline">D<sub className="text-[9.5px]">x</sub></span> },
+                  { id: 'pinned', label: 'Pinned Orders & Reminders', icon: <span className="text-[14px]">📌</span> },
+                  { id: 'schedule', label: 'Patient Schedule & Appointments', icon: <span className="text-[14px]">📅</span> },
+                  { id: 'infusion', label: 'IV Infusion & Fluid Management', icon: <span className="text-[14px]">💉</span> },
+                  { id: 'labs', label: 'Laboratory Results & Specimen', icon: <span className="text-[14px]">🧪</span> },
+                  { id: 'radiology', label: 'Radiology & Imaging Reports', icon: <span className="text-[14px]">🩻</span> },
+                  { id: 'alerts', label: 'Patient Alerts & Notifications', icon: <span className="text-[14px]">🔔</span> },
+                  { id: 'signoff', label: 'Sign & Document Verification', icon: <span className="text-[14px]">📝</span> },
+                  { id: 'echeck', label: 'ePrescribe & eCheck Verification', icon: <span className="relative font-bold text-[#14478f] text-[13px] leading-none">e<span className="absolute -bottom-0.5 -right-1 text-[8.5px] text-[#1b7a2a] font-black">✔</span></span> },
+                  { id: 'flowsheet', label: 'Interactive Flowsheets & Tracking', icon: <span className="text-[14px]">📊</span> },
+                  { id: 'tasks', label: 'Task List & Action Items (T)', icon: <span className="w-3.5 h-3.5 bg-[#4b3c8c] text-white font-bold text-[9px] flex items-center justify-center rounded-2xs border border-[#31265e]">T</span> },
+                  { id: 'folders', label: 'Clinical Files & Folders (F)', icon: <span className="relative text-[13px] flex items-center justify-center">📁<span className="absolute inset-0 flex items-center justify-center text-[7.5px] font-black text-black">F</span></span> },
+                  { id: 'billing', label: 'Billing, Charges & Financials ($)', icon: <span className="font-bold text-[#186b23] text-[13px] leading-none flex items-center">$<span className="text-[10px]">📄</span></span> },
+                  { id: 'specimen', label: 'Specimen Collection & Blood Bank', icon: <span className="text-[14px]">⚗️</span> },
+                  { id: 'orderset', label: 'Order Set Catalog (OS)', icon: <span className="w-3.5 h-3.5 rounded-full bg-[#d0d0d0] text-[#333] border border-[#666] font-bold text-[7.5px] flex items-center justify-center">OS</span> }
+                ].map((opt, idx) => (
+                  <React.Fragment key={opt.id}>
+                    <button
+                      type="button"
+                      title={opt.label}
+                      onClick={() => {
+                        if (opt.id === 'billing') {
+                          setShowTreatmentPopup(true);
+                        } else {
+                          alert(`Cerner Option: ${opt.label}`);
+                        }
+                      }}
+                      className="w-[24px] h-[24px] flex items-center justify-center rounded-2xs bg-[#d8d8d8] hover:bg-[#e8e8e8] border border-transparent hover:border-t-white hover:border-l-white hover:border-b-gray-600 hover:border-r-gray-600 active:border-t-gray-600 active:border-l-gray-600 active:border-b-white active:border-r-white transition-all shadow-none cursor-pointer"
+                    >
+                      {opt.icon}
+                    </button>
+                    {(idx === 4 || idx === 8 || idx === 13 || idx === 18 || idx === 23) && (
+                      <div className="w-[2px] h-5 bg-gradient-to-r from-gray-500 to-white mx-0.5 shrink-0" />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
 
             {/* Info Message Bar */}
