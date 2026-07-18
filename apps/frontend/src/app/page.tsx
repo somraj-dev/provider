@@ -255,6 +255,101 @@ export default function App() {
   const [messageCenterView, setMessageCenterView] = useState<'list' | 'detail'>('list');
   const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
 
+  // Draggable popup cards for message center / notifications
+  const [openMessagePopups, setOpenMessagePopups] = useState<Array<{
+    id: string;
+    x: number;
+    y: number;
+    zIndex: number;
+    patientName: string;
+    mrn: string;
+    axioId: string;
+    gender: string;
+    dob: string;
+    weight: string;
+    height: string;
+    bloodType: string;
+    healthLife: string;
+    allergies: string;
+    subject: string;
+    date: string;
+    content: string;
+  }>>([]);
+  const [maxZIndex, setMaxZIndex] = useState(200);
+  const [draggingPopupId, setDraggingPopupId] = useState<string | null>(null);
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
+  const [dragStartCoord, setDragStartCoord] = useState({ x: 0, y: 0 });
+
+  const handleStartDrag = (id: string, e: React.MouseEvent) => {
+    const newZ = maxZIndex + 1;
+    setMaxZIndex(newZ);
+    setOpenMessagePopups(prev => prev.map(p => p.id === id ? { ...p, zIndex: newZ } : p));
+    setDraggingPopupId(id);
+    const popup = openMessagePopups.find(p => p.id === id);
+    if (popup) {
+      setDragStartPos({ x: e.clientX, y: e.clientY });
+      setDragStartCoord({ x: popup.x, y: popup.y });
+    }
+    e.preventDefault();
+  };
+
+  const handleDrag = (e: React.MouseEvent) => {
+    if (!draggingPopupId) return;
+    const dx = e.clientX - dragStartPos.x;
+    const dy = e.clientY - dragStartPos.y;
+    setOpenMessagePopups(prev => prev.map(p => p.id === draggingPopupId ? {
+      ...p,
+      x: dragStartCoord.x + dx,
+      y: dragStartCoord.y + dy
+    } : p));
+  };
+
+  const handleEndDrag = () => {
+    setDraggingPopupId(null);
+  };
+
+  const openMessagePopupCard = (row: any) => {
+    const id = Math.random().toString();
+    const offset = (openMessagePopups.length % 8) * 28;
+    const newZ = maxZIndex + 1;
+    setMaxZIndex(newZ);
+    
+    // Determine details
+    const patientName = row.patientName ? row.patientName.toUpperCase() : (row.patient && row.patient !== '—' ? row.patient.toUpperCase() : 'SYSTEM ALERT');
+    const mrn = row.mrn && row.mrn !== '—' ? row.mrn : '1000245601';
+    const allergies = patientName.includes('JAMES') ? 'Penicillin, Sulfa' : 'No Known Allergies';
+    const gender = patientName.includes('JAMES') || patientName.includes('LEE') || patientName.includes('THOMAS') || patientName.includes('PATEL') ? 'Male' : 'Female';
+    const dob = patientName.includes('JAMES') ? '04/12/1974 (52Y)' : '10/10/1980 (45Y)';
+    const weight = patientName.includes('JAMES') ? '78.4 kg (05/20/2026)' : '72.0 kg (05/20/2026)';
+    const height = patientName.includes('JAMES') ? '180 cm' : '172 cm';
+    const bloodType = patientName.includes('JAMES') ? 'A+' : 'O+';
+    
+    const subject = `Clinical Note Ready for Review - ${row.orderPlanName || row.name || 'CBC with Differential'}`;
+    const content = `The clinical note for patient ${patientName} (MRN: ${mrn}) is ready to review and sign in AxioNote. Please click the link below or use the Clinical menu > AxioNote - Edge Platform from the top toolbar to launch the platform.`;
+
+    const newPopup = {
+      id,
+      x: 180 + offset,
+      y: 140 + offset,
+      zIndex: newZ,
+      patientName,
+      mrn,
+      axioId: patientName.includes('JAMES') ? 'AXSL06-WJ281' : 'AXSL06-MOCK',
+      gender,
+      dob,
+      weight,
+      height,
+      bloodType,
+      healthLife: 'Yes',
+      allergies,
+      subject,
+      date: row.createDate || row.dateTime || '05/28/2025 03:42 PM',
+      content
+    };
+
+    setOpenMessagePopups(prev => [...prev, newPopup]);
+  };
+
   // Context menu for multi-patient selection
   const [selectedPatientMrns, setSelectedPatientMrns] = useState<string[]>([]);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, visible: boolean } | null>(null);
@@ -2277,7 +2372,7 @@ ${ioVal}`;
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#f0f4f8] text-[#1c2833] text-[11px] font-sans overflow-hidden select-none">
+    <div onMouseMove={handleDrag} onMouseUp={handleEndDrag} className="flex flex-col h-screen bg-[#f0f4f8] text-[#1c2833] text-[11px] font-sans overflow-hidden select-none">
       
       {/* Title Bar */}
       <div className="bg-[#002a46] text-white px-3 py-1.5 flex justify-between items-center border-b border-[#001729]">
@@ -3075,8 +3170,7 @@ ${ioVal}`;
                           <tr
                             key={idx}
                             onClick={() => {
-                              setSelectedMessage(row);
-                              setMessageCenterView('detail');
+                              openMessagePopupCard(row);
                             }}
                             className={`hover:bg-[#eaf4fc] cursor-pointer transition-colors ${
                               idx % 2 === 1 ? 'bg-[#f4f8fb]' : 'bg-white'
@@ -3633,88 +3727,6 @@ ${ioVal}`;
 
           {activeTab.type === 'PatientList' && (
             <div className="flex flex-1 flex-col overflow-auto p-4 space-y-4 bg-[#f8f9fa] text-[11px]">
-              {/* Patient Directory Title bar */}
-              <div className="flex justify-between items-center bg-white border border-[#bdcddc] p-2 rounded-sm shadow-sm">
-                <span className="font-bold text-xs text-[#002a46]">Patient Directory</span>
-                <div className="flex gap-2 items-center">
-                  <select className="bg-white border border-[#bdcddc] rounded px-1.5 py-0.5 text-[10px] focus:outline-none">
-                    <option>Saved Views</option>
-                  </select>
-                  <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-0.5 rounded text-[10px]">Save View</button>
-                  <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">🔄</button>
-                  <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">🖨️</button>
-                  <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">•••</button>
-                </div>
-              </div>
-
-              {/* Search Filters Row */}
-              <div className="bg-[#fafbfc] border border-[#bdcddc] p-3 rounded-sm shadow-sm grid grid-cols-6 gap-3 text-[10.5px]">
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Search By</label>
-                  <select 
-                    value={pdSearchBy}
-                    onChange={(e) => setPdSearchBy(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  >
-                    <option>Name</option>
-                    <option>MRN</option>
-                    <option>UHID</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Search Text</label>
-                  <input
-                    type="text"
-                    placeholder="Enter Patient Name"
-                    value={pdSearchText}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">MRN</label>
-                  <input
-                    type="text"
-                    placeholder="Enter MRN"
-                    value={pdMrn}
-                    onChange={(e) => setPdMrn(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">UHID / Axio ID</label>
-                  <input
-                    type="text"
-                    placeholder="Enter UHID / Axio ID"
-                    value={pdUhid}
-                    onChange={(e) => setPdUhid(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Date of Birth</label>
-                  <input
-                    type="text"
-                    placeholder="DD/MM/YYYY"
-                    value={pdDob}
-                    onChange={(e) => setPdDob(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1 flex flex-col justify-end">
-                  <div className="flex gap-2">
-                    <button className="flex-1 bg-white border border-[#bdcddc] hover:bg-gray-50 py-1 text-[10px] font-semibold rounded">
-                      More Filters
-                    </button>
-                    <button className="flex-1 bg-[#0f4471] hover:bg-[#0b3355] text-white py-1 text-[10px] font-bold rounded">
-                      🔍 Search
-                    </button>
-                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-1 text-[10px] font-semibold rounded">
-                      Reset
-                    </button>
-                  </div>
-                </div>
-              </div>
 
               {/* Patient Directory Data Table */}
               <div className="bg-white border border-[#bdcddc] rounded shadow-sm overflow-hidden flex flex-col">
@@ -3737,7 +3749,6 @@ ${ioVal}`;
                         <th className="p-2.5 border-r border-[#bdcddc]">Status</th>
                         <th className="p-2.5 border-r border-[#bdcddc]">Location / Unit</th>
                         <th className="p-2.5 border-r border-[#bdcddc]">Admitted On</th>
-                        <th className="p-2.5 text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3797,42 +3808,20 @@ ${ioVal}`;
                           </td>
                           <td className="p-2.5 border-r border-gray-200">{row.location}</td>
                           <td className={`p-2.5 border-r border-gray-200 ${selectedPatientMrns.includes(row.mrn) ? 'text-blue-150' : 'text-gray-500'}`}>{row.admitted}</td>
-                          <td className="p-2.5 text-center" onClick={(e) => e.stopPropagation()}>
-                            <button className={`border px-1.5 py-0.5 rounded text-[10px] ${
-                              selectedPatientMrns.includes(row.mrn) 
-                                ? 'bg-white/10 border-white/20 hover:bg-white/25 text-white' 
-                                : 'bg-white border-[#bdcddc] hover:bg-gray-50 text-gray-700'
-                            }`}>•••</button>
-                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
-                <div className="bg-[#fafbfc] border-t border-[#bdcddc] p-2 flex justify-between items-center text-[10px] select-none">
-                  <div className="flex items-center gap-1.5">
-                    <span>Show</span>
-                    <select className="bg-white border border-[#bdcddc] rounded px-1.5 py-0.5">
-                      <option>25</option>
-                      <option>50</option>
-                      <option>100</option>
-                    </select>
-                    <span>entries</span>
+                <div className="bg-[#fafbfc] border-t border-[#bdcddc] p-2 flex justify-between items-center text-[10px] select-none text-gray-600 font-sans">
+                  <div className="flex gap-4">
+                    <span>Sort Order: Location, ascending</span>
+                    <span>Filter: Active</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button className="px-1.5 py-0.5 hover:bg-gray-100 rounded text-gray-400">❮</button>
-                    <button className="px-2 py-0.5 bg-[#0f4471] text-white font-bold rounded">1</button>
-                    <button className="px-2 py-0.5 hover:bg-gray-100 rounded">2</button>
-                    <button className="px-2 py-0.5 hover:bg-gray-100 rounded">3</button>
-                    <button className="px-2 py-0.5 hover:bg-gray-100 rounded">4</button>
-                    <button className="px-2 py-0.5 hover:bg-gray-100 rounded">5</button>
-                    <span>...</span>
-                    <button className="px-2 py-0.5 hover:bg-gray-100 rounded">50</button>
-                    <button className="px-1.5 py-0.5 hover:bg-gray-100 rounded">❯</button>
-                  </div>
-                  <div className="text-gray-500">
-                    Showing 1 to 25 of 1,248 entries
+                  <div className="flex items-center gap-3">
+                    <span>Showing 28 of 28 records</span>
+                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-0.5 rounded text-[9.5px] font-semibold text-gray-700">Refresh List</button>
                   </div>
                 </div>
               </div>
@@ -3960,8 +3949,12 @@ ${ioVal}`;
                     </thead>
                     <tbody>
                       {notificationRows.map((row, idx) => (
-                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50/50">
-                          <td className="p-2.5 border-r border-gray-200 text-center">
+                        <tr 
+                          key={idx} 
+                          onClick={() => openMessagePopupCard(row)}
+                          className="border-b border-gray-100 hover:bg-[#eaf4fc] cursor-pointer transition-colors"
+                        >
+                          <td className="p-2.5 border-r border-gray-200 text-center" onClick={(e) => e.stopPropagation()}>
                             <input type="checkbox" className="rounded-sm" />
                           </td>
                           <td className="p-2.5 border-r border-gray-200">
@@ -3970,7 +3963,15 @@ ${ioVal}`;
                               <span className={`font-semibold ${row.priorityColor}`}>{row.priority}</span>
                             </span>
                           </td>
-                          <td className="p-2.5 border-r border-gray-200 font-bold text-[#0d7a86] cursor-pointer hover:underline" onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.patient.toUpperCase()}`, 'patient-doe')}>{row.patient}</td>
+                          <td 
+                            className="p-2.5 border-r border-gray-200 font-bold text-[#0d7a86] cursor-pointer hover:underline" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              selectOrOpenTab('PatientProfile', `Patient Profile: ${row.patient.toUpperCase()}`, 'patient-doe');
+                            }}
+                          >
+                            {row.patient}
+                          </td>
                           <td className="p-2.5 border-r border-gray-200">{row.patient}</td>
                           <td className="p-2.5 border-r border-gray-200">{row.mrn}</td>
                           <td className="p-2.5 border-r border-gray-200">{row.category}</td>
@@ -5993,142 +5994,40 @@ No qualifying data available.`;
           {activeTab.type === 'RescheduleRequests' && (
             <div className="flex flex-1 flex-col overflow-auto p-4 space-y-4 bg-[#f8f9fa] text-[11px] select-text">
               
-              {/* Header Title & Controls */}
-              <div className="flex justify-between items-center bg-white border border-[#bdcddc] p-2 rounded-sm shadow-sm select-none">
-                <span className="font-bold text-xs text-[#002a46]">Appointment Reschedule Requests</span>
-                <div className="flex gap-2 items-center">
-                  <button className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-3 py-1.5 rounded text-[10px] flex items-center gap-1 font-semibold text-gray-700">
-                    📥 Export <ChevronDown className="w-3 h-3 text-gray-400 ml-1" />
-                  </button>
-                  <button className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2 py-1 rounded text-[10px] text-gray-600 font-bold">•••</button>
-                </div>
-              </div>
-
-              {/* Status Summary KPI Cards Row */}
-              <div className="grid grid-cols-5 gap-3.5 select-none">
-                {[
-                  { label: 'Total Requests', value: '8', change: 'All time', icon: '👤', bg: 'bg-[#faf5ff] border-[#f3e8ff]', color: 'text-[#8b5cf6]' },
-                  { label: 'Pending', value: '5', change: '62.5%', icon: '⏱️', bg: 'bg-[#fffbeb] border-[#fef3c7]', color: 'text-amber-600' },
-                  { label: 'Reviewing', value: '1', change: '12.5%', icon: 'ℹ️', bg: 'bg-[#eff6ff] border-[#dbeafe]', color: 'text-blue-600' },
-                  { label: 'Approved', value: '1', change: '12.5%', icon: '✅', bg: 'bg-[#f0fdf4] border-[#dcfce7]', color: 'text-green-600' },
-                  { label: 'Declined', value: '1', change: '12.5%', icon: '❌', bg: 'bg-[#fef2f2] border-[#fee2e2]', color: 'text-red-600' }
-                ].map((kpi, idx) => (
-                  <div key={idx} className="bg-white border border-[#e2e8f0] p-3.5 rounded flex items-center gap-3.5 shadow-sm">
-                    <span className={`text-lg ${kpi.color} p-2.5 ${kpi.bg} rounded border font-bold`}>{kpi.icon}</span>
-                    <div>
-                      <div className="text-gray-500 font-bold text-[9.5px]">{kpi.label}</div>
-                      <div className="text-xl font-bold text-gray-900 leading-tight">{kpi.value}</div>
-                      <div className="text-[9px] text-gray-400 font-semibold">{kpi.change}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Search Filters Row */}
-              <div className="bg-[#fafbfc] border border-[#bdcddc] p-3 rounded-sm shadow-sm grid grid-cols-6 gap-3 text-[10.5px] select-none">
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Search By</label>
-                  <select 
-                    value={rsSearchBy}
-                    onChange={(e) => setRsSearchBy(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  >
-                    <option>Patient Name</option>
-                    <option>Request ID</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Search Text</label>
-                  <input
-                    type="text"
-                    placeholder="Enter Patient Name / MRN"
-                    value={rsSearchText}
-                    onChange={(e) => setRsSearchText(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Request ID</label>
-                  <input
-                    type="text"
-                    placeholder="Enter Request ID"
-                    value={rsRequestId}
-                    onChange={(e) => setRsRequestId(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Provider</label>
-                  <select 
-                    value={rsProvider}
-                    onChange={(e) => setRsProvider(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  >
-                    <option>Select Provider</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Status</label>
-                  <select 
-                    value={rsStatus}
-                    onChange={(e) => setRsStatus(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  >
-                    <option>All</option>
-                  </select>
-                </div>
-                <div className="space-y-1 flex flex-col justify-end">
-                  <div className="flex gap-2">
-                    <button className="flex-1 bg-white border border-[#bdcddc] hover:bg-gray-50 py-1 text-[10px] font-semibold rounded">
-                      More Filters
-                    </button>
-                    <button className="flex-1 bg-[#0f4471] hover:bg-[#0b3355] text-white py-1 text-[10px] font-bold rounded">
-                      🔍 Search
-                    </button>
-                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-1 text-[10px] font-semibold rounded">
-                      Reset
-                    </button>
-                  </div>
-                </div>
-              </div>
-
               {/* Data Table */}
               <div className="bg-white border border-[#bdcddc] rounded shadow-sm overflow-hidden flex flex-col">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-[10px]">
+                  <table className="w-full text-left border-collapse text-[10.5px] font-sans leading-snug">
                     <thead>
-                      <tr className="bg-gray-100 text-gray-700 font-bold border-b border-[#bdcddc] select-none">
-                        <th className="p-2.5 border-r border-[#bdcddc] w-[30px] text-center">
-                          <input type="checkbox" className="rounded-sm" />
-                        </th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Request ID</th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Patient Name<br/><span className="text-[9px] text-gray-400">MRN</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Current Appointment<br/><span className="text-[9px] text-gray-400">Date & Time</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Provider<br/><span className="text-[9px] text-gray-400">Department</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Requested New Date & Time</th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Request Type<br/><span className="text-[9px] text-gray-400">Reason</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Requested On<br/><span className="text-[9px] text-gray-400">Requested By</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Priority</th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Status</th>
-                        <th className="p-2.5 text-center">Actions</th>
+                      <tr className="bg-[#dce7f1] text-[#0f4471] font-bold border-b border-[#bdcddc] select-none text-[10.5px]">
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">MRN</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Request ID</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Patient Name</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Current Appointment</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Department / Clinic</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Requested New Date & Time</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Request Reason</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Requested On / By</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Priority</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {rescheduleRequests.map((row, idx) => (
                         <tr 
                           key={idx} 
-                          className="border-b border-gray-100 hover:bg-gray-50/50 cursor-pointer"
+                          className={`border-b border-[#d0dbe5] text-[10.5px] text-gray-800 font-sans cursor-pointer transition-colors ${
+                            idx % 2 === 0 ? 'bg-white hover:bg-[#eef4f9]' : 'bg-[#f0f5fa] hover:bg-[#eef4f9]'
+                          }`}
                           onClick={() => {
                             setSelectedRescheduleReq(row);
                             setShowRescheduleModal(true);
                           }}
                         >
-                          <td className="p-2.5 border-r border-gray-200 text-center select-none" onClick={(e) => e.stopPropagation()}>
-                            <input type="checkbox" className="rounded-sm" />
-                          </td>
-                          <td className="p-2.5 border-r border-gray-200 font-bold text-gray-700">{row.id}</td>
-                          <td className="p-2.5 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
-                            <div 
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] font-mono">{row.mrn}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] font-bold text-gray-700">{row.id}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5]" onClick={(e) => e.stopPropagation()}>
+                            <span 
                               className="font-bold text-[#0d7a86] cursor-pointer hover:underline" 
                               onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.toUpperCase()}`, 'patient-doe')}
                               onContextMenu={(e) => {
@@ -6141,58 +6040,29 @@ No qualifying data available.`;
                                   patientMrn: row.mrn
                                 });
                               }}
-                            >{row.name}</div>
-                            <div className="text-[9px] text-gray-500 font-mono">{row.mrn}</div>
+                            >{row.name}</span>
                           </td>
-                          <td className="p-2.5 border-r border-gray-200 font-semibold">{row.current}</td>
-                          <td className="p-2.5 border-r border-gray-200">{row.dept}</td>
-                          <td className="p-2.5 border-r border-gray-200 text-blue-900 font-bold">{row.requested}</td>
-                          <td className="p-2.5 border-r border-gray-200">{row.reason}</td>
-                          <td className="p-2.5 border-r border-gray-200 text-gray-500">{row.requestedOn}</td>
-                          <td className="p-2.5 border-r border-gray-200">
-                            <span className={`px-2 py-0.5 rounded-sm font-bold text-[9px] border ${row.priorityColor}`}>
-                              {row.priority}
-                            </span>
-                          </td>
-                          <td className="p-2.5 border-r border-gray-200">
-                            <span className={`px-2.5 py-0.5 rounded-sm font-bold text-[9px] border ${row.statusColor}`}>
-                              {row.status}
-                            </span>
-                          </td>
-                          <td className="p-2.5 text-center select-none" onClick={(e) => e.stopPropagation()}>
-                            <button 
-                              onClick={() => {
-                                setSelectedRescheduleReq(row);
-                                setShowRescheduleModal(true);
-                              }}
-                              className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-0.5 rounded text-[9.5px] text-[#0f4471] font-bold"
-                            >
-                              Reschedule
-                            </button>
-                          </td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] font-semibold">{row.current}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5]">{row.dept}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] text-[#0f4471] font-bold">{row.requested}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5]">{row.reason}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] text-gray-600">{row.requestedOn}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] font-semibold text-gray-800">{row.priority}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] font-semibold text-gray-800">{row.status}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
-                <div className="bg-[#fafbfc] border-t border-[#bdcddc] p-2 flex justify-between items-center text-[10px] select-none">
-                  <div className="flex items-center gap-1.5">
-                    <span>Show</span>
-                    <select className="bg-white border border-[#bdcddc] rounded px-1.5 py-0.5">
-                      <option>25</option>
-                      <option>50</option>
-                    </select>
-                    <span>entries</span>
+                <div className="bg-[#fafbfc] border-t border-[#bdcddc] p-2 flex justify-between items-center text-[10px] select-none text-gray-600 font-sans">
+                  <div className="flex gap-4">
+                    <span>Sort Order: Location, ascending</span>
+                    <span>Filter: Active</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button className="px-1.5 py-0.5 hover:bg-gray-100 rounded text-gray-400">❮</button>
-                    <button className="px-2 py-0.5 bg-[#0f4471] text-white font-bold rounded">1</button>
-                    <button className="px-2 py-0.5 hover:bg-gray-100 rounded">2</button>
-                    <button className="px-1.5 py-0.5 hover:bg-gray-100 rounded">❯</button>
-                  </div>
-                  <div className="text-gray-500">
-                    Showing 1 to 8 of 8 entries
+                  <div className="flex items-center gap-3">
+                    <span>Showing 8 of 8 records</span>
+                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-0.5 rounded text-[9.5px] font-semibold text-gray-700">Refresh List</button>
                   </div>
                 </div>
               </div>
@@ -6589,7 +6459,7 @@ No qualifying data available.`;
                       <th className="py-1.5 px-2 border-r border-[#bccada]">Admitted / Requested</th>
                       <th className="py-1.5 px-2 border-r border-[#bccada]">Admitting / Referring Physician</th>
                       <th className="py-1.5 px-2 border-r border-[#bccada]">Visit Reason / Transfer Type</th>
-                      <th className="py-1.5 px-2">Primary Care Physician / Target Dept</th>
+                      <th className="py-1.5 px-2 text-[#1c4d78]">Primary Care Physician / Target Dept</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -6620,12 +6490,11 @@ No qualifying data available.`;
                       { loc: '4S Oncology 4503 0', icon: '📁', name: 'ITFIVE, PATIENTONE DIRECTADMIT', los: '38.2 Days', mrn: '64802325', fin: '1200209054', age: '35 years', dob: '02/18/62', adm: '06/05/17 08:14 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'ILL / Direct Admit Req', pcp: 'LayneTEST MD, Scott Christopher' },
                       { loc: '4S Oncology 4504 0', icon: '📄', name: 'NURSING, ONC', los: '49.7 Days', mrn: '64801367', fin: '1200209190', age: '52 years', dob: '01/15/65', adm: '05/16/17 18:10 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'tumor / Transfer Req', pcp: 'Oncology Consult' },
                       { loc: '4W-S ICU 4602 0', icon: '📁', name: 'WBTPATIENT, TESTFOUR', los: '32.9 Days', mrn: '64802315', fin: '1200209042', age: '36 years', dob: '07/27/80', adm: '06/02/17 13:34 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'MVA', pcp: 'ICU Critical Care' },
-                      { loc: '5E Womens 5405 0', icon: '📄', name: 'SMITH-WILLIAMS, AMANDA', los: '64.9 Days', mrn: '645017808', fin: '1200209535', age: '30 years', dob: '04/04/87', adm: '05/01/17 13:50 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'testing / OB Transfer', pcp: 'Womens Specialty Req' },
+                      { loc: '5E Womens 5405 0', icon: '📄', name: 'SMITH-WILLIAMS, AMANDA', los: '64.9 Days', mrn: '645017808', fill: '1200209535', age: '30 years', dob: '04/04/87', adm: '05/01/17 13:50 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'testing / OB Transfer', pcp: 'Womens Specialty Req' },
                       { loc: '5E Womens 5406 0', icon: '📁', name: 'REGISTER, PENNY', los: '97.9 Days', mrn: '64801434', fin: '1200208444', age: '31 years', dob: '01/01/86', adm: '03/29/17 13:47 CDT', doc: 'Sanders MD, Michael Lawrence', reason: 'Pain', pcp: 'Sanders MD, Michael Lawrence' }
                     ].map((row, idx) => (
                       <tr 
                         key={idx} 
-                        onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.split(',')[0]}`, 'patient-doe')}
                         className={`hover:bg-[#d9ecff] cursor-pointer transition-colors whitespace-nowrap ${
                           idx % 2 === 1 ? 'bg-[#fcfdfe]' : 'bg-white'
                         }`}
@@ -6634,10 +6503,25 @@ No qualifying data available.`;
                         <td className="py-1 px-1 border-r border-[#e2e8f0] text-center">
                           <span className="text-[12px]" title="View Record">{row.icon}</span>
                         </td>
-                        <td className="py-1 px-2 border-r border-[#e2e8f0] font-bold text-[#1c4d78] hover:underline">{row.name}</td>
+                        <td 
+                          className="py-1 px-2 border-r border-[#e2e8f0] font-bold text-[#1c4d78] hover:underline"
+                          onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.split(',')[0]}`, 'patient-doe')}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setPatientContextMenu({
+                              x: e.clientX,
+                              y: e.clientY,
+                              patientName: row.name,
+                              patientMrn: row.mrn
+                            });
+                          }}
+                        >
+                          {row.name}
+                        </td>
                         <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-700">{row.los}</td>
                         <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-600 font-mono">{row.mrn}</td>
-                        <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-600 font-mono">{row.fin}</td>
+                        <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-600 font-mono">{row.mrn}</td>
                         <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-700">{row.age}</td>
                         <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-600">{row.dob}</td>
                         <td className="py-1 px-2 border-r border-[#e2e8f0] text-gray-700">{row.adm}</td>
@@ -6669,124 +6553,23 @@ No qualifying data available.`;
 
           {activeTab.type === 'DischargeList' && (
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f8f9fa] text-[10.5px] select-text h-full">
-              {/* Header Title & Controls */}
-              <div className="flex justify-between items-center bg-white border border-[#bdcddc] p-2 rounded-sm shadow-sm select-none">
-                <span className="font-bold text-xs text-[#002a46]">Patient Discharge List</span>
-                <div className="flex gap-2 items-center">
-                  <button className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-3 py-1.5 rounded text-[10px] flex items-center gap-1 font-semibold text-gray-700">
-                    📥 Export <ChevronDown className="w-3 h-3 text-gray-400 ml-1" />
-                  </button>
-                  <button className="bg-white border border-[#cbd5e1] hover:bg-gray-50 px-2 py-1 rounded text-[10px] text-gray-600 font-bold">•••</button>
-                </div>
-              </div>
-
-              {/* Search Filters Row */}
-              <div className="bg-[#fafbfc] border border-[#bdcddc] p-3 rounded-sm shadow-sm grid grid-cols-6 gap-3 text-[10.5px] select-none">
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Search By</label>
-                  <select 
-                    value={rsSearchBy}
-                    onChange={(e) => setRsSearchBy(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  >
-                    <option>Patient Name</option>
-                    <option>Request ID</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Search Text</label>
-                  <input
-                    type="text"
-                    placeholder="Enter Patient Name / MRN"
-                    value={rsSearchText}
-                    onChange={(e) => setRsSearchText(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Request ID</label>
-                  <input
-                    type="text"
-                    placeholder="Enter Request ID"
-                    value={rsRequestId}
-                    onChange={(e) => setRsRequestId(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Provider</label>
-                  <select 
-                    value={rsProvider}
-                    onChange={(e) => setRsProvider(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  >
-                    <option>Select Provider</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">Status</label>
-                  <select 
-                    value={rsStatus}
-                    onChange={(e) => setRsStatus(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  >
-                    <option>All</option>
-                  </select>
-                </div>
-                <div className="space-y-1 flex flex-col justify-end">
-                  <div className="flex gap-2">
-                    <button className="flex-1 bg-white border border-[#bdcddc] hover:bg-gray-50 py-1 text-[10px] font-semibold rounded">
-                      More Filters
-                    </button>
-                    <button className="flex-1 bg-[#0f4471] hover:bg-[#0b3355] text-white py-1 text-[10px] font-bold rounded">
-                      🔍 Search
-                    </button>
-                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-1 text-[10px] font-semibold rounded">
-                      Reset
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Summary KPI Cards Row */}
-              <div className="grid grid-cols-5 gap-3.5 select-none">
-                {[
-                  { label: 'Total Discharges', value: '4', change: 'All time', icon: '🚪', bg: 'bg-[#faf5ff] border-[#f3e8ff]', color: 'text-[#8b5cf6]' },
-                  { label: 'Pending Discharge', value: '2', change: '50.0%', icon: '⏱️', bg: 'bg-[#fffbeb] border-[#fef3c7]', color: 'text-amber-600' },
-                  { label: 'Summaries Drafted', value: '1', change: '25.0%', icon: 'ℹ️', bg: 'bg-[#eff6ff] border-[#dbeafe]', color: 'text-blue-600' },
-                  { label: 'Discharged Today', value: '1', change: '25.0%', icon: '✅', bg: 'bg-[#f0fdf4] border-[#dcfce7]', color: 'text-green-600' },
-                  { label: 'Postponed', value: '0', change: '0.0%', icon: '❌', bg: 'bg-[#fef2f2] border-[#fee2e2]', color: 'text-red-600' }
-                ].map((kpi, idx) => (
-                  <div key={idx} className="bg-white border border-[#e2e8f0] p-3.5 rounded flex items-center gap-3.5 shadow-sm">
-                    <span className={`text-lg ${kpi.color} p-2.5 ${kpi.bg} rounded border font-bold`}>{kpi.icon}</span>
-                    <div>
-                      <div className="text-gray-500 font-bold text-[9.5px]">{kpi.label}</div>
-                      <div className="text-xl font-bold text-gray-900 leading-tight">{kpi.value}</div>
-                      <div className="text-[9px] text-gray-400 font-semibold">{kpi.change}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
+              
               {/* Data Table */}
               <div className="bg-white border border-[#bdcddc] rounded shadow-sm overflow-hidden flex flex-col">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-[10px]">
+                  <table className="w-full text-left border-collapse text-[10.5px] font-sans leading-snug">
                     <thead>
-                      <tr className="bg-gray-100 text-gray-700 font-bold border-b border-[#bdcddc] select-none">
-                        <th className="p-2.5 border-r border-[#bdcddc] w-[30px] text-center">
-                          <input type="checkbox" className="rounded-sm" />
-                        </th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Discharge ID</th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Patient Name<br/><span className="text-[9px] text-gray-400">MRN</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Admitting Ward<br/><span className="text-[9px] text-gray-400">Bed No.</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Primary Physician<br/><span className="text-[9px] text-gray-400">Department</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Discharge Scheduled Date/Time</th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Destination<br/><span className="text-[9px] text-gray-400">Discharge Status</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Requested On<br/><span className="text-[9px] text-gray-400">Requested By</span></th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Priority</th>
-                        <th className="p-2.5 border-r border-[#bdcddc]">Status</th>
-                        <th className="p-2.5 text-center">Actions</th>
+                      <tr className="bg-[#dce7f1] text-[#0f4471] font-bold border-b border-[#bdcddc] select-none text-[10.5px]">
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">MRN</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Discharge ID</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Patient Name</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Admitting Ward / Bed No.</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Primary Physician / Dept</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Discharge Scheduled Date/Time</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Destination / Status</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Requested On / By</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Priority</th>
+                        <th className="py-1.5 px-2 border-r border-[#bdcddc]">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -6796,55 +6579,51 @@ No qualifying data available.`;
                         { id: 'DIS-2025-000414', name: 'Robert Johnson', mrn: '1000245697', ward: 'NEU-01 / Bed 02', dept: 'Dr. P. Singh (Neurology)', requested: '28/05/2025, 03:00 PM', reason: 'Discharge to Home', requestedOn: '28/05/2025, 09:30 AM by Dr. P. Singh', priority: 'Normal', status: 'Discharged', priorityColor: 'bg-blue-50 text-blue-800 border-blue-200', statusColor: 'bg-green-100 text-green-800 border-green-200' },
                         { id: 'DIS-2025-000415', name: 'Kiran Patel', mrn: '1000245698', ward: 'PUL-02 / Bed 08', dept: 'Dr. S. Reddy (Pulmonology)', requested: '28/05/2025, 04:30 PM', reason: 'Discharge Summary Drafted', requestedOn: '28/05/2025, 10:45 AM by Dr. S. Reddy', priority: 'Normal', status: 'Drafted', priorityColor: 'bg-blue-50 text-blue-800 border-blue-200', statusColor: 'bg-blue-100 text-blue-800 border-blue-200' }
                       ].map((row, idx) => (
-                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50/50">
-                          <td className="p-2.5 border-r border-gray-200 text-center select-none">
-                            <input type="checkbox" className="rounded-sm" />
+                        <tr 
+                          key={idx} 
+                          className={`border-b border-[#d0dbe5] text-[10.5px] text-gray-800 font-sans cursor-pointer transition-colors ${
+                            idx % 2 === 0 ? 'bg-white hover:bg-[#eef4f9]' : 'bg-[#f0f5fa] hover:bg-[#eef4f9]'
+                          }`}
+                        >
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] font-mono">{row.mrn}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] font-bold text-gray-700">{row.id}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5]" onClick={(e) => e.stopPropagation()}>
+                            <div 
+                              className="font-bold text-[#0d7a86] cursor-pointer hover:underline" 
+                              onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.toUpperCase()}`, 'patient-doe')}
+                              onContextMenu={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setPatientContextMenu({
+                                  x: e.clientX,
+                                  y: e.clientY,
+                                  patientName: row.name,
+                                  patientMrn: row.mrn
+                                });
+                              }}
+                            >{row.name}</div>
                           </td>
-                          <td className="p-2.5 border-r border-gray-200 font-bold text-gray-700">{row.id}</td>
-                          <td className="p-2.5 border-r border-gray-200">
-                            <div className="font-bold text-[#0d7a86] cursor-pointer hover:underline" onClick={() => selectOrOpenTab('PatientProfile', `Patient Profile: ${row.name.toUpperCase()}`, 'patient-doe')}>{row.name}</div>
-                            <div className="text-[9px] text-gray-500 font-mono">{row.mrn}</div>
-                          </td>
-                          <td className="p-2.5 border-r border-gray-200 font-semibold">{row.ward}</td>
-                          <td className="p-2.5 border-r border-gray-200">{row.dept}</td>
-                          <td className="p-2.5 border-r border-gray-200 text-blue-900 font-bold">{row.requested}</td>
-                          <td className="p-2.5 border-r border-gray-200">{row.reason}</td>
-                          <td className="p-2.5 border-r border-gray-200 text-gray-500">{row.requestedOn.split(' by ')[0]}</td>
-                          <td className="p-2.5 border-r border-gray-200">
-                            <span className={`px-2 py-0.5 rounded-sm font-bold text-[9px] border ${row.priorityColor}`}>
-                              {row.priority}
-                            </span>
-                          </td>
-                          <td className="p-2.5 border-r border-gray-200">
-                            <span className={`px-2.5 py-0.5 rounded-sm font-bold text-[9px] border ${row.statusColor}`}>
-                              {row.status}
-                            </span>
-                          </td>
-                          <td className="p-2.5 text-center select-none">
-                            <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">•••</button>
-                          </td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] font-semibold">{row.ward}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5]">{row.dept}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] text-[#0f4471] font-bold">{row.requested}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5]">{row.reason}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] text-gray-600">{row.requestedOn.split(' by ')[0]}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] font-semibold text-gray-800">{row.priority}</td>
+                          <td className="py-1 px-2 border-r border-[#d0dbe5] font-semibold text-gray-800">{row.status}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
-                <div className="bg-[#fafbfc] border-t border-[#bdcddc] p-2 flex justify-between items-center text-[10px] select-none">
-                  <div className="flex items-center gap-1.5">
-                    <span>Show</span>
-                    <select className="bg-white border border-[#bdcddc] rounded px-1.5 py-0.5">
-                      <option>25</option>
-                      <option>50</option>
-                    </select>
-                    <span>entries</span>
+                <div className="bg-[#fafbfc] border-t border-[#bdcddc] p-2 flex justify-between items-center text-[10px] select-none text-gray-600 font-sans">
+                  <div className="flex gap-4">
+                    <span>Sort Order: Location, ascending</span>
+                    <span>Filter: Active</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button className="px-1.5 py-0.5 hover:bg-gray-100 rounded text-gray-400">❮</button>
-                    <button className="px-2 py-0.5 bg-[#0f4471] text-white font-bold rounded">1</button>
-                    <button className="px-1.5 py-0.5 hover:bg-gray-100 rounded">❯</button>
-                  </div>
-                  <div className="text-gray-500">
-                    Showing 1 to 4 of 4 entries
+                  <div className="flex items-center gap-3">
+                    <span>Showing 4 of 4 records</span>
+                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-0.5 rounded text-[9.5px] font-semibold text-gray-700">Refresh List</button>
                   </div>
                 </div>
               </div>
@@ -9103,33 +8882,44 @@ No qualifying data available.`;
 
       {patientContextMenu && (
         <div 
-          className="fixed bg-white border border-[#a0a0a0] text-[#333333] text-[11.5px] p-0 w-[140px] shadow-md rounded-none select-none z-[99999] text-left py-1 font-sans"
+          className="fixed bg-white border border-[#a0a0a0] text-[#333333] text-[11px] p-0 w-[190px] shadow-md rounded-none select-none z-[99999] text-left py-0.5 font-sans"
           style={{ left: `${patientContextMenu.x}px`, top: `${patientContextMenu.y}px` }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('Appointments clicked'); setPatientContextMenu(null); }}>
-            Appointments
-          </div>
-          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('Registration clicked'); setPatientContextMenu(null); }}>
-            Registration
-          </div>
-          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('Encounters clicked'); setPatientContextMenu(null); }}>
-            Encounters
-          </div>
-          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('Patient Account clicked'); setPatientContextMenu(null); }}>
-            Patient Account
-          </div>
-          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('Charge Entry clicked'); setPatientContextMenu(null); }}>
-            Charge Entry
-          </div>
-          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800" onClick={() => { alert('History clicked'); setPatientContextMenu(null); }}>
-            History
-          </div>
-
-          <div className="border-t border-gray-200 my-1"></div>
-
+          {[
+            'Bed Transfer',
+            'Cancel Discharge',
+            'Cancel Pending Discharge',
+            'Cancel Pending Transfer',
+            'Cancel Transfer',
+            'Clozapine Registry',
+            'Discharge Encounter',
+            'Facility Transfer',
+            'Leave of Absence',
+            'Modify Discharge',
+            'Pending Discharge',
+            'Pending Facility Transfer',
+            'Pending Transfer',
+            'Print Labels',
+            'Process Alert',
+            'Update Patient Information',
+            'View Encounter',
+            'View Person'
+          ].map((item) => (
+            <div 
+              key={item}
+              className="px-3.5 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800 transition-colors" 
+              onClick={() => { 
+                alert(`${item} clicked for ${patientContextMenu.patientName}`); 
+                setPatientContextMenu(null); 
+              }}
+            >
+              {item}
+            </div>
+          ))}
+          <div className="border-t border-gray-200 my-0.5"></div>
           <div 
-            className="px-4 py-1.5 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-[#0f4471] font-semibold" 
+            className="px-3.5 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-[#0f4471] font-semibold" 
             onClick={() => { 
               selectOrOpenTab('PatientProfile', `Patient Profile: ${patientContextMenu.patientName.toUpperCase()}`, 'patient-doe');
               setPatientContextMenu(null); 
@@ -9137,11 +8927,119 @@ No qualifying data available.`;
           >
             Keep Open
           </div>
-          <div className="px-4 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-600" onClick={() => setPatientContextMenu(null)}>
+          <div className="px-3.5 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-500" onClick={() => setPatientContextMenu(null)}>
             Close
           </div>
         </div>
       )}
+      {openMessagePopups.map((popup) => (
+        <div
+          key={popup.id}
+          className="fixed bg-[#f8f9fa] border border-[#bdcddc] rounded shadow-2xl flex flex-col font-sans select-none text-[11px]"
+          style={{
+            left: `${popup.x}px`,
+            top: `${popup.y}px`,
+            width: '760px',
+            zIndex: popup.zIndex,
+          }}
+          onClick={() => {
+            const newZ = maxZIndex + 1;
+            setMaxZIndex(newZ);
+            setOpenMessagePopups(prev => prev.map(p => p.id === popup.id ? { ...p, zIndex: newZ } : p));
+          }}
+        >
+          {/* Draggable Title Bar */}
+          <div
+            onMouseDown={(e) => handleStartDrag(popup.id, e)}
+            className="bg-[#cbd8e3] border-b border-[#bdcddc] flex justify-between items-center px-2.5 py-1 cursor-move select-none"
+          >
+            <span className="font-bold text-[11px] text-[#002a46] flex items-center gap-1.5">
+              ✉️ General Messages: {popup.patientName}
+            </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenMessagePopups(prev => prev.filter(p => p.id !== popup.id));
+              }}
+              className="text-gray-600 hover:text-red-600 font-bold text-sm px-1"
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Action Toolbar */}
+          <div className="bg-[#fafbfc] border-b border-[#bdcddc] px-3 py-1 flex items-center gap-4 text-[#2c3e50] text-[10.5px] font-medium border-t border-white">
+            <button className="hover:text-black flex items-center gap-1">✉️ Forward</button>
+            <button className="hover:text-black flex items-center gap-1 text-red-600 font-semibold">❌ Delete</button>
+            <button className="hover:text-black flex items-center gap-1">🖨️ Print</button>
+            <span className="text-gray-300">|</span>
+            <button className="hover:text-black flex items-center gap-1">⬆️ Previous</button>
+            <button className="hover:text-black flex items-center gap-1">⬇️ Next</button>
+            <span className="text-gray-300">|</span>
+            <button className="hover:text-black flex items-center gap-1">✉️ Mark Unread</button>
+            <button className="hover:text-black flex items-center gap-1 font-semibold flex-wrap">💬 Communicate <span className="text-[8px] text-gray-400">▼</span></button>
+            <span className="text-gray-300">|</span>
+            <button className="hover:text-black flex items-center gap-1 font-semibold text-[#0d7a86]">➕ Add</button>
+          </div>
+
+          {/* Blue Patient Header Banner */}
+          <div className="bg-[#0f4471] text-white p-3.5 flex justify-between items-start shadow-inner relative overflow-hidden">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold tracking-wide">{popup.patientName}</h2>
+                <button 
+                  onClick={() => {
+                    selectOrOpenTab('PatientProfile', `Patient Profile: ${popup.patientName}`, 'patient-doe');
+                  }}
+                  className="text-[9px] bg-[#0d7a86] px-1 py-0.2 rounded font-bold uppercase hover:bg-[#0b636d]"
+                >
+                  View Profile
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-0.5 text-[10px] text-gray-200">
+                <div><span className="text-gray-400 font-medium">MRN:</span> {popup.mrn}</div>
+                <div><span className="text-gray-400 font-medium">Axio-ID:</span> {popup.axioId}</div>
+                <div><span className="text-gray-400 font-medium">Gender:</span> {popup.gender}</div>
+                <div><span className="text-gray-400 font-medium">Allergies:</span> <span className="text-red-300 font-bold">{popup.allergies}</span></div>
+              </div>
+            </div>
+            <div className="text-right text-[10px] space-y-0.5 text-gray-200">
+              <div><span className="text-gray-400 font-medium">DOB:</span> {popup.dob}</div>
+              <div><span className="text-gray-400 font-medium">Weight:</span> {popup.weight}</div>
+              <div><span className="text-gray-400 font-medium">Height:</span> {popup.height}</div>
+              <div><span className="text-gray-400 font-medium">Blood Type:</span> {popup.bloodType}</div>
+              <div><span className="text-gray-400 font-medium">HealthLife:</span> {popup.healthLife}</div>
+            </div>
+          </div>
+
+          {/* Body Content */}
+          <div className="bg-white p-4 flex flex-col space-y-4 overflow-auto max-h-[300px] border-b border-[#bdcddc]">
+            <div className="border-b border-[#bdcddc] pb-3 space-y-1">
+              <h3 className="font-bold text-xs text-gray-800">Message Details</h3>
+              <div className="grid grid-cols-[80px_1fr] gap-y-1 text-[11px]">
+                <span className="text-gray-500 font-semibold">From:</span>
+                <span className="font-semibold text-gray-800">System</span>
+                <span className="text-gray-500 font-semibold">To:</span>
+                <span className="text-gray-800">Axiovital Admin</span>
+                <span className="text-gray-500 font-semibold">Subject:</span>
+                <span className="font-semibold text-[#0f719b] hover:underline cursor-pointer">
+                  {popup.subject}
+                </span>
+                <span className="text-gray-500 font-semibold">Date/Time:</span>
+                <span className="text-gray-800">{popup.date}</span>
+              </div>
+            </div>
+            <div className="space-y-3 leading-relaxed text-gray-800 text-[11px]">
+              <div className="font-semibold border-b border-gray-100 pb-1 text-gray-700">Message Content</div>
+              <p>{popup.content}</p>
+              <div className="py-1">
+                <button className="text-[#0f719b] font-semibold underline hover:text-[#0b5475]">Launch AxioNote - Edge Platform</button>
+              </div>
+              <p className="text-gray-500 text-[10px]">Thank you,<br />AxioVital Clinical System</p>
+            </div>
+          </div>
+        </div>
+      ))}
 
     </div>
   );
