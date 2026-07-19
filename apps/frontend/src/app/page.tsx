@@ -531,9 +531,16 @@ ${ioVal}`;
   // Patient Profile Section State
   const [profileTab, setProfileTab] = useState('Demographics');
   const [profileSidebarOption, setProfileSidebarOption] = useState('Op Note - Prod - Edge');
+  const [selectedDocIndex, setSelectedDocIndex] = useState(1);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
+  const [isOrdersDropdownOpen, setIsOrdersDropdownOpen] = useState(false);
 
   // Reconciliation Popup State
+  const [isHomeDropdownOpen, setIsHomeDropdownOpen] = useState(false);
   const [isReconcileOpen, setIsReconcileOpen] = useState(false);
+  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
+  const [isDetailedOrderActive, setIsDetailedOrderActive] = useState(false);
   const [reconcilePos, setReconcilePos] = useState({ x: 100, y: 80 });
   const [isDraggingReconcile, setIsDraggingReconcile] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -2383,12 +2390,69 @@ ${ioVal}`;
 
       {/* Classic Menu Bar */}
       <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-0.5 flex gap-3 text-[#2c3e50] text-[10.5px] items-center relative z-50">
-        <button 
-          onClick={() => selectOrOpenTab('Home', 'Home', 'home-tab')}
-          className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold"
-        >
-          Home
-        </button>
+        {isHomeDropdownOpen && (
+          <div 
+            className="fixed inset-0 z-40 bg-transparent" 
+            onClick={() => setIsHomeDropdownOpen(false)}
+          />
+        )}
+        <div className="relative z-50">
+          <button 
+            onClick={() => {
+              setIsHomeDropdownOpen(!isHomeDropdownOpen);
+            }}
+            className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold"
+          >
+            Home
+          </button>
+          
+          {isHomeDropdownOpen && (
+            <div className="absolute left-0 top-full mt-0.5 bg-white border border-[#b0b0b0] text-[#333333] text-[11px] p-0 w-[180px] shadow-lg rounded-none z-50 py-1 font-sans">
+              {[
+                { name: 'Home', type: 'Home' },
+                { name: 'Message Centre', type: 'MessageCenter' },
+                { name: 'Patient Overview', type: 'PatientProfile' },
+                { name: 'Tracking Shell', type: 'TrackingShell' },
+                { name: 'Perioperative Tracking', disabled: true },
+                { name: 'Ambulatory Organizer', disabled: true },
+                { name: 'Referral Management', type: 'ReferralTransfer' },
+                { name: 'MyExperience', disabled: true },
+                { name: 'Patient List', type: 'PatientList' },
+                { name: 'Therapeutic Note', disabled: true },
+                { name: 'Dynamic Worklist', disabled: true },
+                { name: 'Reports', disabled: true },
+                { name: 'Auto Text Copy', disabled: true },
+                { name: 'Requisition Manager', disabled: true },
+                { name: 'Preferences', type: 'HelpCentre' },
+                { divider: true },
+                { name: 'Toolbar', hasSubmenu: true },
+                { name: 'Customize...', isCustomize: true }
+              ].map((item, idx) => {
+                if (item.divider) {
+                  return <div key={idx} className="border-t border-gray-250 my-1" />;
+                }
+                return (
+                  <div 
+                    key={idx}
+                    onClick={() => {
+                      if (item.disabled) return;
+                      if (item.type) {
+                        selectOrOpenTab(item.type as any, item.name, item.type.toLowerCase() + '-tab');
+                      } else if (item.isCustomize) {
+                        alert('Customize selected');
+                      }
+                      setIsHomeDropdownOpen(false);
+                    }}
+                    className="px-4 py-1 flex justify-between items-center text-[11.5px] cursor-pointer text-[#333333] hover:bg-[#0f4471] hover:text-white"
+                  >
+                    <span>{item.name}</span>
+                    {item.hasSubmenu && <span className="text-[9px]">▶</span>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
         <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors">
           Ledger
         </button>
@@ -2829,7 +2893,7 @@ ${ioVal}`;
       </div>
 
       {/* Blue Header Banner */}
-      <div className="bg-[#0f4471] text-white px-3 py-1.5 flex justify-between items-center border-b border-[#001729]">
+      <div className="bg-gradient-to-r from-[#0b4c76] to-[#136090] text-white px-3 py-1.5 flex justify-between items-center border-b border-[#001729]">
         <span className="font-bold text-xs">
           {activeTab.type === 'MessageCenter' && 'Message Center'}
           {activeTab.type === 'Analytics' && 'Analytics'}
@@ -2862,11 +2926,13 @@ ${ioVal}`;
             />
           </div>
           
-          <button className="bg-[#00223b] border border-[#0d3455] hover:bg-[#002e50] rounded px-2 py-0.5 text-[10px] flex items-center gap-1">
-            🗂️ Recent <ChevronDown className="w-2.5 h-2.5" />
+          <button className="text-[#c1d6e5] hover:text-white text-[10.5px] flex items-center gap-1 transition-colors font-semibold bg-transparent border-none py-0.5 px-1.5 focus:outline-none cursor-pointer">
+            <svg className="w-3.5 h-3.5 text-[#c1d6e5] hover:text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter">
+              <path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4" strokeLinecap="square" />
+              <rect x="9.5" y="9.5" width="5" height="5" fill="none" />
+            </svg>
+            Full screen
           </button>
-          
-          <button className="bg-[#00223b] border border-[#0d3455] hover:bg-[#002e50] rounded px-1.5 py-0.5 text-[10px]"><Maximize2 className="w-2.5 h-2.5" /></button>
           
           {/* Printer Icon prints / saves Medical Report directly to PDF */}
           <button 
@@ -3031,12 +3097,23 @@ ${ioVal}`;
               document.body.removeChild(printFrame);
               document.body.removeChild(printStyle);
             }}
-            className="bg-[#00223b] border border-[#0d3455] hover:bg-[#002e50] rounded px-1.5 py-0.5 text-[10px]"
+            className="text-[#c1d6e5] hover:text-white text-[10.5px] flex items-center gap-1 transition-colors font-semibold bg-transparent border-none py-0.5 px-1.5 focus:outline-none cursor-pointer"
           >
-            <Printer className="w-2.5 h-2.5 text-white" />
+            <svg className="w-3.5 h-3.5 text-[#c1d6e5] hover:text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square" strokeLinejoin="miter">
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="7" fill="none" />
+              <line x1="9" y1="17.5" x2="15" y2="17.5" />
+            </svg>
+            Print
           </button>
           
-          <span className="text-[9.5px] text-gray-300 ml-1">⏱️ 3 minutes ago</span>
+          <span className="text-[10.5px] text-[#c1d6e5] flex items-center gap-1 font-semibold ml-1 select-none">
+            <svg className="w-3.5 h-3.5 text-[#c1d6e5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+            </svg>
+            0 minutes ago
+          </span>
         </div>
       </div>
 
@@ -3752,7 +3829,18 @@ ${ioVal}`;
                       </tr>
                     </thead>
                     <tbody>
-                       {patientDirectoryData.map((row, index) => (
+                       {patientDirectoryData.filter(row => {
+                         if (!searchQuery) return true;
+                         const query = searchQuery.toLowerCase();
+                         return (
+                           row.name.toLowerCase().includes(query) ||
+                           row.mrn.toLowerCase().includes(query) ||
+                           row.uhid.toLowerCase().includes(query) ||
+                           row.physician.toLowerCase().includes(query) ||
+                           row.visit.toLowerCase().includes(query) ||
+                           row.dept.toLowerCase().includes(query)
+                         );
+                       }).map((row, index) => (
                         <tr 
                           key={index} 
                           onClick={(e) => {
@@ -4118,68 +4206,95 @@ ${ioVal}`;
                 <div className="flex-1 flex overflow-hidden">
                   
                   {/* Left Sidebar Navigation Panel */}
-                  <div className="w-[190px] bg-[#164d6e] text-white flex flex-col border-r border-[#0f3a55] select-none">
-                    <div className="bg-[#0d344d] border-b border-[#0f3a55] px-3 py-1.5 flex justify-between items-center text-[10px] font-bold">
-                      <span>Menu</span>
-                      <div className="flex items-center gap-1.5 text-gray-400">
-                        <span className="cursor-pointer hover:text-white">📌</span>
-                        <span className="cursor-pointer hover:text-white">❮</span>
+                  {isSidebarCollapsed ? (
+                    <div 
+                      onClick={() => setIsSidebarCollapsed(false)}
+                      className="w-[24px] bg-[#164d6e] text-white flex flex-col items-center pt-2 cursor-pointer select-none border-r border-[#0f3a55] hover:bg-[#1e5d84] transition-all h-full"
+                    >
+                      <div className="text-[9px] text-gray-300 hover:text-white font-bold mb-1">
+                        ▶
+                      </div>
+                      <div 
+                        className="text-[9px] font-bold py-3 bg-[#0d344d] rounded-xs shadow-xs flex items-center justify-center border border-[#0f3a55] text-white cursor-pointer select-none w-[16px] h-[50px]"
+                        style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                      >
+                        Menu
                       </div>
                     </div>
-
-                    <div className="flex-1 overflow-y-auto text-[10px] py-1">
-                      {[
-                        { name: 'Provider View' },
-                        { name: 'Results Review' },
-                        { name: 'Orders', add: true },
-                        { name: 'Documentation', add: true },
-                        { name: 'Outside Records' },
-                        { divider: true },
-                        { name: 'Allergies', add: true },
-                        { name: 'Clinical Media', add: true },
-                        { name: 'Diagnoses and Problems' },
-                        { name: 'Form Browser' },
-                        { name: 'Growth Chart' },
-                        { name: 'Histories' },
-                        { name: 'Interactive View and I&O' },
-                        { name: 'MAR Summary' },
-                        { name: 'Medication List', add: true },
-                        { name: 'Patient Information' },
-                        { name: 'Recommendations' },
-                        { name: 'Smart App Validator' },
-                        { name: 'mTuitive - OpNote Test - IE' },
-                        { name: 'mTuitive - OpNote Test - Edge' },
-                        { name: 'Op Note - Prod - Edge' },
-                        { name: 'WorkflowView Edge' },
-                        { name: 'mTuitive Dev - Edge' },
-                        { name: 'OpNote Debug EDGE' }
-                      ].map((item, idx) => {
-                        if (item.divider) {
-                          return <div key={idx} className="border-t border-white/10 my-1" />;
-                        }
-                        const isActive = profileSidebarOption === item.name;
-                        return (
-                          <div 
-                            key={idx}
-                            onClick={() => {
-                              if (item.name === 'Provider View' || item.name === 'Op Note - Prod - Edge') {
-                                setProfileSidebarOption(item.name);
-                              }
-                              if (item.name === 'Medication List') {
-                                setIsReconcileOpen(true);
-                              }
+                  ) : (
+                    <div className="w-[190px] bg-[#164d6e] text-white flex flex-col border-r border-[#0f3a55] select-none h-full transition-all duration-150">
+                      <div className="bg-[#0d344d] border-b border-[#0f3a55] px-3 py-1.5 flex justify-between items-center text-[10px] font-bold">
+                        <span>Menu</span>
+                        <div className="flex items-center gap-1.5 text-gray-400">
+                          <span className="cursor-pointer hover:text-white">📌</span>
+                          <span 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsSidebarCollapsed(true);
                             }}
-                            className={`px-3 py-1.5 flex justify-between items-center cursor-pointer hover:bg-white/10 ${
-                              isActive ? 'bg-[#123c56] border-l-4 border-sky-400 font-semibold' : ''
-                            }`}
+                            className="cursor-pointer hover:text-white font-bold"
                           >
-                            <span>{item.name}</span>
-                            {item.add && <span className="text-[8.5px] text-sky-300 font-bold hover:text-white">+ Add</span>}
-                          </div>
-                        );
-                      })}
+                            ❮
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto text-[10px] py-1">
+                        {[
+                          { name: 'Provider View' },
+                          { name: 'Results Review' },
+                          { name: 'Orders' },
+                          { name: 'Documentation' },
+                          { name: 'Outside Records' },
+                          { divider: true },
+                          { name: 'Allergies' },
+                          { name: 'Clinical Media' },
+                          { name: 'Diagnoses and Problems' },
+                          { name: 'Form Browser' },
+                          { name: 'Growth Chart' },
+                          { name: 'Histories' },
+                          { name: 'Interactive View and I&O' },
+                          { name: 'MAR Summary' },
+                          { name: 'Medication List' },
+                          { name: 'Insurance' },
+                          { name: 'Recommendations' },
+                          { name: 'Smart App Validator' },
+                          { name: 'mTuitive - OpNote Test - IE' },
+                          { name: 'mTuitive - OpNote Test - Edge' },
+                          { name: 'Op Note - Prod - Edge' },
+                          { name: 'WorkflowView Edge' },
+                          { name: 'mTuitive Dev - Edge' },
+                          { name: 'OpNote Debug EDGE' }
+                        ].map((item, idx) => {
+                          if (item.divider) {
+                            return <div key={idx} className="border-t border-white/10 my-1" />;
+                          }
+                          const isActive = profileSidebarOption === item.name;
+                          return (
+                            <div 
+                              key={idx}
+                              onClick={() => {
+                                if (item.name === 'Provider View' || item.name === 'Op Note - Prod - Edge' || item.name === 'Orders' || item.name === 'Documentation' || item.name === 'Histories' || item.name === 'Insurance') {
+                                  setProfileSidebarOption(item.name);
+                                  if (item.name === 'Orders') {
+                                    setIsDetailedOrderActive(false);
+                                  }
+                                }
+                                if (item.name === 'Medication List') {
+                                  setIsReconcileOpen(true);
+                                }
+                              }}
+                              className={`px-3 py-1.5 flex justify-between items-center cursor-pointer hover:bg-white/10 ${
+                                isActive ? 'bg-[#123c56] border-l-4 border-sky-400 font-semibold' : ''
+                              }`}
+                            >
+                              <span>{item.name}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Right Document Workspace Area */}
                   {profileSidebarOption === 'Provider View' ? (
@@ -4461,6 +4576,778 @@ ${ioVal}`;
                             </div>
                           )}
                         </div>
+                      </div>
+                    </div>
+                  ) : profileSidebarOption === 'Orders' ? (
+                    isDetailedOrderActive ? (
+                      <div className="flex-1 bg-[#cbd8e3] flex flex-col font-sans text-gray-800 overflow-hidden text-[10.5px] border-l border-gray-300">
+                        {/* Sub-toolbar */}
+                        <div className="bg-white border-b border-gray-300 px-3 py-1 flex justify-between items-center text-[10px] h-[34px] font-sans">
+                          <div className="flex items-center gap-1.5 text-gray-700">
+                            <button className="flex items-center hover:bg-gray-100 px-1 py-0.5 rounded transition-colors text-gray-800">
+                              <span className="text-[#005a94] font-bold text-xs mr-1">➕</span> Add
+                            </button>
+                            <span className="text-gray-300 text-[9px]">|</span>
+                            <button className="flex items-center hover:bg-gray-100 px-1 py-0.5 rounded transition-colors text-gray-800">
+                              <span className="mr-1">✍️</span> Document Medication by Hx
+                            </button>
+                            <span className="text-gray-300 text-[9px]">|</span>
+                            <button className="flex items-center hover:bg-gray-100 px-1 py-0.5 rounded transition-colors text-gray-800">
+                              Reconciliation <span className="text-[8px] ml-1">▼</span>
+                            </button>
+                            <span className="text-gray-300 text-[9px]">|</span>
+                            <button className="flex items-center hover:bg-gray-100 px-1 py-0.5 rounded transition-colors text-gray-800">
+                              <span className="mr-1">💊</span> Check Interactions
+                            </button>
+                            <span className="text-gray-300 text-[9px]">|</span>
+                            <button className="flex items-center hover:bg-gray-100 px-1 py-0.5 rounded transition-colors text-gray-800">
+                              <span className="mr-1">🧴</span> External Rx History <span className="text-[8px] ml-1">▼</span>
+                            </button>
+                            <span className="text-gray-300 text-[9px]">|</span>
+                            <button className="flex items-center hover:bg-gray-100 px-1 py-0.5 rounded transition-colors text-gray-800">
+                              No Check <span className="text-[8px] ml-1">▼</span>
+                            </button>
+                          </div>
+                          
+                          {/* Reconciliation Status Container */}
+                          <div className="relative border border-[#bdcddc] bg-white px-2 py-0.5 rounded-sm flex flex-col items-start min-w-[200px] h-[28px] justify-center">
+                            <span className="absolute -top-1.5 left-2 bg-white px-1 text-[8px] text-gray-500 scale-95 origin-left font-semibold">
+                              Reconciliation Status
+                            </span>
+                            <div className="flex items-center gap-3 text-[8.5px] mt-1 font-semibold text-gray-700">
+                              <span className="flex items-center gap-0.5 text-sky-700">
+                                <span className="text-[9px] bg-sky-100 text-sky-700 rounded-full w-3 h-3 inline-flex items-center justify-center font-bold">i</span> Meds History
+                              </span>
+                              <span className="flex items-center gap-0.5 text-sky-700">
+                                <span className="text-[9px] bg-sky-100 text-sky-700 rounded-full w-3 h-3 inline-flex items-center justify-center font-bold">i</span> Admission
+                              </span>
+                              <span className="flex items-center gap-0.5 text-sky-700">
+                                <span className="text-[9px] bg-sky-100 text-sky-700 rounded-full w-3 h-3 inline-flex items-center justify-center font-bold">i</span> Discharge
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Sub-tabs row */}
+                        <div className="bg-white border-b border-gray-200 px-3 py-1 flex items-center h-[28px]">
+                          <div className="flex gap-1 text-[10px]">
+                            <button className="px-2 py-0.5 font-bold border border-gray-400 bg-white text-gray-900 shadow-2xs">Orders</button>
+                            <button className="px-2 py-0.5 font-semibold border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 shadow-2xs">Medication List</button>
+                            <button className="px-2 py-0.5 font-semibold border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 shadow-2xs">Document In Plan</button>
+                          </div>
+                        </div>
+
+                        {/* Main Panel Content Area */}
+                        <div className="flex-1 flex overflow-hidden bg-white">
+                          
+                          {/* Left Panel: Diagnoses & Problems */}
+                          <div className="w-[320px] border-r border-gray-300 flex flex-col bg-gray-50 p-2 overflow-y-auto space-y-4">
+                            <div className="bg-[#005a94] text-white text-center font-bold py-0.5 text-[10.5px]">
+                              Diagnoses & Problems
+                            </div>
+
+                            {/* Section 1: Diagnosis addressed */}
+                            <div className="bg-white border border-gray-300 p-1.5 space-y-1.5 shadow-2xs">
+                              <div className="font-bold text-[10px] text-gray-700">Diagnosis (Problem) being Addressed this Visit</div>
+                              <div className="flex gap-1.5">
+                                <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-0.5 rounded-sm font-semibold flex items-center gap-0.5"><span className="text-blue-600">+</span> Add</button>
+                                <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-0.5 rounded-sm font-semibold">🔄 Convert</button>
+                                <select className="bg-white border border-gray-300 rounded-sm text-gray-700 px-1 py-0.5 focus:outline-none"><option>Display: Active</option></select>
+                              </div>
+                              <table className="w-full text-left border border-gray-200 text-[9.5px]">
+                                <thead>
+                                  <tr className="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
+                                    <th className="p-1 border-r border-gray-200 w-[20px] text-center"><input type="checkbox" defaultChecked /></th>
+                                    <th className="p-1 border-r border-gray-200 w-[20px] text-center">❌</th>
+                                    <th className="p-1 border-r border-gray-200">Annotated Display</th>
+                                    <th className="p-1 border-r border-gray-200">Code</th>
+                                    <th className="p-1">Clinical...</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr className="bg-white border-b border-gray-100 text-gray-800">
+                                    <td className="p-1 border-r border-gray-200 text-center"><input type="checkbox" defaultChecked /></td>
+                                    <td className="p-1 border-r border-gray-200 text-center text-red-500">❌</td>
+                                    <td className="p-1 border-r border-gray-200 font-semibold truncate max-w-[120px]" title="Nondisplaced fracture of ...">Nondisplaced fracture of ...</td>
+                                    <td className="p-1 border-r border-gray-200">S72.115A</td>
+                                    <td className="p-1 truncate max-w-[60px]">Nondi...</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* Section 2: Problems */}
+                            <div className="bg-white border border-gray-300 p-1.5 space-y-1.5 shadow-2xs">
+                              <div className="font-bold text-[10px] text-gray-700">Problems</div>
+                              <div className="flex gap-1.5 flex-wrap">
+                                <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-0.5 rounded-sm font-semibold flex items-center gap-0.5"><span className="text-blue-600">+</span> Add</button>
+                                <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-0.5 rounded-sm font-semibold">🔄 Convert</button>
+                                <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-0.5 rounded-sm font-semibold">No Chronic Problems</button>
+                              </div>
+                              <select className="bg-white border border-gray-300 rounded-sm text-gray-700 px-1 py-0.5 focus:outline-none w-fit"><option>Display: Active</option></select>
+                              <table className="w-full text-left border border-gray-200 text-[9.5px]">
+                                <thead>
+                                  <tr className="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
+                                    <th className="p-1 border-r border-gray-200 w-[20px] text-center"><input type="checkbox" defaultChecked /></th>
+                                    <th className="p-1 border-r border-gray-200">Annotated Display</th>
+                                    <th className="p-1 border-r border-gray-200">Name of Problem</th>
+                                    <th className="p-1">Code</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr className="bg-white border-b border-gray-100 text-gray-800">
+                                    <td className="p-1 border-r border-gray-200 text-center"><input type="checkbox" defaultChecked /></td>
+                                    <td className="p-1 border-r border-gray-200 font-semibold text-blue-800 underline truncate max-w-[100px]" title="At risk of venous thromb...">At risk of venous thromb...</td>
+                                    <td className="p-1 border-r border-gray-200 font-semibold text-blue-800 underline truncate max-w-[100px]" title="At risk of venous thromb...">At risk of venous thromb...</td>
+                                    <td className="p-1 font-mono">2674624018</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* Related Results / Formulary Details */}
+                            <div className="bg-[#cbd8e3]/50 border border-gray-300 text-center font-semibold text-[10px] text-gray-700 py-1.5 cursor-pointer hover:bg-gray-200 transition-colors">
+                              Related Results
+                            </div>
+                            <div className="bg-[#cbd8e3]/50 border border-gray-300 text-center font-semibold text-[10px] text-gray-700 py-1.5 cursor-pointer hover:bg-gray-200 transition-colors">
+                              Formulary Details
+                            </div>
+                          </div>
+
+                          {/* Right Panel: Search & Order folders */}
+                          <div className="flex-1 flex flex-col bg-white overflow-hidden p-3 space-y-3">
+                            {/* Search controls */}
+                            <div className="flex flex-wrap items-center justify-between gap-3 border border-gray-200 p-2 bg-gray-50 rounded-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-gray-700">Search:</span>
+                                <div className="relative bg-white text-black px-2 py-0.5 rounded-sm flex items-center border border-gray-300 w-[240px]">
+                                  <input 
+                                    type="text" 
+                                    className="w-full text-[10.5px] focus:outline-none bg-transparent" 
+                                    placeholder="" 
+                                    value={ordersSearchQuery}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setOrdersSearchQuery(val);
+                                      setIsOrdersDropdownOpen(val.length > 0);
+                                    }}
+                                    onFocus={() => {
+                                      if (ordersSearchQuery.length > 0) {
+                                        setIsOrdersDropdownOpen(true);
+                                      }
+                                    }}
+                                  />
+                                  <span className="text-gray-400 cursor-pointer" onClick={() => setIsOrdersDropdownOpen(true)}>🔍</span>
+                                  
+                                  {/* Autocomplete dropdown */}
+                                  {isOrdersDropdownOpen && (
+                                    <>
+                                      <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsOrdersDropdownOpen(false)} />
+                                      <div className="absolute top-full left-0 w-[600px] bg-white border border-gray-400 shadow-lg rounded-sm z-50 mt-0.5 text-left text-gray-800 flex flex-col font-sans select-none max-h-[300px] overflow-y-auto">
+                                        {[
+                                          { name: 'warfarin' },
+                                          { name: 'warfarin (1 mg, Oral, Tab, Daily)' },
+                                          { name: 'warfarin (2 mg, Oral, Tab, Daily)' },
+                                          { name: 'warfarin (5 mg, Oral, Tab, Daily)' },
+                                          { name: 'Warfarin reversal, Severely Bleeding Pt 4 factor PCC (Kcentra) or factor IX Complex (Profilnine)', icon: '🛡️' },
+                                          { name: 'warfarin (2.5 mg, Oral, Tab, Daily)' },
+                                          { name: 'warfarin (3 mg, Oral, Tab, Daily)' },
+                                          { name: 'warfarin (4 mg, Oral, Tab, Daily)' },
+                                          { name: 'warfarin (6 mg, Oral, Tab, Daily)' },
+                                          { name: 'warfarin (7.5 mg, Oral, Tab, Daily)' },
+                                          { name: 'warfarin (10 mg, Oral, Tab, Daily)' },
+                                          { name: 'Coumadin (warfarin) Orders', icon: '💊' },
+                                          { name: 'Pharmacy consult- warfarin' },
+                                          { name: 'Pharmacy consult- warfarin (Anticoagulation service, Comment: Please assess, dose, and monitor warfarin therapy)' },
+                                          { name: 'Rapid Reversal of Supratherapeutic INR r/t warfarin', icon: '⚡' }
+                                        ].filter(item => {
+                                          if (!ordersSearchQuery) return true;
+                                          return item.name.toLowerCase().includes(ordersSearchQuery.toLowerCase());
+                                        }).map((item, idx) => (
+                                          <div 
+                                            key={idx}
+                                            onClick={() => {
+                                              setOrdersSearchQuery(item.name);
+                                              setIsOrdersDropdownOpen(false);
+                                            }}
+                                            className="px-3 py-1.5 hover:bg-gray-100 cursor-pointer text-[10.5px] border-b border-gray-100 flex items-center gap-1.5"
+                                          >
+                                            {item.icon && <span className="text-[11px]">{item.icon}</span>}
+                                            <span className={item.icon ? 'font-bold text-[#005a94]' : 'text-gray-800'}>
+                                              {item.name}
+                                            </span>
+                                          </div>
+                                        ))}
+                                        
+                                        <div className="bg-gray-100 text-gray-500 font-bold px-3 py-1 text-[9px] border-t border-gray-300">
+                                          "Enter" to Search
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                                <button className="text-blue-700 font-semibold text-[10px] hover:underline flex items-center gap-0.5">Advanced Options ▾</button>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-gray-600 font-semibold">Type:</span>
+                                  <select className="bg-white border border-gray-300 text-[10.5px] py-0.5 px-1.5 focus:outline-none rounded-sm">
+                                    <option>Inpatient</option>
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Sub-ribbon navigation */}
+                            <div className="flex items-center justify-between border-b border-gray-200 pb-1.5 text-[10.5px]">
+                              <div className="flex items-center gap-3">
+                                <button className="flex items-center gap-0.5 text-gray-600 hover:text-black font-semibold">
+                                  <span>⬆️</span> Up
+                                </button>
+                                <button className="flex items-center gap-0.5 text-[#005a94] hover:text-blue-900 font-semibold">
+                                  <span>🏠</span> Home
+                                </button>
+                                <button className="flex items-center gap-0.5 text-gray-600 hover:text-black font-semibold">
+                                  <span>⭐</span> Favorites ▾
+                                </button>
+                                <span className="text-gray-300">|</span>
+                                <button className="flex items-center gap-0.5 text-gray-600 hover:text-black font-semibold">
+                                  <span>📁</span> Folders
+                                </button>
+                                <button className="flex items-center gap-0.5 text-gray-600 hover:text-black font-semibold">
+                                  <span>📄</span> Copy
+                                </button>
+                                <span className="text-gray-600 font-bold ml-2">Folder: Hospitalist Orders</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-gray-500">Search within:</span>
+                                <select className="bg-white border border-gray-300 rounded px-1.5 py-0.5 focus:outline-none">
+                                  <option>All</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            {/* Folder List tree view */}
+                            <div className="flex-1 border border-gray-200 bg-white rounded-sm p-4 overflow-y-auto space-y-3 shadow-inner">
+                              {[
+                                { name: 'Admit/Transfer Orders' },
+                                { name: 'Discharge Orders' },
+                                { name: 'Laboratory' },
+                                { name: 'Imaging' }
+                              ].filter(folder => {
+                                if (!ordersSearchQuery) return true;
+                                return folder.name.toLowerCase().includes(ordersSearchQuery.toLowerCase());
+                              }).map((folder, fIdx) => (
+                                <div key={fIdx} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors">
+                                  <span className="text-yellow-600 text-sm">📁</span>
+                                  <span className="font-semibold text-gray-800 text-[11.5px]">{folder.name}</span>
+                                </div>
+                              ))}
+                              {ordersSearchQuery && ![
+                                'Admit/Transfer Orders', 'Discharge Orders', 'Laboratory', 'Imaging'
+                              ].some(n => n.toLowerCase().includes(ordersSearchQuery.toLowerCase())) && (
+                                <div className="text-gray-400 italic text-[11px] text-center pt-4">No matching folders found</div>
+                              )}
+                            </div>
+                          </div>
+
+                        </div>
+
+                        {/* Bottom Grayed status sections */}
+                        <div className="bg-gray-100 border-t border-gray-300 px-3 py-1 flex items-center text-gray-500 font-semibold select-none h-[22px]">
+                          <span>Orders for Signature</span>
+                        </div>
+                        <div className="bg-white border-t border-gray-300 px-3 py-1 flex items-center text-gray-500 font-semibold select-none h-[22px] border-b">
+                          <span>Details</span>
+                        </div>
+
+                        {/* Footer row */}
+                        <div className="bg-[#cbd8e3] p-2 flex justify-between items-center border-t border-gray-300">
+                          <div className="flex gap-2">
+                            <button className="bg-white border border-gray-400 text-gray-600 font-bold px-3 py-1 text-[10px] rounded-xs shadow-sm hover:bg-gray-150">
+                              0 Missing Required Details
+                            </button>
+                            <button className="bg-white border border-gray-400 text-gray-600 font-bold px-4 py-1 text-[10px] rounded-xs shadow-sm hover:bg-gray-150">
+                              Dx Table
+                            </button>
+                            <button className="bg-white border border-gray-400 text-gray-600 font-bold px-4 py-1 text-[10px] rounded-xs shadow-sm hover:bg-gray-150">
+                              Orders For Cosignature
+                            </button>
+                          </div>
+                          <button onClick={() => setIsDetailedOrderActive(false)} className="bg-white border border-[#0a4c7a] hover:bg-[#eef4f8] text-[#0a4c7a] font-extrabold px-6 py-1 text-[10px] rounded-xs shadow-sm transition-colors">
+                            Sign
+                          </button>
+                        </div>
+
+                        {/* Status bar */}
+                        <div className="bg-[#002a46] text-white px-3 py-0.5 flex justify-end text-[9px] font-mono select-none h-[18px]">
+                          <span>P248 | 26217 | July 07, 2017 12:48 CDT</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 bg-white flex flex-col overflow-hidden font-sans text-gray-800">
+                        {/* New Order Entry View */}
+                        <div className="border-b border-[#bdcddc] px-3 py-1 flex justify-between items-center text-[11px] h-[34px] bg-[#f0f4f8]">
+                          <div className="flex items-center gap-1.5 font-bold text-gray-900 text-xs">
+                            <span>New Order Entry</span>
+                            <span onClick={() => setIsDetailedOrderActive(true)} className="text-[#005a94] text-sm cursor-pointer font-extrabold">+</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button className="p-1 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Refresh">
+                              🔄
+                            </button>
+                            <button className="p-1 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="Settings">
+                              ⚙️
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                          {/* Alert Box */}
+                          <div className="bg-[#e6f0fa] border border-[#a2c8ec] text-[#004080] px-3 py-2 flex justify-between items-start text-[11px]">
+                            <div className="flex gap-2 items-center">
+                              <span className="text-sky-600 font-bold text-sm">ℹ️</span>
+                              <span>This facility doesn't display formulary information for inpatient encounters. Eligibility checking was not performed.</span>
+                            </div>
+                            <button className="text-gray-400 hover:text-gray-600 font-semibold text-xs leading-none">×</button>
+                          </div>
+
+                          {/* Inpatient Selector */}
+                          <div className="flex items-center gap-1">
+                            <select className="bg-transparent hover:bg-gray-100 text-gray-800 text-[11.5px] font-semibold border-none focus:outline-none cursor-pointer py-0.5 px-1 rounded">
+                              <option>Inpatient</option>
+                            </select>
+                          </div>
+
+                          {/* Sub-header Bar: Mine, Public, Shared tabs and search input */}
+                          <div className="flex items-center justify-between gap-4 border border-gray-300 bg-gray-50 p-1.5 rounded-sm">
+                            <div className="flex items-center border border-gray-300 rounded overflow-hidden select-none bg-white">
+                              <div className="bg-gray-100 border-r border-gray-300 px-3 py-1 flex items-center justify-center cursor-pointer hover:bg-gray-200 text-xs">
+                                🏠
+                              </div>
+                              <button className="px-5 py-1 text-[11px] font-semibold border-r border-gray-300 bg-white hover:bg-gray-50 text-gray-700">Mine</button>
+                              <button className="px-5 py-1 text-[11px] font-semibold border-r border-gray-300 bg-white hover:bg-gray-50 text-gray-700">Public</button>
+                              <button className="px-5 py-1 text-[11px] font-semibold bg-white hover:bg-gray-50 text-gray-700">Shared</button>
+                            </div>
+
+                            <div className="flex items-center gap-2 flex-1 max-w-[460px] justify-end">
+                              <span className="text-gray-700 text-[11.5px] font-semibold select-none">Search:</span>
+                              <div className="relative flex-1 flex items-center border border-[#c5d6e6] rounded-md bg-white px-3 py-1 shadow-2xs hover:border-[#a0c0e0] focus-within:border-[#005a94] focus-within:ring-1 focus-within:ring-[#005a94] transition-all">
+                                <input 
+                                  type="text" 
+                                  placeholder="" 
+                                  className="w-full text-[11.5px] focus:outline-none bg-transparent pr-6 text-gray-800"
+                                  value={ordersSearchQuery}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setOrdersSearchQuery(val);
+                                    setIsOrdersDropdownOpen(val.length > 0);
+                                  }}
+                                  onFocus={() => {
+                                    if (ordersSearchQuery.length > 0) {
+                                      setIsOrdersDropdownOpen(true);
+                                    }
+                                  }}
+                                />
+                                <span className="text-sky-500 hover:text-sky-700 cursor-pointer absolute right-2.5 flex items-center">
+                                  <svg className="w-3.5 h-3.5 fill-cyan-400 stroke-indigo-600 stroke-[2.5]" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                  </svg>
+                                </span>
+                                
+                                {ordersSearchQuery && (
+                                  <button 
+                                    onClick={() => {
+                                      setOrdersSearchQuery('');
+                                      setIsOrdersDropdownOpen(false);
+                                    }}
+                                    className="text-gray-400 hover:text-gray-650 font-semibold text-xs leading-none mr-5"
+                                  >
+                                    ×
+                                  </button>
+                                )}
+                                
+                                {/* Autocomplete dropdown */}
+                                {isOrdersDropdownOpen && (
+                                  <>
+                                    <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsOrdersDropdownOpen(false)} />
+                                    <div className="absolute top-full left-0 w-[550px] bg-white border border-gray-400 shadow-lg rounded-sm z-50 mt-1 text-left text-gray-800 flex flex-col font-sans select-none max-h-[250px] overflow-y-auto">
+                                      {[
+                                        { name: 'warfarin' },
+                                        { name: 'warfarin (1 mg, Oral, Tab, Daily)' },
+                                        { name: 'warfarin (2 mg, Oral, Tab, Daily)' },
+                                        { name: 'warfarin (5 mg, Oral, Tab, Daily)' },
+                                        { name: 'Warfarin reversal, Severely Bleeding Pt 4 factor PCC (Kcentra) or factor IX Complex (Profilnine)', icon: '🛡️' },
+                                        { name: 'warfarin (2.5 mg, Oral, Tab, Daily)' },
+                                        { name: 'warfarin (3 mg, Oral, Tab, Daily)' },
+                                        { name: 'warfarin (4 mg, Oral, Tab, Daily)' },
+                                        { name: 'warfarin (6 mg, Oral, Tab, Daily)' },
+                                        { name: 'warfarin (7.5 mg, Oral, Tab, Daily)' },
+                                        { name: 'warfarin (10 mg, Oral, Tab, Daily)' },
+                                        { name: 'Coumadin (warfarin) Orders', icon: '💊' },
+                                        { name: 'Pharmacy consult- warfarin' },
+                                        { name: 'Pharmacy consult- warfarin (Anticoagulation service, Comment: Please assess, dose, and monitor warfarin therapy)' },
+                                        { name: 'Rapid Reversal of Supratherapeutic INR r/t warfarin', icon: '⚡' }
+                                      ].filter(item => {
+                                        if (!ordersSearchQuery) return true;
+                                        return item.name.toLowerCase().includes(ordersSearchQuery.toLowerCase());
+                                      }).map((item, idx) => (
+                                        <div 
+                                          key={idx}
+                                          onClick={() => {
+                                            setOrdersSearchQuery(item.name);
+                                            setIsOrdersDropdownOpen(false);
+                                          }}
+                                          className="px-3 py-1.5 hover:bg-gray-100 cursor-pointer text-[10.5px] border-b border-gray-100 flex items-center gap-1.5"
+                                        >
+                                          {item.icon && <span className="text-[11px]">{item.icon}</span>}
+                                          <span className={item.icon ? 'font-bold text-[#005a94]' : 'text-gray-800'}>
+                                            {item.name}
+                                          </span>
+                                        </div>
+                                      ))}
+                                      
+                                      <div className="bg-gray-100 text-gray-500 font-bold px-3 py-1 text-[9px] border-t border-gray-300">
+                                        "Enter" to Search
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Hospitalist Orders Folders list */}
+                          <div className="border border-gray-200 bg-white rounded-sm shadow-2xs">
+                            <div className="flex items-center gap-2 p-2 bg-gray-50/50 border-b border-gray-200">
+                              <span className="text-yellow-600 text-xs">📁</span>
+                              <span className="font-bold text-[11.5px] text-[#0f4471]">Hospitalist Orders</span>
+                            </div>
+                            <div className="p-2 pl-6 space-y-2 text-[11px]">
+                              {[
+                                { name: 'Admit/Transfer Orders' },
+                                { name: 'Discharge Orders' },
+                                { name: 'Laboratory' },
+                                { name: 'Imaging' }
+                              ].filter(folder => {
+                                if (!ordersSearchQuery) return true;
+                                return folder.name.toLowerCase().includes(ordersSearchQuery.toLowerCase());
+                              }).map((folder, fIdx) => (
+                                <div key={fIdx} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 py-0.5 px-1.5 rounded transition-all">
+                                  <span className="text-yellow-600">📁</span>
+                                  <span className="font-semibold text-gray-800">{folder.name}</span>
+                                </div>
+                              ))}
+                              {ordersSearchQuery && ![
+                                'Admit/Transfer Orders', 'Discharge Orders', 'Laboratory', 'Imaging'
+                              ].some(n => n.toLowerCase().includes(ordersSearchQuery.toLowerCase())) && (
+                                <div className="text-gray-400 italic text-[11px] text-center pt-2">No matching folders found</div>
+                              )}
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+                    )
+                  ) : profileSidebarOption === 'Histories' ? (
+                    <div className="flex-1 bg-[#f0f4f8] flex flex-col overflow-hidden text-[10.5px]">
+                      {/* Header Ribbon */}
+                      <div className="bg-white border-b border-gray-300 px-4 py-2 flex justify-between items-center h-[34px]">
+                        <span className="font-bold text-[#002a46] text-xs">Histories - Clinical Visits</span>
+                        <div className="flex items-center gap-2">
+                          <button className="bg-white hover:bg-gray-50 border border-gray-300 rounded px-2 py-0.5 font-semibold text-gray-700">🖨️ Print History</button>
+                        </div>
+                      </div>
+
+                      {/* Main Table Content */}
+                      <div className="flex-1 p-4 overflow-auto">
+                        <div className="bg-white border border-gray-300 rounded shadow-2xs">
+                          <div className="bg-[#005a94] text-white font-bold px-3 py-1.5 text-[11px]">
+                            Patient Clinical Visit History
+                          </div>
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-gray-100 text-gray-700 border-b border-gray-300 font-bold">
+                                <th className="p-2 border-r border-gray-200">Date & Time</th>
+                                <th className="p-2 border-r border-gray-200">Department / Location</th>
+                                <th className="p-2 border-r border-gray-200">Clinician / Provider</th>
+                                <th className="p-2 border-r border-gray-200">Reason for Visit</th>
+                                <th className="p-2">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">05/28/2026 10:15 AM</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-800">Orthopedic Surgery Center</td>
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-800">Dr. Herman Stewart</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-600">Left shoulder fracture evaluation</td>
+                                <td className="p-2"><span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Completed</span></td>
+                              </tr>
+                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">03/12/2026 02:30 PM</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-800">Cardiology Specialist Clinic</td>
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-800">Dr. K. Iyer</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-600">Routine follow-up post ECG</td>
+                                <td className="p-2"><span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Completed</span></td>
+                              </tr>
+                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">11/05/2025 09:00 AM</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-800">General Family Medicine</td>
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-800">Dr. R. Sharma</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-600">Annual wellness exam & labs</td>
+                                <td className="p-2"><span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Completed</span></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  ) : profileSidebarOption === 'Insurance' ? (
+                    <div className="flex-1 bg-[#f0f4f8] flex flex-col overflow-hidden text-[10.5px]">
+                      {/* Header Ribbon */}
+                      <div className="bg-white border-b border-gray-300 px-4 py-2 flex justify-between items-center h-[34px]">
+                        <span className="font-bold text-[#002a46] text-xs">Insurance Coverage Details</span>
+                        <div className="flex items-center gap-2">
+                          <button className="bg-white hover:bg-gray-50 border border-gray-300 rounded px-2 py-0.5 font-semibold text-gray-700">➕ Add New Insurance</button>
+                        </div>
+                      </div>
+
+                      {/* Main content area */}
+                      <div className="flex-1 p-4 overflow-auto space-y-4">
+                        {/* Summary Status Cards */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-white border border-gray-300 rounded p-3 flex items-center justify-between shadow-2xs">
+                            <div>
+                              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Active Insurance Plans</div>
+                              <div className="text-xl font-extrabold text-green-700 mt-0.5">2 Plans</div>
+                            </div>
+                            <span className="text-2xl text-green-500 bg-green-50 rounded-full w-10 h-10 inline-flex items-center justify-center">✓</span>
+                          </div>
+                          
+                          <div className="bg-white border border-gray-300 rounded p-3 flex items-center justify-between shadow-2xs">
+                            <div>
+                              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Expired Insurance Plans</div>
+                              <div className="text-xl font-extrabold text-red-600 mt-0.5">1 Plan</div>
+                            </div>
+                            <span className="text-2xl text-red-500 bg-red-50 rounded-full w-10 h-10 inline-flex items-center justify-center">❌</span>
+                          </div>
+                        </div>
+
+                        {/* Insurances list table */}
+                        <div className="bg-white border border-gray-300 rounded shadow-2xs">
+                          <div className="bg-[#005a94] text-white font-bold px-3 py-1.5 text-[11px]">
+                            Insurance Coverage details
+                          </div>
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-gray-100 text-gray-700 border-b border-gray-300 font-bold">
+                                <th className="p-2 border-r border-gray-200">Plan Name</th>
+                                <th className="p-2 border-r border-gray-200">Policy Number</th>
+                                <th className="p-2 border-r border-gray-200">Group ID</th>
+                                <th className="p-2 border-r border-gray-200">Coverage Window</th>
+                                <th className="p-2">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">Blue Cross Blue Shield (BCBS) PPO</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">BCB-9988221A</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">TX-GRP-89</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-600">01/01/2026 - 12/31/2026</td>
+                                <td className="p-2"><span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Active</span></td>
+                              </tr>
+                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">Aetna Choice POS II</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">AET-7711202B</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">AE-POS-04</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-600">06/01/2026 - 05/31/2027</td>
+                                <td className="p-2"><span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Active</span></td>
+                              </tr>
+                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">UnitedHealthcare (UHC) Choice</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">UHC-1009945F</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">UH-CORP-01</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-600">01/01/2025 - 12/31/2025</td>
+                                <td className="p-2"><span className="bg-red-100 text-red-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Expired</span></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  ) : profileSidebarOption === 'Documentation' ? (
+                    <div className="flex-1 bg-white flex flex-col overflow-hidden text-[10.5px]">
+                      {/* Action Toolbar */}
+                      <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-1 flex items-center justify-between h-[30px]">
+                        <div className="flex items-center gap-3 font-semibold text-gray-700">
+                          <button className="flex items-center gap-1 text-blue-800 hover:text-blue-900 font-bold">
+                            <span className="text-blue-600 font-extrabold text-xs">+</span> Add
+                          </button>
+                          <button className="flex items-center gap-1 text-gray-400 cursor-not-allowed" disabled>
+                            <span>✓</span> Sign
+                          </button>
+                          <button className="flex items-center gap-1 text-gray-400 cursor-not-allowed" disabled>
+                            <span>✉</span> Forward
+                          </button>
+                          <button className="flex items-center gap-1 text-gray-400 cursor-not-allowed" disabled>
+                            <span>📄</span> Provider Letter
+                          </button>
+                          <button className="flex items-center gap-1 text-gray-400 cursor-not-allowed" disabled>
+                            <span>✏</span> Modify
+                          </button>
+                          <span className="text-gray-300">|</span>
+                          
+                          {/* Small action icons */}
+                          <div className="flex items-center gap-2 text-gray-400">
+                            <span className="cursor-not-allowed">📝</span>
+                            <span className="cursor-not-allowed">📁</span>
+                            <span className="cursor-not-allowed">⚠️</span>
+                            <span className="cursor-not-allowed">🗑️</span>
+                          </div>
+
+                          <span className="text-gray-300">|</span>
+
+                          {/* Preview button */}
+                          <button className="bg-white border border-[#bdcddc] px-2 py-0.5 rounded-sm font-semibold text-gray-800 hover:bg-gray-50 flex items-center gap-1 shadow-2xs">
+                            <span>👁</span> Preview
+                          </button>
+
+                          <span className="text-gray-300">|</span>
+
+                          {/* Tag icon */}
+                          <button className="text-gray-500 hover:text-gray-700">
+                            <span>🏷️</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Tab Row */}
+                      <div className="bg-[#e4ebf2] px-2 pt-1 flex justify-between items-center border-b border-[#bdcddc]">
+                        <div className="flex">
+                          <button className="bg-white border-t border-x border-[#bdcddc] px-4 py-1 font-bold text-blue-900 rounded-t-sm relative -mb-[1px] z-10">
+                            List
+                          </button>
+                        </div>
+                        <div className="text-gray-500 text-[10px] pb-1 flex gap-1 font-bold">
+                          <span>◀</span>
+                          <span>▶</span>
+                        </div>
+                      </div>
+
+                      {/* Filter Row */}
+                      <div className="bg-[#f0f4f8] px-3 py-1 flex justify-between items-center border-b border-[#bdcddc] h-[28px]">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-600 font-medium">Display:</span>
+                          <select className="bg-white border border-gray-300 rounded px-1 py-0.5 text-[10.5px] outline-none">
+                            <option>All</option>
+                          </select>
+                          <button className="bg-white hover:bg-gray-50 border border-gray-300 rounded px-2.5 py-0.5 text-gray-700 font-semibold shadow-3xs">
+                            Advanced Filters
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button className="flex items-center gap-1 text-blue-800 hover:text-blue-950 font-bold">
+                            <span className="text-blue-500 text-[11px]">▲</span> Previous Note
+                          </button>
+                          <button className="flex items-center gap-1 text-blue-800 hover:text-blue-950 font-bold">
+                            <span className="text-blue-500 text-[11px]">▼</span> Next Note
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Main Split Layout Panel */}
+                      <div className="flex-1 flex overflow-hidden">
+                        {/* Left Column: Notes Table */}
+                        <div className="w-[58%] border-r border-[#bdcddc] overflow-y-auto bg-white">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-[#f0f4f8] text-gray-700 border-b border-[#bdcddc] font-bold sticky top-0 z-10 select-none">
+                                <th className="p-2 border-r border-[#bdcddc] font-bold">Service Date/Time</th>
+                                <th className="p-2 border-r border-[#bdcddc] font-bold">Subject</th>
+                                <th className="p-2 font-bold">Type</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {[
+                                { date: '23-Apr-2024 14:41:56 PDT', subject: 'Therapeutic Intervention/Group Progress Note', type: 'Therapeutic/Intervention Note' },
+                                { date: '23-Feb-2024 11:11:28 PST', subject: 'Consult Note', type: 'Addiction Medicine Consult' },
+                                { date: '07-Nov-2023 11:13:00 PST', subject: 'Patient Preferred Info', type: 'Patient Preferred Info - Text' },
+                                { date: '14-Jun-2023 11:01:00 PDT', subject: 'Home Ventilation Prescription', type: 'Home Ventilation Prescription - Text' },
+                                { date: '14-Jun-2023 10:54:00 PDT', subject: 'Cardiac Surgery AFIB Risk Stratification', type: 'Card Surg AFIB Risk Stratification-Tex' },
+                                { date: '29-May-2023 12:48:49 P...', subject: 'Fallls', type: 'Nursing Narrative Note' },
+                                { date: '24-Apr-2023 10:26:00 PDT', subject: 'PSSCAN-R Psychological Screen', type: 'PSSCAN-R Psychological Screen - Te' },
+                                { date: '06-Apr-2023 09:29:20 PDT', subject: 'Free Text Note', type: 'Genetic Counsellor Note' },
+                                { date: '03-Apr-2023 15:40:00 PDT', subject: 'PSSCAN-R Psychological Screen', type: 'PSSCAN-R Psychological Screen - Te' },
+                                { date: '03-Apr-2023 15:31:00 PDT', subject: 'PSSCAN-R Psychological Screen', type: 'PSSCAN-R Psychological Screen - Te' },
+                                { date: '03-Apr-2023 15:24:00 PDT', subject: 'PSSCAN-R Psychological Screen', type: 'PSSCAN-R Psychological Screen - Te' },
+                                { date: '03-Apr-2023 15:14:00 PDT', subject: 'PSSCAN-R Psychological Screen', type: 'PSSCAN-R Psychological Screen - Te' },
+                                { date: '29-Mar-2023 13:44:21 PDT', subject: 'Allied Health Global Assessment Note', type: 'Occupational Therapy Note' },
+                                { date: '14-Mar-2023 09:24:50 PDT', subject: 'Social Work Assessment', type: 'Social Work Note' },
+                                { date: '10-Mar-2023 11:53:54 PST', subject: 'PT Note', type: 'Physical Therapy Note' }
+                              ].map((row, idx) => {
+                                const isSelected = selectedDocIndex === idx;
+                                return (
+                                  <tr 
+                                    key={idx} 
+                                    onClick={() => setSelectedDocIndex(idx)}
+                                    className={`border-b border-gray-100 hover:bg-gray-50/50 cursor-pointer select-none ${
+                                      isSelected ? 'bg-[#0f4471] text-white font-medium hover:bg-[#0f4471]' : 'text-gray-800'
+                                    }`}
+                                  >
+                                    <td className={`p-1.5 border-r border-[#bdcddc] font-sans ${isSelected ? 'border-r-white/20' : ''}`}>{row.date}</td>
+                                    <td className={`p-1.5 border-r border-[#bdcddc] font-sans truncate max-w-[200px] ${isSelected ? 'border-r-white/20' : ''}`}>{row.subject}</td>
+                                    <td className="p-1.5 font-sans truncate max-w-[180px]">{row.type}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Right Column: Note Preview */}
+                        <div className="flex-1 bg-white p-3 overflow-y-auto flex flex-col">
+                          <div className="border border-[#bdcddc] rounded-xs p-4 flex-1 font-sans bg-white text-gray-900 shadow-2xs overflow-y-auto">
+                            {selectedDocIndex === 1 ? (
+                              <div className="space-y-4 text-xs leading-relaxed max-w-[450px] mx-auto">
+                                <h3 className="text-center font-bold text-sm tracking-wide my-2">* Final Report *</h3>
+                                
+                                <div className="space-y-1">
+                                  <h4 className="font-bold underline text-gray-950">Reason for Consultation</h4>
+                                  <p className="pl-1">Testing testing testing</p>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <h4 className="font-bold underline text-gray-950">Medications</h4>
+                                  <div className="pl-1 space-y-1">
+                                    <p className="underline font-medium text-gray-900">Home Medications</p>
+                                    <p className="text-gray-700">No Best Possible Medication History obtained on this encounter.</p>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <h4 className="font-bold underline text-gray-950">Allergies</h4>
+                                  <div className="pl-1 space-y-0.5 font-sans text-gray-800">
+                                    <p>Latex</p>
+                                    <p>penicillin (Reaction: Rash)</p>
+                                    <p>Peanuts</p>
+                                    <p>Banana</p>
+                                    <p>Bee Stings</p>
+                                    <p>morphine</p>
+                                    <p>other contrast (Reaction: Pain, Vomiting)</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="h-full flex flex-col items-center justify-center text-gray-400 py-20">
+                                <span className="text-3xl mb-2">📄</span>
+                                <p className="font-bold text-[11px]">No preview available for this document</p>
+                                <p className="text-[10px] text-gray-400 mt-1">Select the "Consult Note" row to view its details.</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
                       </div>
                     </div>
                   ) : (
@@ -9040,6 +9927,273 @@ No qualifying data available.`;
           </div>
         </div>
       ))}
+
+      {isNewOrderModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999999] p-4 select-none">
+          <div className="bg-[#cbd8e3] border-2 border-[#0a4c7a] w-[98vw] h-[95vh] flex flex-col font-sans text-gray-800 shadow-2xl overflow-hidden text-[10.5px]">
+            {/* Top blue tab bar */}
+            <div className="bg-[#002a46] px-1 py-0.5 flex justify-between items-center text-white h-[26px]">
+              <div className="flex items-center gap-1">
+                <div className="bg-[#005a94] border-t border-x border-[#003c63] px-3 py-1 font-bold text-[10px] text-white flex items-center gap-2 h-[26px] rounded-t-sm shadow-sm relative top-[2px] z-10 border-b-transparent">
+                  <span>TESTSANDERS, PATTHREE</span>
+                  <button onClick={() => setIsNewOrderModalOpen(false)} className="hover:text-red-300 font-bold text-xs">×</button>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 text-[10px] pr-2 text-gray-300">
+                <button className="hover:text-white flex items-center gap-0.5"><span>⬅️</span> List</button>
+                <button className="hover:text-white flex items-center gap-0.5"><span>📂</span> Recent</button>
+                <div className="relative bg-white text-black px-1 py-0.2 rounded-xs flex items-center border border-gray-400">
+                  <input type="text" className="w-[120px] text-[10px] focus:outline-none bg-transparent" placeholder="Name" />
+                  <span className="text-gray-400">🔍</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Demographics Blue/Teal Banner */}
+            <div className="bg-[#005a94] text-white px-3 py-1.5 border-b border-[#003c63] flex flex-wrap items-start justify-between gap-x-6 gap-y-1 text-[9.5px] leading-tight">
+              <div className="space-y-0.5">
+                <div className="font-extrabold text-[11.5px] uppercase tracking-wide">TESTSANDERS, PATTHREE</div>
+                <div className="text-gray-300">Allergies: <span className="text-red-300 font-bold">Allergies Not Recorded</span></div>
+              </div>
+              <div className="grid grid-cols-4 gap-x-4 gap-y-0.5">
+                <div><span className="text-gray-300">DOB:</span> 07/07/71</div>
+                <div><span className="text-gray-300">Age:</span> 46 years</div>
+                <div><span className="text-gray-300">Dose Wt:</span> </div>
+                <div><span className="text-gray-300">Sex:</span> Male</div>
+                <div><span className="text-gray-300">MRN:</span> 64002748</div>
+                <div className="col-span-2 truncate"><span className="text-gray-300">Attending:</span> McHenry MD, David Glen</div>
+                <div></div>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
+                <div className="truncate"><span className="text-gray-300">Inpatient FIN:</span> 1200290423 [Admit Dt: 07/07/2017 10:44 Disch Dt: &lt;No - Discharge date&gt;]</div>
+                <div><span className="text-gray-300">Loc:</span> 6N Med Surg | 6205 : 0</div>
+              </div>
+            </div>
+
+            {/* Sub-toolbar */}
+            <div className="bg-[#eaf1f7] border-b border-gray-300 px-3 py-1 flex justify-between items-center text-[10.5px] h-[30px]">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400 font-bold cursor-pointer">❮</span>
+                <span className="text-gray-400">🏠</span>
+                <span className="font-bold text-[#002a46]">Orders</span>
+                <span className="text-gray-300">|</span>
+                <button className="flex items-center gap-0.5 hover:bg-gray-200 px-1 py-0.5 rounded font-semibold text-gray-700">
+                  <span className="text-green-600 font-bold text-xs">+</span> Add
+                </button>
+                <button className="hover:bg-gray-200 px-1 py-0.5 rounded font-semibold text-gray-700">Document Medication by Hx</button>
+                <button className="hover:bg-gray-200 px-1 py-0.5 rounded font-semibold text-gray-700">Reconciliation ▾</button>
+                <button className="hover:bg-gray-200 px-1 py-0.5 rounded font-semibold text-gray-700">Check Interactions</button>
+                <button className="hover:bg-gray-200 px-1 py-0.5 rounded font-semibold text-gray-700">External Rx History ▾</button>
+                <button className="hover:bg-gray-200 px-1 py-0.5 rounded font-semibold text-gray-700">No Check ▾</button>
+              </div>
+              <div className="flex items-center gap-3 text-gray-600 text-[10px]">
+                <button className="hover:text-black">🖥️ Full screen</button>
+                <button className="hover:text-black">🖨️ Print</button>
+                <span>0 minutes ago</span>
+                <div className="flex items-center gap-2 border-l border-gray-300 pl-3">
+                  <span className="text-gray-500 font-semibold">Reconciliation Status:</span>
+                  <span className="text-green-700 font-bold flex items-center gap-0.5">✓ Meds History</span>
+                  <span className="text-orange-600 font-bold flex items-center gap-0.5">⚠️ Admission</span>
+                  <span className="text-orange-600 font-bold flex items-center gap-0.5">⚠️ Discharge</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Sub-tabs row */}
+            <div className="bg-[#cbd8e3] border-b border-gray-300 px-3 flex items-end h-[24px]">
+              <div className="flex border-b border-transparent gap-0.5 text-[10px]">
+                <button className="px-4 py-0.5 font-bold border-t border-x rounded-t-sm bg-white border-gray-300 text-blue-900 border-b-white relative z-10">Orders</button>
+                <button className="px-4 py-0.5 font-semibold border-t border-x rounded-t-sm bg-gray-100/70 border-transparent text-gray-600 hover:bg-gray-200/50">Medication List</button>
+                <button className="px-4 py-0.5 font-semibold border-t border-x rounded-t-sm bg-gray-100/70 border-transparent text-gray-600 hover:bg-gray-200/50">Document In Plan</button>
+              </div>
+            </div>
+
+            {/* Main Panel Content Area */}
+            <div className="flex-1 flex overflow-hidden bg-white">
+              
+              {/* Left Panel: Diagnoses & Problems */}
+              <div className="w-[320px] border-r border-gray-300 flex flex-col bg-gray-50 p-2 overflow-y-auto space-y-4">
+                <div className="bg-[#005a94] text-white text-center font-bold py-0.5 text-[10.5px]">
+                  Diagnoses & Problems
+                </div>
+
+                {/* Section 1: Diagnosis addressed */}
+                <div className="bg-white border border-gray-300 p-1.5 space-y-1.5 shadow-2xs">
+                  <div className="font-bold text-[10px] text-gray-700">Diagnosis (Problem) being Addressed this Visit</div>
+                  <div className="flex gap-1.5">
+                    <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-0.5 rounded-sm font-semibold flex items-center gap-0.5"><span className="text-blue-600">+</span> Add</button>
+                    <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-0.5 rounded-sm font-semibold">🔄 Convert</button>
+                    <select className="bg-white border border-gray-300 rounded-sm text-gray-700 px-1 py-0.5 focus:outline-none"><option>Display: Active</option></select>
+                  </div>
+                  <table className="w-full text-left border border-gray-200 text-[9.5px]">
+                    <thead>
+                      <tr className="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
+                        <th className="p-1 border-r border-gray-200 w-[20px] text-center"><input type="checkbox" defaultChecked /></th>
+                        <th className="p-1 border-r border-gray-200 w-[20px] text-center">❌</th>
+                        <th className="p-1 border-r border-gray-200">Annotated Display</th>
+                        <th className="p-1 border-r border-gray-200">Code</th>
+                        <th className="p-1">Clinical...</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="bg-white border-b border-gray-100 text-gray-800">
+                        <td className="p-1 border-r border-gray-200 text-center"><input type="checkbox" defaultChecked /></td>
+                        <td className="p-1 border-r border-gray-200 text-center text-red-500">❌</td>
+                        <td className="p-1 border-r border-gray-200 font-semibold truncate max-w-[120px]" title="Nondisplaced fracture of ...">Nondisplaced fracture of ...</td>
+                        <td className="p-1 border-r border-gray-200">S72.115A</td>
+                        <td className="p-1 truncate max-w-[60px]">Nondi...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Section 2: Problems */}
+                <div className="bg-white border border-gray-300 p-1.5 space-y-1.5 shadow-2xs">
+                  <div className="font-bold text-[10px] text-gray-700">Problems</div>
+                  <div className="flex gap-1.5 flex-wrap">
+                    <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-0.5 rounded-sm font-semibold flex items-center gap-0.5"><span className="text-blue-600">+</span> Add</button>
+                    <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-0.5 rounded-sm font-semibold">🔄 Convert</button>
+                    <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2 py-0.5 rounded-sm font-semibold">No Chronic Problems</button>
+                  </div>
+                  <select className="bg-white border border-gray-300 rounded-sm text-gray-700 px-1 py-0.5 focus:outline-none w-fit"><option>Display: Active</option></select>
+                  <table className="w-full text-left border border-gray-200 text-[9.5px]">
+                    <thead>
+                      <tr className="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
+                        <th className="p-1 border-r border-gray-200 w-[20px] text-center"><input type="checkbox" defaultChecked /></th>
+                        <th className="p-1 border-r border-gray-200">Annotated Display</th>
+                        <th className="p-1 border-r border-gray-200">Name of Problem</th>
+                        <th className="p-1">Code</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="bg-white border-b border-gray-100 text-gray-800">
+                        <td className="p-1 border-r border-gray-200 text-center"><input type="checkbox" defaultChecked /></td>
+                        <td className="p-1 border-r border-gray-200 font-semibold text-blue-800 underline truncate max-w-[100px]" title="At risk of venous thromb...">At risk of venous thromb...</td>
+                        <td className="p-1 border-r border-gray-200 font-semibold text-blue-800 underline truncate max-w-[100px]" title="At risk of venous thromb...">At risk of venous thromb...</td>
+                        <td className="p-1 font-mono">2674624018</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Related Results / Formulary Details */}
+                <div className="bg-[#cbd8e3]/50 border border-gray-300 text-center font-semibold text-[10px] text-gray-700 py-1.5 cursor-pointer hover:bg-gray-200 transition-colors">
+                  Related Results
+                </div>
+                <div className="bg-[#cbd8e3]/50 border border-gray-300 text-center font-semibold text-[10px] text-gray-700 py-1.5 cursor-pointer hover:bg-gray-200 transition-colors">
+                  Formulary Details
+                </div>
+              </div>
+
+              {/* Right Panel: Search & Order folders */}
+              <div className="flex-1 flex flex-col bg-white overflow-hidden p-3 space-y-3">
+                {/* Search controls */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border border-gray-200 p-2 bg-gray-50 rounded-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-700">Search:</span>
+                    <div className="relative bg-white text-black px-2 py-0.5 rounded-sm flex items-center border border-gray-300 w-[240px]">
+                      <input type="text" className="w-full text-[10.5px] focus:outline-none bg-transparent" placeholder="" />
+                      <span className="text-gray-400">🔍</span>
+                    </div>
+                    <button className="text-blue-700 font-semibold text-[10px] hover:underline flex items-center gap-0.5">Advanced Options ▾</button>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-600 font-semibold">Type:</span>
+                      <select className="bg-white border border-gray-300 text-[10.5px] py-0.5 px-1.5 focus:outline-none rounded-sm">
+                        <option>Inpatient</option>
+                      </select>
+                    </div>
+                    <button onClick={() => setIsNewOrderModalOpen(false)} className="text-gray-400 hover:text-red-600 font-extrabold text-sm leading-none border border-gray-300 rounded px-1.5 py-0.2 bg-white">×</button>
+                  </div>
+                </div>
+
+                {/* Sub-ribbon navigation */}
+                <div className="flex items-center justify-between border-b border-gray-200 pb-1.5 text-[10.5px]">
+                  <div className="flex items-center gap-3">
+                    <button className="flex items-center gap-0.5 text-gray-600 hover:text-black font-semibold">
+                      <span>⬆️</span> Up
+                    </button>
+                    <button className="flex items-center gap-0.5 text-[#005a94] hover:text-blue-900 font-semibold">
+                      <span>🏠</span> Home
+                    </button>
+                    <button className="flex items-center gap-0.5 text-gray-600 hover:text-black font-semibold">
+                      <span>⭐</span> Favorites ▾
+                    </button>
+                    <span className="text-gray-300">|</span>
+                    <button className="flex items-center gap-0.5 text-gray-600 hover:text-black font-semibold">
+                      <span>📁</span> Folders
+                    </button>
+                    <button className="flex items-center gap-0.5 text-gray-600 hover:text-black font-semibold">
+                      <span>📄</span> Copy
+                    </button>
+                    <span className="text-gray-600 font-bold ml-2">Folder: Hospitalist Orders</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-500">Search within:</span>
+                    <select className="bg-white border border-gray-300 rounded px-1.5 py-0.5 focus:outline-none">
+                      <option>All</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Folder List tree view */}
+                <div className="flex-1 border border-gray-200 bg-white rounded-sm p-4 overflow-y-auto space-y-3 shadow-inner">
+                  <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors">
+                    <span className="text-yellow-600 text-sm">📁</span>
+                    <span className="font-semibold text-gray-800 text-[11.5px]">Admit/Transfer Orders</span>
+                  </div>
+                  <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors">
+                    <span className="text-yellow-600 text-sm">📁</span>
+                    <span className="font-semibold text-gray-800 text-[11.5px]">Discharge Orders</span>
+                  </div>
+                  <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors">
+                    <span className="text-yellow-600 text-sm">📁</span>
+                    <span className="font-semibold text-gray-800 text-[11.5px]">Laboratory</span>
+                  </div>
+                  <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors">
+                    <span className="text-yellow-600 text-sm">📁</span>
+                    <span className="font-semibold text-gray-800 text-[11.5px]">Imaging</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Grayed status sections */}
+            <div className="bg-gray-100 border-t border-gray-300 px-3 py-1 flex items-center text-gray-500 font-semibold select-none h-[22px]">
+              <span>Orders for Signature</span>
+            </div>
+            <div className="bg-white border-t border-gray-300 px-3 py-1 flex items-center text-gray-500 font-semibold select-none h-[22px] border-b">
+              <span>Details</span>
+            </div>
+
+            {/* Footer row */}
+            <div className="bg-[#cbd8e3] p-2 flex justify-between items-center border-t border-gray-300">
+              <div className="flex gap-2">
+                <button className="bg-white border border-gray-400 text-gray-600 font-bold px-3 py-1 text-[10px] rounded-xs shadow-sm hover:bg-gray-150">
+                  0 Missing Required Details
+                </button>
+                <button className="bg-white border border-gray-400 text-gray-600 font-bold px-4 py-1 text-[10px] rounded-xs shadow-sm hover:bg-gray-150">
+                  Dx Table
+                </button>
+                <button className="bg-white border border-gray-400 text-gray-600 font-bold px-4 py-1 text-[10px] rounded-xs shadow-sm hover:bg-gray-150">
+                  Orders For Cosignature
+                </button>
+              </div>
+              <button onClick={() => setIsNewOrderModalOpen(false)} className="bg-white border border-[#0a4c7a] hover:bg-[#eef4f8] text-[#0a4c7a] font-extrabold px-6 py-1 text-[10px] rounded-xs shadow-sm transition-colors">
+                Sign
+              </button>
+            </div>
+
+            {/* Status bar */}
+            <div className="bg-[#002a46] text-white px-3 py-0.5 flex justify-end text-[9px] font-mono select-none h-[18px]">
+              <span>P248 | 26217 | July 07, 2017 12:48 CDT</span>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
