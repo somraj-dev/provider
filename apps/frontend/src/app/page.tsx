@@ -538,6 +538,7 @@ ${ioVal}`;
 
   // Reconciliation Popup State
   const [isHomeDropdownOpen, setIsHomeDropdownOpen] = useState(false);
+  const [isHelpDropdownOpen, setIsHelpDropdownOpen] = useState(false);
   const [isReconcileOpen, setIsReconcileOpen] = useState(false);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [isDetailedOrderActive, setIsDetailedOrderActive] = useState(false);
@@ -809,18 +810,28 @@ ${ioVal}`;
     { name: 'Critical Care', count: '1,663', pct: '8.9%', los: '6.7', readmit: '15.2%', mortality: '2.1%', sat: '87.1%', trend: 'down' }
   ];
 
-  // Mock Patient Directory rows data 1:1 matching requested layout
+  // Mock Patient Directory rows data matching Cerner-style layout
   const patientDirectoryData = [
-    { mrn: '1360508', uhid: 'AVX-000123', name: 'AHSDEMO, Peds', ageGender: '8 Y / Female', dob: '12/03/2018', phone: '9876543210', visit: 'Inpatient', dept: 'General Medicine', physician: 'Test, Prov Gen Phys', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: '101 / A', admitted: '28/05/2025 08:30 AM' },
-    { mrn: '1360509', uhid: 'AVX-000124', name: 'AHSDEMO, SDS', ageGender: '56 Y / Female', dob: '22/07/1970', phone: '9876543211', visit: 'Inpatient', dept: 'General Medicine', physician: 'Test, Prov Gen Phys', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: '101 / B', admitted: '28/05/2025 09:15 AM' },
-    { mrn: '1360510', uhid: 'AVX-000125', name: 'AHSDEMO, READMISSION', ageGender: '57 Y / Male', dob: '14/11/1968', phone: '9876543212', visit: 'Outpatient', dept: 'General Medicine', physician: 'Test, Prov Gen Phys', status: 'Registered', statusBg: 'bg-blue-100 text-blue-800', location: '102 / A', admitted: '28/05/2025 10:20 AM' },
-    { mrn: '1360511', uhid: 'AVX-000126', name: 'AHSDEMO, HEART 0103', ageGender: '57 Y / Female', dob: '30/09/1968', phone: '9876543213', visit: 'Inpatient', dept: 'General Medicine', physician: 'Train, Provider: Primary Care0050', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: '102 / B', admitted: '28/05/2025 06:10 AM' },
-    { mrn: '1360512', uhid: 'AVX-000127', name: 'AHSDEMO, CHF-1', ageGender: '62 Y / Female', dob: '19/02/1964', phone: '9876543214', visit: 'Day Care', dept: 'General Medicine', physician: 'Train, Provider: Primary Care0050', status: 'In Treatment', statusBg: 'bg-orange-100 text-orange-800', location: '103 / A', admitted: '28/05/2025 11:00 AM' },
-    { mrn: '1360513', uhid: 'AVX-000128', name: 'AHSDEMO, ORTHO', ageGender: '79 Y / Male', dob: '07/06/1947', phone: '9876543215', visit: 'Outpatient', dept: 'General Medicine', physician: 'Train, Provider: Primary Care0050', status: 'Completed', statusBg: 'bg-gray-100 text-gray-800', location: '103 / B', admitted: '28/05/2025 11:30 AM' },
-    { mrn: '1360514', uhid: 'AVX-000129', name: 'AHSDEMO, LABOR', ageGender: '30 Y / Female', dob: '23/08/1995', phone: '9876543216', visit: 'Inpatient', dept: 'General Medicine', physician: 'Test, Barrett', status: 'Admitted', statusBg: 'bg-green-100 text-green-800', location: '104 / A', admitted: '27/05/2025 09:50 PM' },
-    { mrn: '1360515', uhid: 'AVX-000130', name: 'AHSDEMO, STROKE', ageGender: '45 Y / Female', dob: '02/04/1981', phone: '9876543217', visit: 'Inpatient', dept: 'General Medicine', physician: 'Train, Provider: General Surgeon0209', status: 'ICU', statusBg: 'bg-red-100 text-red-800', location: '104 / B', admitted: '27/05/2025 05:25 PM' },
-    { mrn: '1360516', uhid: 'AVX-000131', name: 'AHSDEMO, INFECTION', ageGender: '50 Y / Female', dob: '16/05/1976', phone: '9876543218', visit: 'Inpatient', dept: 'General Medicine', physician: 'Train, Provider: General Surgeon0004', status: 'Scheduled', statusBg: 'bg-yellow-100 text-yellow-800', location: '105 / A', admitted: '29/05/2025 09:00 AM' },
-    { mrn: '1360517', uhid: 'AVX-000132', name: 'AHSDEMO, PNEUMONIA', ageGender: '36 Y / Female', dob: '11/12/1989', phone: '9876543219', visit: 'Outpatient', dept: 'General Medicine', physician: 'Train, Provider: Primary Care0004', status: 'Registered', statusBg: 'bg-blue-100 text-blue-800', location: '105 / B', admitted: '26/05/2025 04:20 PM' }
+    { name: 'TEST, NEWMERGE ONE', lengthOfStay: '46.7 Days', mrn: '64802090', finReqId: '64802090', age: '56 years', dob: '01/01/61', admittedRequested: '05/29/17 20:00 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'TESTING MERGE ACCOUNTS', primaryCare: 'Sanders MD, Michael Lawrence' },
+    { name: 'PHARMDRC, EIGHTMONTH', lengthOfStay: '43.0 Days', mrn: '64802042', finReqId: '64802042', age: '9 months', dob: '09/22/16', admittedRequested: '05/22/17 17:00 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'pain', primaryCare: '' },
+    { name: 'UCTEST, CPABBLINGCOMB', lengthOfStay: '120.0 Days', mrn: '64801201', finReqId: '64801201', age: '8 years', dob: '03/14/09', admittedRequested: '03/06/17 15:00 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'headache', primaryCare: '' },
+    { name: 'PHARMDRC, EIGHTYEAR', lengthOfStay: '43.0 Days', mrn: '64802043', finReqId: '64802043', age: '8 years', dob: '05/22/09', admittedRequested: '05/22/17 17:12 CDT', admittingPhysician: '', visitReason: 'pain', primaryCare: 'Dr. A. Verma (Cardiology)' },
+    { name: 'PHARMDRC, EIGHTYEARCP', lengthOfStay: '43.0 Days', mrn: '64802044', finReqId: '64802044', age: '8 years', dob: '05/22/09', admittedRequested: '05/22/17 17:17 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: '', primaryCare: 'Dr. M. Roy (Oncology)' },
+    { name: 'TESTRODNEY, INPATIENT', lengthOfStay: '18.2 Days', mrn: '64802647', finReqId: '64802647', age: '39 years', dob: '05/25/78', admittedRequested: '05/24/17 08:30 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'hkj / Transfer Req', primaryCare: 'Dr. S. Nair (Neurology)' },
+    { name: 'MEDTEST, JR', lengthOfStay: '16.1 Days', mrn: '64801906', finReqId: '64801906', age: '41 years', dob: '09/24/75', admittedRequested: '06/19/17 09:15 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'chest pain', primaryCare: 'Moulder MD, Rebekah Wilbourn' },
+    { name: 'UCTEST, CPADEFECTTVVO', lengthOfStay: '117.9 Days', mrn: '64801227', finReqId: '64801227', age: '25 years', dob: '10/14/91', admittedRequested: '03/09/17 13:16 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'headache', primaryCare: 'Sanders MD, Michael Lawrence' },
+    { name: 'ZZZTEST, BRADADMISSIONTWO', lengthOfStay: '173.9 Days', mrn: '64802066', finReqId: '64802066', age: '26 years', dob: '11/11/90', admittedRequested: '01/12/17 14:10 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'chest pain', primaryCare: 'Shekoni MD, Nurudeen Arellku' },
+    { name: 'AWESOMEDUDEONE, MEME', lengthOfStay: '42.9 Days', mrn: '64802086', finReqId: '64802086', age: '54 years', dob: '12/23/62', admittedRequested: '05/23/17 16:20 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'CHEST PAIN', primaryCare: 'LayneTEST MD, Scott Christopher' },
+    { name: 'QUALITYCONNECT, AMY', lengthOfStay: '225.0 Days', mrn: '64800472', finReqId: '64800472', age: '29 years', dob: '02/10/88', admittedRequested: '11/22/16 10:54 CST', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'abnormal lab', primaryCare: 'Sanders MD, Michael Lawrence' },
+    { name: 'NURSING, RENAL', lengthOfStay: '49.9 Days', mrn: '64801954', finReqId: '64801954', age: '65 years', dob: '02/02/52', admittedRequested: '05/16/17 14:04 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'UTI', primaryCare: 'Dr. P. Das (ENT)' },
+    { name: 'PHARMDRC, THIRTEEN', lengthOfStay: '43.9 Days', mrn: '64802029', finReqId: '64802029', age: '13 years', dob: '05/21/04', admittedRequested: '05/22/17 14:53 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'NAUSEA/VOMITING', primaryCare: 'City Hospital Referral' },
+    { name: 'QUALITYCONNECT, OMNICELL ONE', lengthOfStay: '217.9 Days', mrn: '64800575', finReqId: '64800575', age: '43 years', dob: '06/23/74', admittedRequested: '11/28/16 13:33 CST', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'back pain', primaryCare: 'Apex Clinic Referral' },
+    { name: 'QUALITYCONNECT, SENTRE SEVEN', lengthOfStay: '217.9 Days', mrn: '64800576', finReqId: '64800576', age: '71 years', dob: '05/33/46', admittedRequested: '11/28/16 13:46 CST', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'surgery', primaryCare: 'Dr. D. Patel (Oncology)' },
+    { name: 'PHARMDRC, ONEMONTH', lengthOfStay: '43.9 Days', mrn: '64802036', finReqId: '64802036', age: '2 months', dob: '04/22/17', admittedRequested: '05/22/17 15:35 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'HIGH FEVER', primaryCare: 'Torrey MD, Brian Scott' },
+    { name: 'NURSING, ICUWEST', lengthOfStay: '49.8 Days', mrn: '64801364', finReqId: '64801364', age: '65 years', dob: '02/02/52', admittedRequested: '05/16/17 18:00 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'trouble breathing', primaryCare: 'ICU Transfer Bed Req' },
+    { name: 'TESTANGY, DONOTDISCHARGE', lengthOfStay: '132.0 Days', mrn: '64800761', finReqId: '64800761', age: '25 years', dob: '01/04/92', admittedRequested: '01/04/17 11:23 CST', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'Chest Pain', primaryCare: 'LayneTEST MD, Scott Christopher' },
+    { name: 'TEST, ALLERGY', lengthOfStay: '47.9 Days', mrn: '64801995', finReqId: '64801995', age: '22 years', dob: '06/04/95', admittedRequested: '05/18/17 15:47 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'testing', primaryCare: 'Dr. G. Jones' },
+    { name: 'QUALITYCONNECT, SUSAN', lengthOfStay: '29.9 Days', mrn: '64800983', finReqId: '64800983', age: '38 years', dob: '10/08/78', admittedRequested: '06/05/17 08:14 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'test / Second Opinion', primaryCare: 'Torrey MD, Brian Scott' },
   ];
 
   // Mock Notifications rows matching image 1:1 exactly
@@ -2586,15 +2597,25 @@ ${ioVal}`;
         </div>
         
         {/* Help Dropdown Trigger */}
-        <div className="relative group">
-          <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#002a46]">
+        {isHelpDropdownOpen && (
+          <div 
+            className="fixed inset-0 z-40 bg-transparent" 
+            onClick={() => setIsHelpDropdownOpen(false)}
+          />
+        )}
+        <div className="relative z-50">
+          <button 
+            onClick={() => setIsHelpDropdownOpen(!isHelpDropdownOpen)}
+            className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#002a46]"
+          >
             Help
           </button>
-          <div className="absolute right-0 top-full -mt-0.5 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none z-50">
+          {isHelpDropdownOpen && (
+            <div className="absolute right-0 top-full mt-0.5 bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none z-50">
             <div className="py-0.5">
               <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Welcome</div>
               <div 
-                onClick={() => selectOrOpenTab('HelpCentre', 'Help Center', 'help-center-tab')}
+                onClick={() => { selectOrOpenTab('HelpCentre', 'Help Center', 'help-center-tab'); setIsHelpDropdownOpen(false); }}
                 className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] font-semibold"
               >
                 Show All Commands
@@ -2602,10 +2623,10 @@ ${ioVal}`;
               {/* Editor Playground Dropdown Option with submenus */}
               <div className="relative group/playground px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] flex justify-between items-center">
                 <span>Editor Playground</span>
-                <span className="text-[9px] text-gray-500 group-hover/playground:text-white ml-2">◀</span>
+                <span className="text-[9px] text-gray-500 group-hover/playground:text-white ml-2">▶</span>
                 
-                {/* Submenu A: Editor options card (bright theme) */}
-                <div className="absolute right-full top-0 mr-0.5 hidden group-hover/playground:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[240px] shadow-md rounded-none select-none z-[100] text-left">
+                {/* Submenu A: Editor options card - opens to the RIGHT */}
+                <div className="absolute left-full top-0 ml-0.5 hidden group-hover/playground:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[240px] shadow-md rounded-none select-none z-[100] text-left">
                   <div className="py-0.5">
                     <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/item">
                       <span>Command Palette...</span>
@@ -2622,10 +2643,10 @@ ${ioVal}`;
                     {/* Appearance Submenu */}
                     <div className="relative group/appearance flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
                       <span>Appearance</span>
-                      <span className="text-[9px] text-gray-500 group-hover/appearance:text-white ml-2">◀</span>
+                      <span className="text-[9px] text-gray-500 group-hover/appearance:text-white ml-2">▶</span>
                       
-                      {/* Appearance Options */}
-                      <div className="absolute right-full top-0 mr-0.5 hidden group-hover/appearance:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[200px] shadow-md rounded-none select-none z-[110] text-left">
+                      {/* Appearance Options - opens to the RIGHT */}
+                      <div className="absolute left-full top-0 ml-0.5 hidden group-hover/appearance:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[200px] shadow-md rounded-none select-none z-[110] text-left">
                         <div className="py-0.5">
                           <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/app-item">
                             <span>Toggle Side Bar</span>
@@ -2658,10 +2679,10 @@ ${ioVal}`;
                     {/* Editor Layout Submenu */}
                     <div className="relative group/layout flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">
                       <span>Editor Layout</span>
-                      <span className="text-[9px] text-gray-500 group-hover/layout:text-white ml-2">◀</span>
+                      <span className="text-[9px] text-gray-500 group-hover/layout:text-white ml-2">▶</span>
                       
-                      {/* Submenu B: Split editor options card (bright theme) */}
-                      <div className="absolute right-full top-0 mr-0.5 hidden group-hover/layout:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[240px] shadow-md rounded-none select-none z-[110] text-left">
+                      {/* Submenu B: Split editor options - opens to the RIGHT */}
+                      <div className="absolute left-full top-0 ml-0.5 hidden group-hover/layout:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[240px] shadow-md rounded-none select-none z-[110] text-left">
                         <div className="py-0.5">
                           <div className="flex justify-between items-center px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333] group/layout-item">
                             <span>Split Up</span>
@@ -2799,33 +2820,34 @@ ${ioVal}`;
                   </div>
                 </div>
               </div>
-              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Open Walkthrough...</div>
-              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Provide Feedback</div>
-              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Download Diagnostics</div>
+              <div onClick={() => setIsHelpDropdownOpen(false)} className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Open Walkthrough...</div>
+              <div onClick={() => setIsHelpDropdownOpen(false)} className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Provide Feedback</div>
+              <div onClick={() => setIsHelpDropdownOpen(false)} className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Download Diagnostics</div>
             </div>
             <div className="border-t border-[#e2e2e2] my-0.5"></div>
             <div className="py-0.5">
-              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">View License</div>
+              <div onClick={() => setIsHelpDropdownOpen(false)} className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">View License</div>
             </div>
             <div className="border-t border-[#e2e2e2] my-0.5"></div>
             <div className="py-0.5">
               <div 
-                onClick={() => selectOrOpenTab('DeveloperTools', 'Developer Tools & System Settings', 'dev-tools-tab')}
+                onClick={() => { selectOrOpenTab('DeveloperTools', 'Developer Tools & System Settings', 'dev-tools-tab'); setIsHelpDropdownOpen(false); }}
                 className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]"
               >
                 Toggle Developer Tools
               </div>
-              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Open Process Explorer</div>
+              <div onClick={() => setIsHelpDropdownOpen(false)} className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Open Process Explorer</div>
             </div>
             <div className="border-t border-[#e2e2e2] my-0.5"></div>
             <div className="py-0.5">
-              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Check for Updates...</div>
+              <div onClick={() => setIsHelpDropdownOpen(false)} className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Check for Updates...</div>
             </div>
             <div className="border-t border-[#e2e2e2] my-0.5"></div>
             <div className="py-0.5">
-              <div className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">About</div>
+              <div onClick={() => setIsHelpDropdownOpen(false)} className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">About</div>
             </div>
           </div>
+          )}
         </div>
       </div>
 
