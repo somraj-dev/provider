@@ -4324,7 +4324,7 @@ ${ioVal}`;
                       {/* Demographics upper tab selector */}
                       <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-1 flex justify-between items-center h-[32px]">
                         <div className="flex border-b border-transparent gap-1 text-[10.5px]">
-                          {['Demographics', 'Contacts', 'Clinical', 'Visit History', 'Notes'].map((t) => (
+                          {['Demographics', 'Contacts', 'Clinical', 'Visit History', 'Notes', 'Physician Handoff', 'Care Workflow', 'Quality Measures', 'MyExperience', 'Reports', 'UpToDate', 'AxioCard', 'Protocol Library'].map((t) => (
                             <button
                               key={t}
                               onClick={() => setProfileTab(t)}
@@ -4569,6 +4569,199 @@ ${ioVal}`;
                                   <p className="mt-2 text-gray-800 leading-relaxed text-[10.5px]">
                                     Patient reports good compliance with metformin 500mg BID. BP is controlled at 128/78. Lungs clear, heart regular rhythm. Will monitor HbA1c in 3 months.
                                   </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {profileTab === 'Physician Handoff' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2 flex justify-between items-center">
+                                <h3 className="font-bold text-sm text-[#0f4471]">Physician Handoff (IPASS Summary)</h3>
+                                <span className="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded text-[9.5px]">Shift Change Handoff</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="p-3 bg-blue-50/50 border border-blue-100 rounded space-y-1">
+                                  <div className="font-bold text-blue-900 text-[11px]">Illness Severity</div>
+                                  <p className="text-gray-700">Stable / Monitoring on Floor</p>
+                                </div>
+                                <div className="p-3 bg-green-50/50 border border-green-100 rounded space-y-1">
+                                  <div className="font-bold text-green-900 text-[11px]">Patient Summary</div>
+                                  <p className="text-gray-700">52Y M admitted with Type 2 Diabetes follow-up and mild HTN. Vitals stable.</p>
+                                </div>
+                                <div className="p-3 bg-amber-50/50 border border-amber-100 rounded space-y-1">
+                                  <div className="font-bold text-amber-900 text-[11px]">Action List</div>
+                                  <ul className="list-disc pl-4 space-y-0.5 text-gray-700">
+                                    <li>Re-check blood glucose at 21:00</li>
+                                    <li>Confirm morning fasting lipid panel order</li>
+                                  </ul>
+                                </div>
+                                <div className="p-3 bg-purple-50/50 border border-purple-100 rounded space-y-1">
+                                  <div className="font-bold text-purple-900 text-[11px]">Synthesis by Receiver</div>
+                                  <p className="text-gray-700">Acknowledged by Night On-Call Physician (Dr. R. Sharma).</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {profileTab === 'Care Workflow' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2">
+                                <h3 className="font-bold text-sm text-[#0f4471]">Active Care Pathways & Clinical Workflows</h3>
+                              </div>
+                              <div className="space-y-3">
+                                <div className="border border-gray-200 rounded p-3 bg-gray-50 flex justify-between items-center">
+                                  <div>
+                                    <div className="font-bold text-gray-900">Diabetes Management Pathway</div>
+                                    <div className="text-[10px] text-gray-500">Step 3 of 5: Lifestyle & Glycemic Adjustment</div>
+                                  </div>
+                                  <span className="bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded text-[9.5px]">In Progress (80%)</span>
+                                </div>
+                                <div className="border border-gray-200 rounded p-3 bg-gray-50 flex justify-between items-center">
+                                  <div>
+                                    <div className="font-bold text-gray-900">Hypertension Protocol</div>
+                                    <div className="text-[10px] text-gray-500">Step 2 of 4: Medication Titration Evaluation</div>
+                                  </div>
+                                  <span className="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded text-[9.5px]">Active</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {profileTab === 'Quality Measures' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2">
+                                <h3 className="font-bold text-sm text-[#0f4471]">HEDIS & MIPS Quality Scorecard</h3>
+                              </div>
+                              <div className="grid grid-cols-3 gap-3">
+                                <div className="p-3 border border-gray-200 rounded bg-[#f8fafc] text-center">
+                                  <div className="text-[10px] font-bold text-gray-500">HbA1c Control (&lt; 8.0%)</div>
+                                  <div className="text-lg font-bold text-green-700 mt-1">Met (7.2%)</div>
+                                </div>
+                                <div className="p-3 border border-gray-200 rounded bg-[#f8fafc] text-center">
+                                  <div className="text-[10px] font-bold text-gray-500">BP Control (&lt; 140/90)</div>
+                                  <div className="text-lg font-bold text-green-700 mt-1">Met (128/78)</div>
+                                </div>
+                                <div className="p-3 border border-gray-200 rounded bg-[#f8fafc] text-center">
+                                  <div className="text-[10px] font-bold text-gray-500">Diabetic Eye Exam</div>
+                                  <div className="text-lg font-bold text-amber-600 mt-1">Due Next Month</div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {profileTab === 'MyExperience' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2">
+                                <h3 className="font-bold text-sm text-[#0f4471]">Patient Portal Experience & Engagement</h3>
+                              </div>
+                              <div className="space-y-2 text-[10.5px]">
+                                <div className="flex justify-between border-b border-gray-100 py-1.5">
+                                  <span className="font-medium text-gray-600">Portal Registration Status:</span>
+                                  <span className="font-bold text-green-700">Active / Enrolled</span>
+                                </div>
+                                <div className="flex justify-between border-b border-gray-100 py-1.5">
+                                  <span className="font-medium text-gray-600">Last Portal Login:</span>
+                                  <span className="text-gray-900">Yesterday at 04:12 PM</span>
+                                </div>
+                                <div className="flex justify-between border-b border-gray-100 py-1.5">
+                                  <span className="font-medium text-gray-600">Patient Satisfaction Rating:</span>
+                                  <span className="font-bold text-blue-900">⭐⭐⭐⭐⭐ (5/5)</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {profileTab === 'Reports' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2">
+                                <h3 className="font-bold text-sm text-[#0f4471]">Generated Clinical Reports</h3>
+                              </div>
+                              <table className="w-full text-left border-collapse text-[10.5px]">
+                                <thead>
+                                  <tr className="bg-gray-100 text-gray-700 border-b border-gray-200">
+                                    <th className="p-2">Report Name</th>
+                                    <th className="p-2">Date Generated</th>
+                                    <th className="p-2">Author</th>
+                                    <th className="p-2">Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr className="border-b border-gray-100">
+                                    <td className="p-2 font-semibold text-gray-900">Comprehensive Diabetes Summary</td>
+                                    <td className="p-2 text-gray-600">05/20/2026</td>
+                                    <td className="p-2 text-gray-800">Dr. Herman Stewart</td>
+                                    <td className="p-2"><button className="text-blue-700 font-bold hover:underline">📄 View PDF</button></td>
+                                  </tr>
+                                  <tr className="border-b border-gray-100">
+                                    <td className="p-2 font-semibold text-gray-900">Annual Wellness Report</td>
+                                    <td className="p-2 text-gray-600">01/15/2026</td>
+                                    <td className="p-2 text-gray-800">Dr. Herman Stewart</td>
+                                    <td className="p-2"><button className="text-blue-700 font-bold hover:underline">📄 View PDF</button></td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+
+                          {profileTab === 'UpToDate' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2 flex justify-between items-center">
+                                <h3 className="font-bold text-sm text-[#0f4471]">UpToDate® Decision Support Integration</h3>
+                                <span className="text-[10px] text-gray-500">Connected</span>
+                              </div>
+                              <div className="p-3 bg-blue-50 border border-blue-200 rounded space-y-2">
+                                <div className="font-bold text-blue-900 text-[11px]">Recommended Articles for Current Active Diagnoses</div>
+                                <ul className="list-disc pl-4 space-y-1 text-blue-800 font-medium">
+                                  <li className="hover:underline cursor-pointer">Management of type 2 diabetes mellitus in adults</li>
+                                  <li className="hover:underline cursor-pointer">Choice of antihypertensive therapy in diabetes mellitus</li>
+                                  <li className="hover:underline cursor-pointer">Screening for diabetic nephropathy and retinopathy</li>
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+
+                          {profileTab === 'AxioCard' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2">
+                                <h3 className="font-bold text-sm text-[#0f4471]">AxioCard Emergency Health ID</h3>
+                              </div>
+                              <div className="p-4 bg-gradient-to-r from-[#00305a] to-[#005aa7] text-white rounded-lg shadow-md max-w-sm space-y-3">
+                                <div className="flex justify-between items-center">
+                                  <span className="font-extrabold text-sm tracking-wider">AXIOCARD HEALTH ID</span>
+                                  <span className="text-xs font-mono">ACTIVE</span>
+                                </div>
+                                <div>
+                                  <div className="text-[10px] opacity-80">PATIENT NAME</div>
+                                  <div className="font-bold text-base">JOHN DOE</div>
+                                </div>
+                                <div className="flex justify-between text-[10px]">
+                                  <div>
+                                    <span className="opacity-80">MRN: </span>
+                                    <span className="font-mono font-bold">1000245678</span>
+                                  </div>
+                                  <div>
+                                    <span className="opacity-80">AXIO-ID: </span>
+                                    <span className="font-mono font-bold">AXSL06-WJ281</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {profileTab === 'Protocol Library' && (
+                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
+                              <div className="border-b border-gray-100 pb-2">
+                                <h3 className="font-bold text-sm text-[#0f4471]">Clinical Protocol Library</h3>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="p-3 border border-gray-200 rounded hover:border-blue-400 cursor-pointer bg-gray-50">
+                                  <div className="font-bold text-gray-900">Standard Adult Glycemic Control Protocol</div>
+                                  <div className="text-[10px] text-gray-500 mt-1">Version 4.2 • Updated Jan 2026</div>
+                                </div>
+                                <div className="p-3 border border-gray-200 rounded hover:border-blue-400 cursor-pointer bg-gray-50">
+                                  <div className="font-bold text-gray-900">Hypertension Management Algorithm</div>
+                                  <div className="text-[10px] text-gray-500 mt-1">Version 3.0 • Updated Feb 2026</div>
                                 </div>
                               </div>
                             </div>
