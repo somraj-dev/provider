@@ -3855,12 +3855,12 @@ ${ioVal}`;
                          if (!searchQuery) return true;
                          const query = searchQuery.toLowerCase();
                          return (
-                           row.name.toLowerCase().includes(query) ||
-                           row.mrn.toLowerCase().includes(query) ||
-                           row.uhid.toLowerCase().includes(query) ||
-                           row.physician.toLowerCase().includes(query) ||
-                           row.visit.toLowerCase().includes(query) ||
-                           row.dept.toLowerCase().includes(query)
+                           (row as any).name?.toLowerCase().includes(query) ||
+                           (row as any).mrn?.toLowerCase().includes(query) ||
+                           ((row as any).uhid || '').toLowerCase().includes(query) ||
+                           (row as any).physician?.toLowerCase().includes(query) ||
+                           (row as any).visit?.toLowerCase().includes(query) ||
+                           (row as any).dept?.toLowerCase().includes(query)
                          );
                        }).map((row, index) => (
                         <tr 
@@ -3881,7 +3881,7 @@ ${ioVal}`;
                           }`}
                         >
                           <td className="p-2.5 border-r border-gray-200">{row.mrn}</td>
-                          <td className={`p-2.5 border-r border-gray-200 font-medium ${selectedPatientMrns.includes(row.mrn) ? 'text-blue-150' : 'text-gray-500'}`}>{row.uhid}</td>
+                          <td className={`p-2.5 border-r border-gray-200 font-medium ${selectedPatientMrns.includes(row.mrn) ? 'text-blue-150' : 'text-gray-500'}`}>{(row as any).uhid}</td>
                           <td 
                             className={`p-2.5 border-r border-gray-200 font-bold cursor-pointer hover:underline ${selectedPatientMrns.includes(row.mrn) ? 'text-white' : 'text-[#0d7a86]'}`} 
                             onClick={(e) => {
@@ -3901,23 +3901,23 @@ ${ioVal}`;
                           >
                             {row.name}
                           </td>
-                          <td className="p-2.5 border-r border-gray-200">{row.ageGender}</td>
+                          <td className="p-2.5 border-r border-gray-200">{(row as any).ageGender}</td>
                           <td className="p-2.5 border-r border-gray-200">{row.dob}</td>
-                          <td className="p-2.5 border-r border-gray-200">{row.phone}</td>
-                          <td className="p-2.5 border-r border-gray-200">{row.visit}</td>
-                          <td className="p-2.5 border-r border-gray-200">{row.dept}</td>
-                          <td className="p-2.5 border-r border-gray-200">{row.physician}</td>
+                          <td className="p-2.5 border-r border-gray-200">{(row as any).phone}</td>
+                          <td className="p-2.5 border-r border-gray-200">{(row as any).visit}</td>
+                          <td className="p-2.5 border-r border-gray-200">{(row as any).dept}</td>
+                          <td className="p-2.5 border-r border-gray-200">{(row as any).physician}</td>
                           <td className="p-2.5 border-r border-gray-200">
                             <span className={`px-2 py-0.5 rounded-sm font-semibold text-[9px] ${
                               selectedPatientMrns.includes(row.mrn) 
                                 ? 'bg-white/20 text-white' 
-                                : row.statusBg
+                                : (row as any).statusBg
                             }`}>
-                              {row.status}
+                              {(row as any).status}
                             </span>
                           </td>
-                          <td className="p-2.5 border-r border-gray-200">{row.location}</td>
-                          <td className={`p-2.5 border-r border-gray-200 ${selectedPatientMrns.includes(row.mrn) ? 'text-blue-150' : 'text-gray-500'}`}>{row.admitted}</td>
+                          <td className="p-2.5 border-r border-gray-200">{(row as any).location}</td>
+                          <td className={`p-2.5 border-r border-gray-200 ${selectedPatientMrns.includes(row.mrn) ? 'text-blue-150' : 'text-gray-500'}`}>{(row as any).admitted}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -5986,11 +5986,11 @@ No qualifying data available.`;
                     <div className="flex items-center gap-6">
                       <span className="font-bold text-sm tracking-wide">{patient.name.toUpperCase()}</span>
                       <span>DOB: {patient.dob}</span>
-                      <span>Age: {patient.ageGender.split(' / ')[0]}</span>
+                      <span>Age: {((patient as any).ageGender || (patient as any).age || '').split(' / ')[0]}</span>
                       <span>Dose Wt: 80.200 kg (07/24/2017)</span>
-                      <span>Sex: {patient.ageGender.split(' / ')[1]}</span>
+                      <span>Sex: {((patient as any).ageGender || '').split(' / ')[1] || (patient as any).gender || 'Male'}</span>
                       <span>MRN: {patient.mrn}</span>
-                      <span>Attending: {patient.physician}</span>
+                      <span>Attending: {(patient as any).physician || (patient as any).admittingPhysician}</span>
                     </div>
                     <div className="flex items-center gap-3">
                     </div>
@@ -5998,7 +5998,7 @@ No qualifying data available.`;
                   <div className="flex items-center justify-between border-t border-[#115b8d] mt-1 pt-1 text-[9.5px] text-[#bde0f5]">
                     <div className="flex items-center gap-4">
                       <span>FIN: 1200290664</span>
-                      <span>Admit: {patient.admitted}</span>
+                      <span>Admit: {(patient as any).admitted || (patient as any).admittedRequested}</span>
                       <span>Disch: &lt;None&gt;</span>
                     </div>
                   </div>
