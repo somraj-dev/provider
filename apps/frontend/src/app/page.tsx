@@ -1324,10 +1324,10 @@ ${ioVal}`;
         filtered = filtered.filter(p => p.dob.includes(psBirthDate));
       }
       if (psPhoneNumber) {
-        filtered = filtered.filter(p => p.phone.includes(psPhoneNumber));
+        filtered = filtered.filter(p => ((p as any).phone || '').includes(psPhoneNumber));
       }
       if (psPersonIdentifier) {
-        filtered = filtered.filter(p => p.mrn.includes(psPersonIdentifier) || p.uhid.includes(psPersonIdentifier));
+        filtered = filtered.filter(p => p.mrn.includes(psPersonIdentifier) || ((p as any).uhid || '').includes(psPersonIdentifier));
       }
     }
     
