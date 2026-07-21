@@ -4278,6 +4278,7 @@ ${ioVal}`;
                           { name: 'Interactive View and I&O' },
                           { name: 'MAR Summary' },
                           { name: 'Medication List' },
+                          { name: 'Insurance' },
                           { name: 'Recommendations' },
                           { name: 'Smart App Validator' },
                           { name: 'mTuitive - OpNote Test - IE' },
@@ -4295,7 +4296,7 @@ ${ioVal}`;
                             <div 
                               key={idx}
                               onClick={() => {
-                                if (item.name === 'Provider View' || item.name === 'Op Note - Prod - Edge' || item.name === 'Orders' || item.name === 'Documentation' || item.name === 'Histories') {
+                                if (item.name === 'Provider View' || item.name === 'Op Note - Prod - Edge' || item.name === 'Orders' || item.name === 'Documentation' || item.name === 'Histories' || item.name === 'Insurance') {
                                   setProfileSidebarOption(item.name);
                                   if (item.name === 'Orders') {
                                     setIsDetailedOrderActive(false);
@@ -4475,11 +4476,6 @@ ${ioVal}`;
                                   <span className="text-[11px]">Additional Information</span>
                                 </div>
                                 <div className="p-3 grid grid-cols-[150px_1fr] gap-x-2 gap-y-2.5 text-gray-700 text-[10.5px]">
-                                  <span className="text-gray-500 font-medium">Insurance / Coverage</span>
-                                  <span className="text-gray-900">{editPrimaryInsurance}</span>
-
-                                  <span className="text-gray-500 font-medium">Insurance ID</span>
-                                  <span className="text-gray-900">{editInsuranceId}</span>
                                 </div>
                               </div>
                             </div>
@@ -5105,6 +5101,52 @@ ${ioVal}`;
                         </div>
                       </div>
                     </div>
+                  ) : profileSidebarOption === 'Insurance' ? (
+                    <div className="flex-1 bg-[#f0f4f8] flex flex-col overflow-hidden text-[10.5px]">
+                      {/* Main content area */}
+                      <div className="flex-1 p-4 overflow-auto">
+                        {/* Insurances list table matching image */}
+                        <div className="bg-white border border-gray-300 rounded shadow-2xs">
+                          <div className="bg-[#005a94] text-white font-bold px-3 py-1.5 text-[11px]">
+                            Insurance Coverage details
+                          </div>
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-gray-100 text-gray-700 border-b border-gray-300 font-bold">
+                                <th className="p-2 border-r border-gray-200">Plan Name</th>
+                                <th className="p-2 border-r border-gray-200">Policy Number</th>
+                                <th className="p-2 border-r border-gray-200">Group ID</th>
+                                <th className="p-2 border-r border-gray-200">Coverage Window</th>
+                                <th className="p-2">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">Blue Cross Blue Shield (BCBS) PPO</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">BCB-9988221A</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">TX-GRP-89</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-600">01/01/2026 - 12/31/2026</td>
+                                <td className="p-2"><span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Active</span></td>
+                              </tr>
+                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">Aetna Choice POS II</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">AET-7711202B</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">AE-POS-04</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-600">06/01/2026 - 05/31/2027</td>
+                                <td className="p-2"><span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Active</span></td>
+                              </tr>
+                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
+                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">UnitedHealthcare (UHC) Choice</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">UHC-1009945F</td>
+                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">UH-CORP-01</td>
+                                <td className="p-2 border-r border-gray-200 text-gray-600">01/01/2025 - 12/31/2025</td>
+                                <td className="p-2"><span className="bg-red-100 text-red-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Expired</span></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
                   ) : profileSidebarOption === 'Documentation' ? (
                     <div className="flex-1 bg-white flex flex-col overflow-hidden text-[10.5px]">
                       {/* Action Toolbar */}
@@ -5373,7 +5415,7 @@ ${ioVal}`;
                 </div>
                 <div className="py-1">
                   <button className="w-full text-left px-3 py-1.5 bg-[#007cc0] text-white font-bold">Demographics</button>
-                  {['Insurance', 'Contacts', 'Clinical Chart', 'Allergies', 'Medications', 'Problems', 'Documents', 'Images', 'Lab Results', 'Immunizations', 'Vitals', 'Care Plans', 'Notes', 'Export Data', 'Backup', 'Audit Trail', 'Exit'].map((opt) => (
+                  {['Contacts', 'Clinical Chart', 'Allergies', 'Medications', 'Problems', 'Documents', 'Images', 'Lab Results', 'Immunizations', 'Vitals', 'Care Plans', 'Notes', 'Export Data', 'Backup', 'Audit Trail', 'Exit'].map((opt) => (
                     <button key={opt} className="w-full text-left px-3 py-1.5 hover:bg-[#cbd8e3]/50 text-gray-700 transition-colors">
                       {opt}
                     </button>
@@ -5545,25 +5587,6 @@ ${ioVal}`;
                           <option>Indian</option>
                           <option>British</option>
                         </select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-gray-500 font-bold">Primary Insurance</label>
-                        <select 
-                          value={editPrimaryInsurance} 
-                          onChange={(e) => setEditPrimaryInsurance(e.target.value)} 
-                          className="w-full bg-white border border-[#bdcddc] rounded px-2 py-1 text-[10px] focus:outline-none"
-                        >
-                          <option>Blue Cross / Blue Shield</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-gray-500 font-bold">Insurance ID</label>
-                        <input 
-                          type="text" 
-                          value={editInsuranceId} 
-                          onChange={(e) => setEditInsuranceId(e.target.value)} 
-                          className="w-full bg-white border border-[#bdcddc] rounded px-2 py-1 text-[10px] focus:outline-none"
-                        />
                       </div>
 
                       <div className="space-y-1 col-span-2">
