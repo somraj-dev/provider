@@ -4324,7 +4324,7 @@ ${ioVal}`;
                       {/* Demographics upper tab selector */}
                       <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-1 flex justify-between items-center h-[32px]">
                         <div className="flex border-b border-transparent gap-1 text-[10.5px]">
-                          {['Demographics', 'Contacts', 'Clinical', 'Visit History', 'Notes', 'Physician Handoff', 'Care Workflow', 'Quality Measures', 'MyExperience', 'Reports', 'UpToDate', 'AxioCard', 'Protocol Library'].map((t) => (
+                          {['Demographics', 'Contacts', 'Clinical', 'Visit History', 'Notes', 'Physician Handoff', 'Care Workflow', 'Quality Measures', 'Customised', 'Reports', 'UpToDate', 'AxioCard', 'Protocol Library'].map((t) => (
                             <button
                               key={t}
                               onClick={() => setProfileTab(t)}
@@ -4650,7 +4650,7 @@ ${ioVal}`;
                             </div>
                           )}
 
-                          {profileTab === 'MyExperience' && (
+                          {profileTab === 'Customised' && (
                             <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
                               <div className="border-b border-gray-100 pb-2">
                                 <h3 className="font-bold text-sm text-[#0f4471]">Patient Portal Experience & Engagement</h3>
