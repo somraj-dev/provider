@@ -1306,12 +1306,12 @@ ${ioVal}`;
     
     // Search by method
     if (psSearchMethod === 'AxioID' && psAxioId) {
-      filtered = filtered.filter(p => p.uhid.toLowerCase().includes(psAxioId.toLowerCase()));
+      filtered = filtered.filter(p => ((p as any).uhid || '').toLowerCase().includes(psAxioId.toLowerCase()));
     } else if (psSearchMethod === 'TokenNumber' && psTokenNumber) {
       // Token number maps to MRN in this context
       filtered = filtered.filter(p => p.mrn.includes(psTokenNumber));
     } else if (psSearchMethod === 'MRN' && psPersonIdentifier) {
-      filtered = filtered.filter(p => p.mrn.includes(psPersonIdentifier) || p.uhid.includes(psPersonIdentifier));
+      filtered = filtered.filter(p => p.mrn.includes(psPersonIdentifier) || ((p as any).uhid || '').includes(psPersonIdentifier));
     } else {
       // Default Name-based search
       if (psLastName) {
@@ -4278,7 +4278,6 @@ ${ioVal}`;
                           { name: 'Interactive View and I&O' },
                           { name: 'MAR Summary' },
                           { name: 'Medication List' },
-                          { name: 'Insurance' },
                           { name: 'Recommendations' },
                           { name: 'Smart App Validator' },
                           { name: 'mTuitive - OpNote Test - IE' },
@@ -4296,7 +4295,7 @@ ${ioVal}`;
                             <div 
                               key={idx}
                               onClick={() => {
-                                if (item.name === 'Provider View' || item.name === 'Op Note - Prod - Edge' || item.name === 'Orders' || item.name === 'Documentation' || item.name === 'Histories' || item.name === 'Insurance') {
+                                if (item.name === 'Provider View' || item.name === 'Op Note - Prod - Edge' || item.name === 'Orders' || item.name === 'Documentation' || item.name === 'Histories') {
                                   setProfileSidebarOption(item.name);
                                   if (item.name === 'Orders') {
                                     setIsDetailedOrderActive(false);
@@ -4324,7 +4323,7 @@ ${ioVal}`;
                       {/* Demographics upper tab selector */}
                       <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-1 flex justify-between items-center h-[32px]">
                         <div className="flex border-b border-transparent gap-1 text-[10.5px]">
-                          {['Demographics', 'Insurance', 'Contacts', 'Clinical', 'Visit History', 'Notes'].map((t) => (
+                          {['Demographics', 'Contacts', 'Clinical', 'Visit History', 'Notes'].map((t) => (
                             <button
                               key={t}
                               onClick={() => setProfileTab(t)}
@@ -4486,26 +4485,7 @@ ${ioVal}`;
                             </div>
                           )}
 
-                          {profileTab === 'Insurance' && (
-                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
-                              <div className="border-b border-gray-100 pb-2">
-                                <h3 className="font-bold text-sm text-[#0f4471]">Insurance Details</h3>
-                              </div>
-                              <div className="grid grid-cols-[150px_1fr] gap-y-3">
-                                <span className="text-gray-500 font-medium">Primary Insurer:</span>
-                                <span className="font-semibold text-gray-900">{editPrimaryInsurance}</span>
-                                
-                                <span className="text-gray-500 font-medium">Policy ID:</span>
-                                <span className="text-gray-900">{editInsuranceId}</span>
-                                
-                                <span className="text-gray-500 font-medium">Group Number:</span>
-                                <span className="text-gray-900">BCBS123456</span>
-                                
-                                <span className="text-gray-500 font-medium">Coverage Status:</span>
-                                <span className="font-bold text-green-700">Active / Verified</span>
-                              </div>
-                            </div>
-                          )}
+
 
                           {profileTab === 'Contacts' && (
                             <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
@@ -5119,79 +5099,6 @@ ${ioVal}`;
                                 <td className="p-2 border-r border-gray-200 font-medium text-gray-800">Dr. R. Sharma</td>
                                 <td className="p-2 border-r border-gray-200 text-gray-600">Annual wellness exam & labs</td>
                                 <td className="p-2"><span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Completed</span></td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  ) : profileSidebarOption === 'Insurance' ? (
-                    <div className="flex-1 bg-[#f0f4f8] flex flex-col overflow-hidden text-[10.5px]">
-                      {/* Header Ribbon */}
-                      <div className="bg-white border-b border-gray-300 px-4 py-2 flex justify-between items-center h-[34px]">
-                        <span className="font-bold text-[#002a46] text-xs">Insurance Coverage Details</span>
-                        <div className="flex items-center gap-2">
-                          <button className="bg-white hover:bg-gray-50 border border-gray-300 rounded px-2 py-0.5 font-semibold text-gray-700">➕ Add New Insurance</button>
-                        </div>
-                      </div>
-
-                      {/* Main content area */}
-                      <div className="flex-1 p-4 overflow-auto space-y-4">
-                        {/* Summary Status Cards */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white border border-gray-300 rounded p-3 flex items-center justify-between shadow-2xs">
-                            <div>
-                              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Active Insurance Plans</div>
-                              <div className="text-xl font-extrabold text-green-700 mt-0.5">2 Plans</div>
-                            </div>
-                            <span className="text-2xl text-green-500 bg-green-50 rounded-full w-10 h-10 inline-flex items-center justify-center">✓</span>
-                          </div>
-                          
-                          <div className="bg-white border border-gray-300 rounded p-3 flex items-center justify-between shadow-2xs">
-                            <div>
-                              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Expired Insurance Plans</div>
-                              <div className="text-xl font-extrabold text-red-600 mt-0.5">1 Plan</div>
-                            </div>
-                            <span className="text-2xl text-red-500 bg-red-50 rounded-full w-10 h-10 inline-flex items-center justify-center">❌</span>
-                          </div>
-                        </div>
-
-                        {/* Insurances list table */}
-                        <div className="bg-white border border-gray-300 rounded shadow-2xs">
-                          <div className="bg-[#005a94] text-white font-bold px-3 py-1.5 text-[11px]">
-                            Insurance Coverage details
-                          </div>
-                          <table className="w-full text-left border-collapse">
-                            <thead>
-                              <tr className="bg-gray-100 text-gray-700 border-b border-gray-300 font-bold">
-                                <th className="p-2 border-r border-gray-200">Plan Name</th>
-                                <th className="p-2 border-r border-gray-200">Policy Number</th>
-                                <th className="p-2 border-r border-gray-200">Group ID</th>
-                                <th className="p-2 border-r border-gray-200">Coverage Window</th>
-                                <th className="p-2">Status</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
-                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">Blue Cross Blue Shield (BCBS) PPO</td>
-                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">BCB-9988221A</td>
-                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">TX-GRP-89</td>
-                                <td className="p-2 border-r border-gray-200 text-gray-600">01/01/2026 - 12/31/2026</td>
-                                <td className="p-2"><span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Active</span></td>
-                              </tr>
-                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
-                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">Aetna Choice POS II</td>
-                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">AET-7711202B</td>
-                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">AE-POS-04</td>
-                                <td className="p-2 border-r border-gray-200 text-gray-600">06/01/2026 - 05/31/2027</td>
-                                <td className="p-2"><span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Active</span></td>
-                              </tr>
-                              <tr className="border-b border-gray-200 hover:bg-gray-50/50">
-                                <td className="p-2 border-r border-gray-200 font-medium text-gray-900">UnitedHealthcare (UHC) Choice</td>
-                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">UHC-1009945F</td>
-                                <td className="p-2 border-r border-gray-200 font-mono text-gray-800">UH-CORP-01</td>
-                                <td className="p-2 border-r border-gray-200 text-gray-600">01/01/2025 - 12/31/2025</td>
-                                <td className="p-2"><span className="bg-red-100 text-red-800 px-1.5 py-0.5 rounded-sm font-bold text-[9px]">Expired</span></td>
                               </tr>
                             </tbody>
                           </table>
