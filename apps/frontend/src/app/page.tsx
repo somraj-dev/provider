@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -32,7 +32,7 @@ import {
 interface TabItem {
   id: string;
   title: string;
-  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs' | 'BillingReceipt';
+  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs' | 'BillingReceipt' | 'Customised';
 }
 
 const CHART_OPTIONS = [
@@ -584,6 +584,8 @@ ${ioVal}`;
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub]);
+
+  const [showConversationLauncher, setShowConversationLauncher] = React.useState(false);
 
   // Edit Patient Form State matching John Doe credentials
   const [editLastName, setEditLastName] = useState('Doe');
@@ -1261,9 +1263,19 @@ ${ioVal}`;
         e.preventDefault();
         selectOrOpenTabRef.current('DeveloperTools', 'Developer Tools & System Settings', 'dev-tools-tab');
       }
+      // Ctrl+Q -> Toggle Conversation Launcher
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'q' || e.key === 'Q')) {
+        e.preventDefault();
+        setShowConversationLauncher(prev => !prev);
+      }
       // ESC → Cancel / Close the topmost open modal or context menu
       if (e.key === 'Escape') {
         e.preventDefault();
+        // Close Conversation Launcher
+        if (showConversationLauncher) {
+          setShowConversationLauncher(false);
+          return;
+        }
         // Close context menu first
         setPsContextMenu(prev => ({ ...prev, visible: false }));
         // Close Person Search modal
@@ -2849,6 +2861,15 @@ ${ioVal}`;
           </div>
           )}
         </div>
+        
+        {/* Modifying 3-dots (Right Side) */}
+        <div className="ml-auto flex items-center pr-1">
+          <div className="flex flex-col gap-[2px] cursor-pointer hover:bg-[#dbe6ef] p-1.5 rounded transition-colors" title="Customize Menu Bar">
+            <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
+            <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
+            <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
+          </div>
+        </div>
       </div>
 
       {/* Classic Toolbar Buttons (Ribbon 1) */}
@@ -2868,11 +2889,20 @@ ${ioVal}`;
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Physician Handoff</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Care Workflow</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Quality Measures</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Customised</button>
+        <button onClick={() => selectOrOpenTab('Customised', 'Customised Organizer', 'customised-tab')} className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Customised</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Reports</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">UpToDate</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">AxioCard</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Protocol Library</button>
+
+        {/* Modifying 3-dots (Right Side) */}
+        <div className="ml-auto flex items-center pr-1">
+          <div className="flex flex-col gap-[2px] cursor-pointer hover:bg-gray-200 p-1.5 rounded transition-colors" title="Customize Toolbar">
+            <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
+            <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
+            <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
+          </div>
+        </div>
       </div>
 
       {/* Navigation Shortcut Row (Ribbon 2) */}
@@ -2912,6 +2942,15 @@ ${ioVal}`;
         >
           Analytics
         </button>
+
+        {/* Modifying 3-dots (Right Side) */}
+        <div className="ml-auto flex items-center pr-1">
+          <div className="flex flex-col gap-[2px] cursor-pointer hover:bg-gray-200 p-1.5 rounded transition-colors" title="Customize Shortcut Row">
+            <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
+            <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
+            <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
+          </div>
+        </div>
       </div>
 
       {/* Blue Header Banner */}
@@ -3526,6 +3565,84 @@ ${ioVal}`;
                   </div>
                 </>
               )}
+            </div>
+          )}
+
+          {activeTab.type === 'Customised' && (
+            <div className="flex-1 flex flex-col h-full bg-white font-sans text-black overflow-hidden" style={{ fontFamily: 'Tahoma, "Segoe UI", sans-serif' }}>
+              {/* Tertiary Icon Toolbar */}
+              <div className="h-[28px] bg-white border-b border-[#e0e0e0] flex items-center px-2 gap-2 text-[11px] text-gray-700">
+                <span className="cursor-pointer hover:bg-[#e5f1fb] p-0.5 border border-transparent hover:border-[#99c8e9] rounded-sm">🔍</span>
+                <span className="cursor-pointer hover:bg-[#e5f1fb] p-0.5 border border-transparent hover:border-[#99c8e9] rounded-sm">📑</span>
+                <div className="h-4 w-px bg-gray-300 mx-1"></div>
+                <span className="cursor-pointer hover:bg-[#e5f1fb] p-0.5 border border-transparent hover:border-[#99c8e9] rounded-sm">↖</span>
+                <span className="cursor-pointer hover:bg-[#e5f1fb] p-0.5 border border-transparent hover:border-[#99c8e9] rounded-sm">🔍</span>
+                <span className="cursor-pointer hover:bg-[#e5f1fb] p-0.5 border border-transparent hover:border-[#99c8e9] rounded-sm">100% ▾</span>
+                <div className="h-4 w-px bg-gray-300 mx-1"></div>
+                <span className="cursor-pointer hover:bg-[#e5f1fb] p-0.5 border border-transparent hover:border-[#99c8e9] rounded-sm text-gray-400">●</span>
+                <span className="cursor-pointer hover:bg-[#e5f1fb] p-0.5 border border-transparent hover:border-[#99c8e9] rounded-sm text-orange-500">🏠</span>
+              </div>
+
+              {/* Main Content Area */}
+              <div className="flex flex-1 bg-white overflow-hidden m-2 border border-[#828790]">
+                {/* Left Pane */}
+                <div className="w-[280px] border-r border-[#828790] flex flex-col bg-white">
+                  <div className="p-4">
+                    <h3 className="font-bold text-[13px] text-[#003366] mb-4 font-sans tracking-wide">My Default Organizer View</h3>
+                    <div className="flex flex-col gap-1.5 pl-2">
+                      {['Message Centre', 'Patient Overview', 'Ambulatory Organizer', 'MyExperience', 'Patient List', 'Dynamic Worklist', 'LearningLIVE'].map((item, i) => (
+                        <label key={i} className="flex items-center gap-1.5 cursor-pointer text-[12px] text-black">
+                          <input type="radio" name="default_organizer" defaultChecked={item === 'Message Centre'} className="w-3.5 h-3.5 m-0 p-0 accent-blue-600" />
+                          <span className="leading-none pt-px">{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* Right Pane */}
+                <div className="flex-1 flex flex-col overflow-hidden bg-white">
+                  <div className="p-4 flex flex-col h-full">
+                    <h3 className="font-bold text-[13px] text-[#003366] mb-3 font-sans tracking-wide">My MPages Selection</h3>
+                    <div className="mb-3 text-[12px] text-black space-y-1">
+                      <div>For Tab: Provider View</div>
+                      <div>For Role: Provider</div>
+                    </div>
+                    <div className="flex flex-col gap-1.5 pl-2 flex-1 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
+                      {[
+                        'Anesthesiologist Workflow', 'Cardiology Workflow', 'Critical Care Workflow',
+                        'Dermatology Workflow', 'Endocrinology Workflow', 'Gastroenterology Workflow',
+                        'General Medicine Workflow', 'General Surgery Workflow', 'Gerontology Workflow',
+                        'Infectious Disease Workflow', 'Laboratory Medicine Workflow', 'Medical Microbiologist Workflow',
+                        'Mental Health Workflow', 'Nephrology Workflow', 'Neurology Workflow',
+                        'Neurosurgery Workflow', 'Oncology Workflow', 'Ophthalmology Workflow',
+                        'Oral and Maxillofacial Surgery Workflow'
+                      ].map((item, i) => (
+                        <label key={i} className="flex items-center gap-1.5 cursor-pointer text-[12px] text-black">
+                          <input type="radio" name="mpages_selection" defaultChecked={item === 'General Medicine Workflow'} className="w-3.5 h-3.5 m-0 p-0 accent-blue-600" />
+                          <span className="leading-none pt-px">{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Bottom Action Bar */}
+              <div className="flex justify-between items-center px-4 pb-3 pt-1">
+                {/* Info Icon */}
+                <div className="w-[20px] h-[20px] bg-[#0055d4] rounded-full flex items-center justify-center text-white font-serif font-bold italic text-[13px] shadow-[inset_1px_1px_2px_rgba(255,255,255,0.6)] cursor-help border border-[#003366]" title="Information">
+                  i
+                </div>
+                {/* Buttons */}
+                <div className="flex gap-2">
+                  <button className="bg-gradient-to-b from-[#f5f5f5] to-[#e1e1e1] hover:from-[#e5f1fb] hover:to-[#cce4f7] border border-[#adadad] hover:border-[#0078d7] px-6 min-w-[85px] h-[26px] flex items-center justify-center text-[12px] text-black shadow-[inset_1px_1px_0_rgba(255,255,255,0.8)] active:bg-[#cce4f7] active:shadow-[inset_1px_1px_2px_rgba(0,0,0,0.2)] outline-none focus:border-[#0078d7] rounded-[2px]">
+                    Reset
+                  </button>
+                  <button className="bg-gradient-to-b from-[#f5f5f5] to-[#e1e1e1] hover:from-[#e5f1fb] hover:to-[#cce4f7] border border-[#adadad] hover:border-[#0078d7] px-6 min-w-[85px] h-[26px] flex items-center justify-center text-[12px] text-black shadow-[inset_1px_1px_0_rgba(255,255,255,0.8)] active:bg-[#cce4f7] active:shadow-[inset_1px_1px_2px_rgba(0,0,0,0.2)] outline-none focus:border-[#0078d7] rounded-[2px]">
+                    Save
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -4324,7 +4441,7 @@ ${ioVal}`;
                       {/* Demographics upper tab selector */}
                       <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-1 flex justify-between items-center h-[32px]">
                         <div className="flex border-b border-transparent gap-1 text-[10.5px]">
-                          {['Demographics', 'Contacts', 'Clinical', 'Visit History', 'Notes', 'Physician Handoff', 'Care Workflow', 'Quality Measures', 'Customised', 'Reports', 'UpToDate', 'AxioCard'].map((t) => (
+                          {['Demographics', 'Contacts', 'Clinical', 'Visit History', 'Notes'].map((t) => (
                             <button
                               key={t}
                               onClick={() => setProfileTab(t)}
@@ -4342,7 +4459,7 @@ ${ioVal}`;
 
                       <div className="flex flex-1 overflow-hidden">
                         {/* Left Column: Demographics Cards Workspace */}
-                        <div className="flex-1 bg-white flex flex-col overflow-auto text-[10.5px] p-4 space-y-4">
+                        <div className="flex-1 flex flex-col overflow-auto text-[10.5px] bg-white p-4 space-y-4">
                           {profileTab === 'Demographics' && (
                             <div className="grid grid-cols-2 gap-4">
                               {/* Panel 1: Personal Information */}
@@ -4574,180 +4691,10 @@ ${ioVal}`;
                             </div>
                           )}
 
-                          {profileTab === 'Physician Handoff' && (
-                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
-                              <div className="border-b border-gray-100 pb-2 flex justify-between items-center">
-                                <h3 className="font-bold text-sm text-[#0f4471]">Physician Handoff (IPASS Summary)</h3>
-                                <span className="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded text-[9.5px]">Shift Change Handoff</span>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="p-3 bg-blue-50/50 border border-blue-100 rounded space-y-1">
-                                  <div className="font-bold text-blue-900 text-[11px]">Illness Severity</div>
-                                  <p className="text-gray-700">Stable / Monitoring on Floor</p>
-                                </div>
-                                <div className="p-3 bg-green-50/50 border border-green-100 rounded space-y-1">
-                                  <div className="font-bold text-green-900 text-[11px]">Patient Summary</div>
-                                  <p className="text-gray-700">52Y M admitted with Type 2 Diabetes follow-up and mild HTN. Vitals stable.</p>
-                                </div>
-                                <div className="p-3 bg-amber-50/50 border border-amber-100 rounded space-y-1">
-                                  <div className="font-bold text-amber-900 text-[11px]">Action List</div>
-                                  <ul className="list-disc pl-4 space-y-0.5 text-gray-700">
-                                    <li>Re-check blood glucose at 21:00</li>
-                                    <li>Confirm morning fasting lipid panel order</li>
-                                  </ul>
-                                </div>
-                                <div className="p-3 bg-purple-50/50 border border-purple-100 rounded space-y-1">
-                                  <div className="font-bold text-purple-900 text-[11px]">Synthesis by Receiver</div>
-                                  <p className="text-gray-700">Acknowledged by Night On-Call Physician (Dr. R. Sharma).</p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
 
-                          {profileTab === 'Care Workflow' && (
-                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
-                              <div className="border-b border-gray-100 pb-2">
-                                <h3 className="font-bold text-sm text-[#0f4471]">Active Care Pathways & Clinical Workflows</h3>
-                              </div>
-                              <div className="space-y-3">
-                                <div className="border border-gray-200 rounded p-3 bg-gray-50 flex justify-between items-center">
-                                  <div>
-                                    <div className="font-bold text-gray-900">Diabetes Management Pathway</div>
-                                    <div className="text-[10px] text-gray-500">Step 3 of 5: Lifestyle & Glycemic Adjustment</div>
-                                  </div>
-                                  <span className="bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded text-[9.5px]">In Progress (80%)</span>
-                                </div>
-                                <div className="border border-gray-200 rounded p-3 bg-gray-50 flex justify-between items-center">
-                                  <div>
-                                    <div className="font-bold text-gray-900">Hypertension Protocol</div>
-                                    <div className="text-[10px] text-gray-500">Step 2 of 4: Medication Titration Evaluation</div>
-                                  </div>
-                                  <span className="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded text-[9.5px]">Active</span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
 
-                          {profileTab === 'Quality Measures' && (
-                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
-                              <div className="border-b border-gray-100 pb-2">
-                                <h3 className="font-bold text-sm text-[#0f4471]">HEDIS & MIPS Quality Scorecard</h3>
-                              </div>
-                              <div className="grid grid-cols-3 gap-3">
-                                <div className="p-3 border border-gray-200 rounded bg-[#f8fafc] text-center">
-                                  <div className="text-[10px] font-bold text-gray-500">HbA1c Control (&lt; 8.0%)</div>
-                                  <div className="text-lg font-bold text-green-700 mt-1">Met (7.2%)</div>
-                                </div>
-                                <div className="p-3 border border-gray-200 rounded bg-[#f8fafc] text-center">
-                                  <div className="text-[10px] font-bold text-gray-500">BP Control (&lt; 140/90)</div>
-                                  <div className="text-lg font-bold text-green-700 mt-1">Met (128/78)</div>
-                                </div>
-                                <div className="p-3 border border-gray-200 rounded bg-[#f8fafc] text-center">
-                                  <div className="text-[10px] font-bold text-gray-500">Diabetic Eye Exam</div>
-                                  <div className="text-lg font-bold text-amber-600 mt-1">Due Next Month</div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
 
-                          {profileTab === 'Customised' && (
-                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
-                              <div className="border-b border-gray-100 pb-2">
-                                <h3 className="font-bold text-sm text-[#0f4471]">Patient Portal Experience & Engagement</h3>
-                              </div>
-                              <div className="space-y-2 text-[10.5px]">
-                                <div className="flex justify-between border-b border-gray-100 py-1.5">
-                                  <span className="font-medium text-gray-600">Portal Registration Status:</span>
-                                  <span className="font-bold text-green-700">Active / Enrolled</span>
-                                </div>
-                                <div className="flex justify-between border-b border-gray-100 py-1.5">
-                                  <span className="font-medium text-gray-600">Last Portal Login:</span>
-                                  <span className="text-gray-900">Yesterday at 04:12 PM</span>
-                                </div>
-                                <div className="flex justify-between border-b border-gray-100 py-1.5">
-                                  <span className="font-medium text-gray-600">Patient Satisfaction Rating:</span>
-                                  <span className="font-bold text-blue-900">⭐⭐⭐⭐⭐ (5/5)</span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
 
-                          {profileTab === 'Reports' && (
-                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
-                              <div className="border-b border-gray-100 pb-2">
-                                <h3 className="font-bold text-sm text-[#0f4471]">Generated Clinical Reports</h3>
-                              </div>
-                              <table className="w-full text-left border-collapse text-[10.5px]">
-                                <thead>
-                                  <tr className="bg-gray-100 text-gray-700 border-b border-gray-200">
-                                    <th className="p-2">Report Name</th>
-                                    <th className="p-2">Date Generated</th>
-                                    <th className="p-2">Author</th>
-                                    <th className="p-2">Action</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr className="border-b border-gray-100">
-                                    <td className="p-2 font-semibold text-gray-900">Comprehensive Diabetes Summary</td>
-                                    <td className="p-2 text-gray-600">05/20/2026</td>
-                                    <td className="p-2 text-gray-800">Dr. Herman Stewart</td>
-                                    <td className="p-2"><button className="text-blue-700 font-bold hover:underline">📄 View PDF</button></td>
-                                  </tr>
-                                  <tr className="border-b border-gray-100">
-                                    <td className="p-2 font-semibold text-gray-900">Annual Wellness Report</td>
-                                    <td className="p-2 text-gray-600">01/15/2026</td>
-                                    <td className="p-2 text-gray-800">Dr. Herman Stewart</td>
-                                    <td className="p-2"><button className="text-blue-700 font-bold hover:underline">📄 View PDF</button></td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
-
-                          {profileTab === 'UpToDate' && (
-                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
-                              <div className="border-b border-gray-100 pb-2 flex justify-between items-center">
-                                <h3 className="font-bold text-sm text-[#0f4471]">UpToDate® Decision Support Integration</h3>
-                                <span className="text-[10px] text-gray-500">Connected</span>
-                              </div>
-                              <div className="p-3 bg-blue-50 border border-blue-200 rounded space-y-2">
-                                <div className="font-bold text-blue-900 text-[11px]">Recommended Articles for Current Active Diagnoses</div>
-                                <ul className="list-disc pl-4 space-y-1 text-blue-800 font-medium">
-                                  <li className="hover:underline cursor-pointer">Management of type 2 diabetes mellitus in adults</li>
-                                  <li className="hover:underline cursor-pointer">Choice of antihypertensive therapy in diabetes mellitus</li>
-                                  <li className="hover:underline cursor-pointer">Screening for diabetic nephropathy and retinopathy</li>
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-
-                          {profileTab === 'AxioCard' && (
-                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
-                              <div className="border-b border-gray-100 pb-2">
-                                <h3 className="font-bold text-sm text-[#0f4471]">AxioCard Emergency Health ID</h3>
-                              </div>
-                              <div className="p-4 bg-gradient-to-r from-[#00305a] to-[#005aa7] text-white rounded-lg shadow-md max-w-sm space-y-3">
-                                <div className="flex justify-between items-center">
-                                  <span className="font-extrabold text-sm tracking-wider">AXIOCARD HEALTH ID</span>
-                                  <span className="text-xs font-mono">ACTIVE</span>
-                                </div>
-                                <div>
-                                  <div className="text-[10px] opacity-80">PATIENT NAME</div>
-                                  <div className="font-bold text-base">JOHN DOE</div>
-                                </div>
-                                <div className="flex justify-between text-[10px]">
-                                  <div>
-                                    <span className="opacity-80">MRN: </span>
-                                    <span className="font-mono font-bold">1000245678</span>
-                                  </div>
-                                  <div>
-                                    <span className="opacity-80">AXIO-ID: </span>
-                                    <span className="font-mono font-bold">AXSL06-WJ281</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -8116,6 +8063,94 @@ No qualifying data available.`;
       </div>
 
      {/* Reschedule Modal Overlay */}
+      {/* Conversation Launcher Modal */}
+      {showConversationLauncher && (
+        <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4 font-sans" style={{ fontFamily: '"Segoe UI", Tahoma, sans-serif' }}>
+          <div className="bg-[#f0f0f0] border border-[#0078d7] shadow-xl flex flex-col w-[680px] select-none rounded-sm overflow-hidden">
+            {/* Header (Windows Style) */}
+            <div className="flex justify-between items-center bg-white h-[30px] select-none relative">
+              <div className="flex items-center pl-2 absolute left-0">
+                <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center text-[8px] overflow-hidden">
+                  <span className="text-gray-600">💬</span>
+                </div>
+              </div>
+              <div className="flex-1 flex justify-center items-center pointer-events-none">
+                <span className="text-[12px] text-black">Person Mgmt: Conversation Launcher</span>
+              </div>
+              <div className="flex items-center h-full absolute right-0">
+                <button className="h-full w-[45px] flex items-center justify-center hover:bg-[#e5e5e5] transition-colors text-black text-[10px]">
+                  <span>__</span>
+                </button>
+                <button className="h-full w-[45px] flex items-center justify-center hover:bg-[#e5e5e5] transition-colors text-black text-[10px]">
+                  <span>⬜</span>
+                </button>
+                <button onClick={() => setShowConversationLauncher(false)} className="h-full w-[45px] flex items-center justify-center hover:bg-[#e81123] hover:text-white transition-colors text-black text-[12px]">
+                  <span>✕</span>
+                </button>
+              </div>
+            </div>
+            
+            {/* Content Body */}
+            <div className="px-3 pt-3 pb-2 flex-1">
+              <div className="bg-white border border-[#a0a0a0] p-4">
+                <div className="grid grid-cols-7 gap-x-2 gap-y-6">
+                  {[
+                    { label: 'Add/Modify Person', icon: '👤', action: () => { selectOrOpenTabRef.current('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe'); setShowConversationLauncher(false); } },
+                    { label: 'Bed Transfer', icon: '🛏️', action: () => { selectOrOpenTabRef.current('ReferralTransfer', 'Referrals & Transfers', 'referrals-transfers-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Cancel Discharge', icon: '❌', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Cancel Encounter', icon: '❌', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Cancel Pending...', icon: '❌', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Cancel Pendi...', icon: '❌', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Cancel Transfer', icon: '❌', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Discharge Encounter', icon: '🚪', action: () => { selectOrOpenTabRef.current('DischargeList', 'Discharge List', 'discharge-list-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Facility Transfer', icon: '🏥', action: () => { selectOrOpenTabRef.current('ReferralTransfer', 'Referrals & Transfers', 'referrals-transfers-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Leave of Absence', icon: '🚶', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Modify Discharge', icon: '📝', action: () => { selectOrOpenTabRef.current('DischargeList', 'Discharge List', 'discharge-list-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Newborn Modify', icon: '👶', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Newborn Quick Reg', icon: '👶', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Pending Discharge', icon: '⏳', action: () => { selectOrOpenTabRef.current('DischargeList', 'Discharge List', 'discharge-list-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Pending Facil...', icon: '⏳', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Pending Transfer', icon: '⏳', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Pre-Register Outpatient', icon: '📋', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Pre-Register Patient To...', icon: '📋', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Print Specimen Labels', icon: '🏷️', action: () => { selectOrOpenTabRef.current('Labs', 'Labs', 'labs-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Process Alert', icon: '⚠️', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Quick Reg', icon: '⚡', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Referral Management', icon: '👔', action: () => { selectOrOpenTabRef.current('ReferralTransfer', 'Referrals & Transfers', 'referrals-transfers-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Register Outpatient', icon: '🏥', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Register Patient To...', icon: '🏥', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Stillborn', icon: '👼', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Update Patient Information', icon: '🔄', action: () => { selectOrOpenTabRef.current('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe'); setShowConversationLauncher(false); } },
+                    { label: 'View Encounter', icon: '👁️', action: () => { selectOrOpenTabRef.current('PatientProfile', 'Patient Profile: JOHN DOE', 'patient-doe'); setShowConversationLauncher(false); } },
+                    { label: 'View Person', icon: '👤', action: () => { selectOrOpenTabRef.current('PatientProfile', 'Patient Profile: JOHN DOE', 'patient-doe'); setShowConversationLauncher(false); } },
+                    { label: 'WH Quick Reg', icon: '⚡', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } }
+                  ].map((item, idx) => (
+                    <div key={idx} onClick={item.action} className="flex flex-col items-center justify-start text-center cursor-pointer hover:bg-[#e5f1fb] hover:border-[#cce4f7] border border-transparent p-1 rounded-sm">
+                      <div className="text-3xl mb-1 flex items-center justify-center h-[36px] w-[36px] bg-no-repeat bg-center" style={{ filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.2))' }}>
+                        {item.icon}
+                      </div>
+                      <div className="text-[11px] leading-[1.1] font-normal text-black w-full px-0.5" style={{ fontFamily: 'Tahoma, sans-serif' }}>
+                        {item.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="px-3 pb-3 pt-1 flex justify-end gap-2 bg-[#f0f0f0]">
+              <button onClick={() => setShowConversationLauncher(false)} className="bg-[#e1e1e1] hover:bg-[#e5f1fb] border border-[#adadad] hover:border-[#0078d7] px-4 py-1 text-[12px] min-w-[75px] h-[23px] flex items-center justify-center text-black shadow-[inset_1px_1px_0_rgba(255,255,255,0.5)] active:bg-[#cce4f7] active:shadow-[inset_1px_1px_2px_rgba(0,0,0,0.1)] outline-none focus:border-[#0078d7]">
+                OK
+              </button>
+              <button onClick={() => setShowConversationLauncher(false)} className="bg-[#e1e1e1] hover:bg-[#e5f1fb] border border-[#adadad] hover:border-[#0078d7] px-4 py-1 text-[12px] min-w-[75px] h-[23px] flex items-center justify-center text-black shadow-[inset_1px_1px_0_rgba(255,255,255,0.5)] active:bg-[#cce4f7] active:shadow-[inset_1px_1px_2px_rgba(0,0,0,0.1)] outline-none focus:border-[#0078d7]">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showRescheduleModal && selectedRescheduleReq && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs select-none">
           <div className="bg-[#f1f5f9] w-[1100px] h-[650px] rounded-lg shadow-2xl border border-[#bdcddc] flex flex-col overflow-hidden text-[10.5px]">
