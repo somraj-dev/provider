@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -2427,7 +2427,7 @@ ${ioVal}`;
                 { name: 'Perioperative Tracking', disabled: true },
                 { name: 'Ambulatory Organizer', disabled: true },
                 { name: 'Referral Management', type: 'ReferralTransfer' },
-                { name: 'MyExperience', disabled: true },
+                { name: 'Customised', disabled: true },
                 { name: 'Patient List', type: 'PatientList' },
                 { name: 'Therapeutic Note', disabled: true },
                 { name: 'Dynamic Worklist', disabled: true },
@@ -2868,7 +2868,7 @@ ${ioVal}`;
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Physician Handoff</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Care Workflow</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Quality Measures</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">MyExperience</button>
+        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Customised</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Reports</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">UpToDate</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">AxioCard</button>
@@ -4324,7 +4324,7 @@ ${ioVal}`;
                       {/* Demographics upper tab selector */}
                       <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-1 flex justify-between items-center h-[32px]">
                         <div className="flex border-b border-transparent gap-1 text-[10.5px]">
-                          {['Demographics', 'Contacts', 'Clinical', 'Visit History', 'Notes', 'Physician Handoff', 'Care Workflow', 'Quality Measures', 'Customised', 'Reports', 'UpToDate', 'AxioCard', 'Protocol Library'].map((t) => (
+                          {['Demographics', 'Contacts', 'Clinical', 'Visit History', 'Notes', 'Physician Handoff', 'Care Workflow', 'Quality Measures', 'Customised', 'Reports', 'UpToDate', 'AxioCard'].map((t) => (
                             <button
                               key={t}
                               onClick={() => setProfileTab(t)}
@@ -4744,24 +4744,6 @@ ${ioVal}`;
                                     <span className="opacity-80">AXIO-ID: </span>
                                     <span className="font-mono font-bold">AXSL06-WJ281</span>
                                   </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {profileTab === 'Protocol Library' && (
-                            <div className="bg-white border border-gray-200 rounded p-4 shadow-sm text-gray-700 space-y-4">
-                              <div className="border-b border-gray-100 pb-2">
-                                <h3 className="font-bold text-sm text-[#0f4471]">Clinical Protocol Library</h3>
-                              </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="p-3 border border-gray-200 rounded hover:border-blue-400 cursor-pointer bg-gray-50">
-                                  <div className="font-bold text-gray-900">Standard Adult Glycemic Control Protocol</div>
-                                  <div className="text-[10px] text-gray-500 mt-1">Version 4.2 • Updated Jan 2026</div>
-                                </div>
-                                <div className="p-3 border border-gray-200 rounded hover:border-blue-400 cursor-pointer bg-gray-50">
-                                  <div className="font-bold text-gray-900">Hypertension Management Algorithm</div>
-                                  <div className="text-[10px] text-gray-500 mt-1">Version 3.0 • Updated Feb 2026</div>
                                 </div>
                               </div>
                             </div>
