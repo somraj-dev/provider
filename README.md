@@ -2,6 +2,13 @@
 
 Enterprise-grade healthcare desktop platform inspired by the scalability and modular philosophy of Bloomberg Terminal, designed specifically for healthcare providers.
 
+## Recent Updates
+
+- Added new pages for top menu bar tabs in Provider View (including renaming the 'MyExperience' tab to 'Customised').
+- Repositioned and updated the layout for the Insurance sidebar options in the patient profile menu, and removed the legacy Insurance Coverage Details view.
+- Enhanced accessibility with improved contrast for hover states in DropdownMenuItems.
+- Refined the overall UI layout and updated the Electron desktop renderer bundle accordingly.
+
 ## Architecture
 
 | Layer | Technology |
