@@ -556,6 +556,7 @@ ${ioVal}`;
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
   const [isOrdersDropdownOpen, setIsOrdersDropdownOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Reconciliation Popup State
   const [isHomeDropdownOpen, setIsHomeDropdownOpen] = useState(false);
@@ -573,6 +574,18 @@ ${ioVal}`;
   const [isDraggingSub, setIsDraggingSub] = useState(false);
   const [dragOffsetSub, setDragOffsetSub] = useState({ x: 0, y: 0 });
   const [selectedMedReconcile, setSelectedMedReconcile] = useState<any>(null);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   // Dragging handlers for Reconciliation and Sub-detail popups
   React.useEffect(() => {
@@ -2425,12 +2438,14 @@ ${ioVal}`;
   return (
     <div onMouseMove={handleDrag} onMouseUp={handleEndDrag} className="flex flex-col h-screen bg-[#f0f4f8] text-[#1c2833] text-[11px] font-sans overflow-hidden select-none">
       
-      {/* Title Bar */}
-      <div className="bg-[#002a46] text-white px-3 py-1.5 flex justify-between items-center border-b border-[#001729]">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-xs tracking-wide">AxioVital Operating Environment</span>
-        </div>
-      </div>
+      {!isFullscreen && (
+        <>
+          {/* Title Bar */}
+          <div className="bg-[#002a46] text-white px-3 py-1.5 flex justify-between items-center border-b border-[#001729]">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-xs tracking-wide">AxioVital Operating Environment</span>
+            </div>
+          </div>
 
       {/* Classic Menu Bar */}
       <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-0.5 flex gap-3 text-[#2c3e50] text-[10.5px] items-center relative z-50">
@@ -2892,7 +2907,11 @@ ${ioVal}`;
           </div>
         </div>
       </div>
+    </>
+  )}
 
+  {!isFullscreen && (
+    <>
       {/* Classic Toolbar Buttons (Ribbon 1) */}
       <div className="bg-white border-b border-[#bdcddc] px-2 py-1 flex items-center gap-1.5 flex-wrap">
         <button 
@@ -2978,9 +2997,12 @@ ${ioVal}`;
           </div>
         </div>
       </div>
+    </>
+  )}
 
       {/* Blue Header Banner */}
-      <div className="bg-gradient-to-r from-[#0b4c76] to-[#136090] text-white px-3 py-1.5 flex justify-between items-center border-b border-[#001729]">
+      {!isFullscreen && (
+        <div className="bg-gradient-to-r from-[#0b4c76] to-[#136090] text-white px-3 py-1.5 flex justify-between items-center border-b border-[#001729]">
         <span className="font-bold text-xs">
           {activeTab.type === 'MessageCenter' && 'Message Center'}
           {activeTab.type === 'Analytics' && 'Analytics'}
@@ -3014,12 +3036,15 @@ ${ioVal}`;
             />
           </div>
           
-          <button className="text-[#c1d6e5] hover:text-white text-[10.5px] flex items-center gap-1 transition-colors font-semibold bg-transparent border-none py-0.5 px-1.5 focus:outline-none cursor-pointer">
+          <button 
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="text-[#c1d6e5] hover:text-white text-[10.5px] flex items-center gap-1 transition-colors font-semibold bg-transparent border-none py-0.5 px-1.5 focus:outline-none cursor-pointer"
+          >
             <svg className="w-3.5 h-3.5 text-[#c1d6e5] hover:text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter">
               <path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4" strokeLinecap="square" />
               <rect x="9.5" y="9.5" width="5" height="5" fill="none" />
             </svg>
-            Full screen
+            {isFullscreen ? 'Exit Full Screen' : 'Full screen'}
           </button>
           
           {/* Printer Icon prints / saves Medical Report directly to PDF */}
@@ -3204,13 +3229,15 @@ ${ioVal}`;
           </span>
         </div>
       </div>
+      )}
 
       {/* Main split view container with Multi-tab Chrome structure */}
       <div className="flex flex-1 overflow-hidden flex-col">
         
         {/* Chrome-Style Tab bar */}
-        <div 
-          className="bg-[#cbd8e3] border-b border-[#bdcddc] flex items-end px-2 pt-1.5 gap-1 overflow-x-auto select-none whitespace-nowrap [&::-webkit-scrollbar]:hidden"
+        {!isFullscreen && (
+          <div 
+            className="bg-[#cbd8e3] border-b border-[#bdcddc] flex items-end px-2 pt-1.5 gap-1 overflow-x-auto select-none whitespace-nowrap [&::-webkit-scrollbar]:hidden"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {openTabs.map((t, idx) => {
@@ -3261,6 +3288,7 @@ ${ioVal}`;
             );
           })}
         </div>
+        )}
 
         {/* Workspace content matching the active Chrome tab type */}
         <div className="flex flex-1 overflow-hidden bg-[#fafbfc]">
@@ -8412,14 +8440,27 @@ No qualifying data available.`;
       </div>
 
       {/* Footer Bar */}
-      <div className="bg-[#002a46] text-white px-3 py-1 flex justify-between items-center text-[9.5px] border-t border-[#001729]">
-        <span>Ready</span>
-        <span>Patient: JOHN DOE ( MRN: 1000245678 )</span>
-        <span>User: Axiovital Admin</span>
-        <span>AXIOVITAL HEALTHCARE SYSTEM</span>
-        <span>PROD</span>
-        <span>05/28/2025 03:45 PM</span>
-      </div>
+      {!isFullscreen && (
+        <div className="bg-[#002a46] text-white px-3 py-1 flex justify-between items-center text-[9.5px] border-t border-[#001729]">
+          <span>Ready</span>
+          <span>Patient: JOHN DOE ( MRN: 1000245678 )</span>
+          <span>User: Axiovital Admin</span>
+          <span>AXIOVITAL HEALTHCARE SYSTEM</span>
+          <span>PROD</span>
+          <span>05/28/2025 03:45 PM</span>
+        </div>
+      )}
+
+      {/* Floating Exit Full Screen Button */}
+      {isFullscreen && (
+        <button 
+          onClick={() => setIsFullscreen(false)}
+          className="fixed top-3 right-3 z-50 bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3.5 py-1.5 rounded shadow-lg border border-[#0d3455] flex items-center gap-1.5 text-[11px] transition-all cursor-pointer animate-in fade-in zoom-in duration-200"
+        >
+          <span>Exit Full Screen</span>
+          <span className="font-mono font-bold">✕</span>
+        </button>
+      )}
 
      {/* Reschedule Modal Overlay */}
       {/* Conversation Launcher Modal */}

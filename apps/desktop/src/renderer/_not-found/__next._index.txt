@@ -1,5 +1,5 @@
 1:"$Sreact.fragment"
 2:I[99630,[],""]
 3:I[1380,[],""]
-:HL["/_next/static/css/6afcdf5393f41a9f.css","style"]
-0:{"rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/6afcdf5393f41a9f.css","precedence":"next"}]],["$","html",null,{"lang":"en","className":"font-sans h-full w-full overflow-hidden","suppressHydrationWarning":true,"children":["$","body",null,{"className":"h-full w-full overflow-hidden","suppressHydrationWarning":true,"children":["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"3mF_ip_5KZ_AUUDBdR7pN"}
+:HL["/_next/static/css/a4b5f1ed714d9f67.css","style"]
+0:{"rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/a4b5f1ed714d9f67.css","precedence":"next"}]],["$","html",null,{"lang":"en","className":"font-sans h-full w-full overflow-hidden","suppressHydrationWarning":true,"children":["$","body",null,{"className":"h-full w-full overflow-hidden","suppressHydrationWarning":true,"children":["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"Oz4mc2K5_1f3D7FkNdTAi"}
