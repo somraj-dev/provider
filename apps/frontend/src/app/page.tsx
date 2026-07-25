@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +32,7 @@ import {
 interface TabItem {
   id: string;
   title: string;
-  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs' | 'BillingReceipt' | 'Customised' | 'ClinicalDecisionSupport';
+  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs' | 'BillingReceipt' | 'Customised' | 'ClinicalDecisionSupport' | 'ClinicalEventView' | 'ProtocolLibrary';
 }
 
 const CHART_OPTIONS = [
@@ -64,6 +64,27 @@ const CHART_OPTIONS = [
   "Trauma View",
   "Vitals View"
 ];
+
+const formatEhrDate = (dateStr: string) => {
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const parts = dateStr.split('/');
+  if (parts.length === 3) {
+    const month = parseInt(parts[0], 10);
+    const day = parseInt(parts[1], 10);
+    const year = parts[2];
+    if (month >= 1 && month <= 12) {
+      return `${String(day).padStart(2, '0')} ${months[month - 1]} ${year}`;
+    }
+  }
+  return dateStr;
+};
+
+const formatEhrTime = (timeStr: string) => {
+  if (timeStr.length === 4) {
+    return timeStr.substring(0, 2) + ':' + timeStr.substring(2);
+  }
+  return timeStr;
+};
 
 const getChartDataForSelection = (baseData: any[], selection: string, chartKey: string) => {
   if (!selection || selection === 'Quick View' || selection === 'All Results') {
@@ -486,6 +507,51 @@ ${ioVal}`;
     { id: 'patient-doe', title: 'Patient Profile: JOHN DOE', type: 'PatientProfile' }
   ]);
   const [activeTabId, setActiveTabId] = useState<string>('patient-doe');
+
+  // Clinical Event View Flowsheet states
+  const [flowsheetLevel, setFlowsheetLevel] = useState('Clinical Event View');
+  const [flowsheetView, setFlowsheetView] = useState<'Table' | 'Group' | 'List'>('Table');
+  const [navigatorVisible, setNavigatorVisible] = useState(true);
+  const [navigatorChecked, setNavigatorChecked] = useState({
+    clinicalEventNotification: true,
+    adverseReactionEvent: true,
+    amaGuidelinesEvent: true,
+    labRadDetailsEvent: true,
+    clinicianNotification: true,
+  });
+  const [flowsheetSelectedCell, setFlowsheetSelectedCell] = useState<{row: string, col: number} | null>(null);
+  
+  // Search Criteria modal states
+  const [showSearchCriteria, setShowSearchCriteria] = useState(false);
+  const [searchCriteriaLookupMode, setSearchCriteriaLookupMode] = useState<'clinical' | 'posting' | 'count' | 'new' | 'admission'>('clinical');
+  const [searchCriteriaFromDate, setSearchCriteriaFromDate] = useState('03/03/2009');
+  const [searchCriteriaFromTime, setSearchCriteriaFromTime] = useState('0817');
+  const [searchCriteriaToDate, setSearchCriteriaToDate] = useState('03/30/2014');
+  const [searchCriteriaToTime, setSearchCriteriaToTime] = useState('1414');
+  const [searchCriteriaRangeText, setSearchCriteriaRangeText] = useState('03 March 2009 08:17 EST - 30 March 2014 14:14 EDT (Clinical Range)');
+  const [protocolLibraryListSelection, setProtocolLibraryListSelection] = useState('Holding in Recovery Room');
+
+  // Refresh functionality states
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<number>(Date.now());
+  const [minutesAgo, setMinutesAgo] = useState<number>(0);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMinutesAgo(Math.floor((Date.now() - lastRefreshedAt) / 60000));
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [lastRefreshedAt]);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setLastRefreshedAt(Date.now());
+    setMinutesAgo(0);
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 800);
+  };
+
 
   // Sidebar navigation paths for Analytics
   const [analyticsMenu, setAnalyticsMenu] = useState('Overview');
@@ -2931,9 +2997,9 @@ ${ioVal}`;
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Quality Measures</button>
         <button onClick={() => selectOrOpenTab('Customised', 'Customised Organizer', 'customised-tab')} className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Customised</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Reports</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">UpToDate</button>
+        <button onClick={() => selectOrOpenTab('ClinicalEventView', 'Clinic Event Page', 'clinical-event-view-tab')} className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm font-semibold">UpToDate</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">AxioCard</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Protocol Library</button>
+        <button onClick={() => selectOrOpenTab('ProtocolLibrary', 'Ongoing Activities', 'protocol-library-tab')} className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm font-semibold">Ongoing Activities</button>
 
         {/* Modifying 3-dots (Right Side) */}
         <div className="ml-auto flex items-center pr-1">
@@ -3022,6 +3088,8 @@ ${ioVal}`;
           {(activeTab.type as string) === 'Home' && 'Home'}
           {(activeTab.type as string) === 'DeveloperTools' && 'Developer Configuration & System Administration'}
           {activeTab.type === 'BillingReceipt' && 'Billing & Payments Receipt'}
+          {activeTab.type === 'ClinicalEventView' && 'Clinic Event Page'}
+          {activeTab.type === 'ProtocolLibrary' && 'Ongoing Activities'}
         </span>
         
         <div className="flex items-center gap-2">
@@ -3221,12 +3289,16 @@ ${ioVal}`;
             Print
           </button>
           
-          <span className="text-[10.5px] text-[#c1d6e5] flex items-center gap-1 font-semibold ml-1 select-none">
-            <svg className="w-3.5 h-3.5 text-[#c1d6e5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter">
+          <button 
+            onClick={handleRefresh}
+            className="text-[#c1d6e5] hover:text-white text-[10.5px] flex items-center gap-1.5 transition-all font-semibold bg-transparent border-none py-0.5 px-1.5 focus:outline-none cursor-pointer select-none active:scale-95"
+            title="Refresh current workspace"
+          >
+            <svg className={`w-3.5 h-3.5 text-[#c1d6e5] hover:text-white transition-transform duration-700 ${isRefreshing ? 'rotate-180 animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter">
               <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
             </svg>
-            0 minutes ago
-          </span>
+            <span>{minutesAgo} minutes ago</span>
+          </button>
         </div>
       </div>
       )}
@@ -3698,6 +3770,688 @@ ${ioVal}`;
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab.type === 'ClinicalEventView' && (
+            <div className="flex-1 flex flex-col h-full bg-[#f4f4f4] text-black overflow-hidden select-none" style={{ fontFamily: 'Tahoma, "Segoe UI", sans-serif' }}>
+              {/* Flowsheet Top Toolbar */}
+              <div className="h-[34px] bg-[#eef2f5] border-b border-[#bdcddc] flex items-center px-3 justify-between text-[11.5px] select-none shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-700">Flowsheet:</span>
+                    <select 
+                      value={flowsheetLevel} 
+                      onChange={(e) => setFlowsheetLevel(e.target.value)}
+                      className="border border-[#7f9db9] bg-white px-1.5 py-0.5 text-[11px] h-[22px] outline-none focus:border-blue-500 rounded-[1px] min-w-[150px]"
+                    >
+                      <option value="Clinical Event View">Clinical Event View</option>
+                      <option value="Vital Signs View">Vital Signs View</option>
+                      <option value="Lab Results View">Lab Results View</option>
+                    </select>
+                    <button 
+                      onClick={() => setShowSearchCriteria(true)}
+                      className="h-[22px] px-1 bg-gradient-to-b from-[#f9f9f9] to-[#e3e3e3] border border-[#7f9db9] hover:bg-gray-100 flex items-center justify-center font-bold text-[10px] rounded-[1px] active:bg-gray-200"
+                    >
+                      ...
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-700">Level:</span>
+                    <select 
+                      className="border border-[#7f9db9] bg-white px-1.5 py-0.5 text-[11px] h-[22px] outline-none focus:border-blue-500 rounded-[1px] min-w-[150px]"
+                      defaultValue="Clinical Event View"
+                    >
+                      <option value="Clinical Event View">Clinical Event View</option>
+                      <option value="System View">System View</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="flowsheet_view_mode" 
+                      checked={flowsheetView === 'Table'} 
+                      onChange={() => setFlowsheetView('Table')}
+                      className="accent-[#0f4471]" 
+                    />
+                    <span className="text-gray-800 font-medium">Table</span>
+                  </label>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="flowsheet_view_mode" 
+                      checked={flowsheetView === 'Group'} 
+                      onChange={() => setFlowsheetView('Group')}
+                      className="accent-[#0f4471]" 
+                    />
+                    <span className="text-gray-800 font-medium">Group</span>
+                  </label>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="flowsheet_view_mode" 
+                      checked={flowsheetView === 'List'} 
+                      onChange={() => setFlowsheetView('List')}
+                      className="accent-[#0f4471]" 
+                    />
+                    <span className="text-gray-800 font-medium">List</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Date/Time Range Banner */}
+              <div className="h-[26px] bg-gradient-to-r from-[#8199ac] to-[#6d8498] border-b border-[#5f7486] flex items-center justify-between text-white text-[11px] px-2 select-none shrink-0 font-sans shadow-sm">
+                <div className="flex items-center border border-[#687d90] bg-[#758ca0] rounded-[1px] overflow-hidden">
+                  <button className="px-1.5 py-0.5 hover:bg-[#687d90] border-r border-[#687d90] active:bg-[#5b6f80]">◀</button>
+                  <button className="px-1.5 py-0.5 hover:bg-[#687d90] active:bg-[#5b6f80]">▶</button>
+                </div>
+                <div className="font-bold tracking-wide">
+                  {searchCriteriaRangeText}
+                </div>
+                <div className="flex items-center border border-[#687d90] bg-[#758ca0] rounded-[1px] overflow-hidden">
+                  <button className="px-1.5 py-0.5 hover:bg-[#687d90] border-r border-[#687d90] active:bg-[#5b6f80]">◀</button>
+                  <button className="px-1.5 py-0.5 hover:bg-[#687d90] active:bg-[#5b6f80]">▶</button>
+                </div>
+              </div>
+
+              {/* Main Content Area */}
+              <div className="flex flex-1 overflow-hidden relative">
+                
+                {/* Left Sidebar: Navigator */}
+                {navigatorVisible && (
+                  <div className="w-[200px] bg-[#d9e4ef] border-r border-[#9bb5cb] flex flex-col select-none shrink-0">
+                    <div className="h-[24px] bg-[#bfd2e6] border-b border-[#9bb5cb] px-2 flex items-center justify-between">
+                      <span className="font-bold text-[11.5px] text-[#002a46]">Navigator</span>
+                      <button 
+                        onClick={() => setNavigatorVisible(false)}
+                        className="text-[#555] hover:text-red-600 font-bold text-[10px] bg-transparent border-none cursor-pointer"
+                        title="Close Navigator"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="p-2 space-y-2 text-[11px] text-[#333]">
+                      <label className="flex items-start gap-1.5 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={navigatorChecked.clinicalEventNotification}
+                          onChange={(e) => setNavigatorChecked(prev => ({ ...prev, clinicalEventNotification: e.target.checked }))}
+                          className="mt-0.5 accent-[#0f4471]" 
+                        />
+                        <span>Clinical Event Notification</span>
+                      </label>
+                      <label className="flex items-start gap-1.5 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={navigatorChecked.adverseReactionEvent}
+                          onChange={(e) => setNavigatorChecked(prev => ({ ...prev, adverseReactionEvent: e.target.checked }))}
+                          className="mt-0.5 accent-[#0f4471]" 
+                        />
+                        <span>Adverse Reaction Event</span>
+                      </label>
+                      <label className="flex items-start gap-1.5 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={navigatorChecked.amaGuidelinesEvent}
+                          onChange={(e) => setNavigatorChecked(prev => ({ ...prev, amaGuidelinesEvent: e.target.checked }))}
+                          className="mt-0.5 accent-[#0f4471]" 
+                        />
+                        <span>AMA Guidelines Event</span>
+                      </label>
+                      <label className="flex items-start gap-1.5 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={navigatorChecked.labRadDetailsEvent}
+                          onChange={(e) => setNavigatorChecked(prev => ({ ...prev, labRadDetailsEvent: e.target.checked }))}
+                          className="mt-0.5 accent-[#0f4471]" 
+                        />
+                        <span>Lab/Rad Details Event</span>
+                      </label>
+                      <label className="flex items-start gap-1.5 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={navigatorChecked.clinicianNotification}
+                          onChange={(e) => setNavigatorChecked(prev => ({ ...prev, clinicianNotification: e.target.checked }))}
+                          className="mt-0.5 accent-[#0f4471]" 
+                        />
+                        <span>Clinician Notification</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Reopen Navigator tab button if closed */}
+                {!navigatorVisible && (
+                  <button 
+                    onClick={() => setNavigatorVisible(true)}
+                    className="absolute left-0 top-0 bg-[#d9e4ef] border border-[#9bb5cb] text-[#002a46] font-bold text-[10px] py-1 px-1.5 rounded-r-[3px] shadow-sm hover:bg-[#cde0f2] z-10 shrink-0 cursor-pointer"
+                  >
+                    ▶ Navigator
+                  </button>
+                )}
+
+                {/* Right Flowsheet Area */}
+                <div className="flex-1 bg-white overflow-auto">
+                  <table className="w-full border-collapse table-fixed text-[11.5px] min-w-[1200px]">
+                    <thead>
+                      <tr className="bg-[#f0f4f8] text-gray-800">
+                        {/* First Sticky Column Header */}
+                        <th className="sticky left-0 top-0 z-20 bg-[#e6edf5] border-r border-b border-[#b5c7d9] text-[12px] font-bold text-[#003366] text-left p-2 w-[240px] shadow-[2px_0_4px_rgba(0,0,0,0.05)]">
+                          Clinical Event View
+                        </th>
+                        {/* 12 DateTime Column Headers */}
+                        {[
+                          { date: '11/15/2012', time: '12:02', tz: 'EST' },
+                          { date: '05/28/2013', time: '15:53', tz: 'EDT' },
+                          { date: '11/18/2013', time: '14:04', tz: 'EST' },
+                          { date: '01/03/2014', time: '13:24', tz: 'EST' },
+                          { date: '03/03/2014', time: '11:50', tz: 'EST' },
+                          { date: '03/03/2014', time: '12:13', tz: 'EST' },
+                          { date: '03/03/2014', time: '12:15', tz: 'EST' },
+                          { date: '03/03/2014', time: '13:36', tz: 'EST' },
+                          { date: '03/03/2014', time: '13:38', tz: 'EST' },
+                          { date: '03/03/2014', time: '13:41', tz: 'EST' },
+                          { date: '03/03/2014', time: '13:46', tz: 'EST' },
+                          { date: '03/03/2014', time: '13:48', tz: 'EST' },
+                        ].map((col, idx) => (
+                          <th key={idx} className="sticky top-0 z-10 bg-[#e6edf5] border-r border-b border-[#b5c7d9] text-[10px] font-normal text-gray-700 p-1 text-center align-middle h-[45px] w-[80px]">
+                            <div className="flex flex-col items-center justify-center leading-tight">
+                              <span>{col.date}</span>
+                              <span className="font-semibold text-black">{col.time}</span>
+                              <span className="text-[8.5px] text-gray-500">{col.tz}</span>
+                            </div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        {
+                          id: 'clinicalEventNotification',
+                          title: 'Clinical Event Notification',
+                          rows: [
+                            { label: 'Notified Date/Time-Contact 1', values: { 0: '* 11/15/2012 12:03', 5: '03/03/2014', 6: '03/03/2014', 7: '03/03/2014', 8: '03/03/2014', 9: '03/03/2014', 10: '03/03/2014', 11: '03/03/2014' }, blue: true },
+                            { label: 'Notified-Contact 2', values: { 4: '* Manager/' }, blue: true },
+                            { label: 'Notification Detail', values: { 0: 'test', 2: '(c) This was', 5: 'Testing Pov', 6: 'Testing Ivie' } },
+                            { label: 'Physician/Provider Not Called', values: { 0: 'Existing condition', 2: 'Existing con', 5: 'Existing cor', 6: 'Existing ord' } },
+                            { label: 'New Orders Received', values: { 0: 'Yes', 2: 'Yes', 5: 'Yes', 6: 'Not at this t' }, blue: true },
+                            { label: 'Time Nurse Notified of Results', values: { 5: '12:10', 6: '03/03/2014' } },
+                            { label: 'Time Physician/Provider Notified', values: { 5: '12:14', 6: '03/03/2014' } },
+                            { label: 'Notification Interval', values: { 5: '4', 6: '7' } },
+                            { label: 'Results Read Back and Verified', values: { 5: 'Yes', 6: 'Yes' }, blue: true }
+                          ]
+                        },
+                        {
+                          id: 'adverseReactionEvent',
+                          title: 'Adverse Reaction Event',
+                          rows: [
+                            { label: 'Adverse Reaction Symptoms', values: { 4: 'Chills' } },
+                            { label: 'Event Adverse Reaction Cause', values: { 4: 'Medication' } },
+                            { label: 'Adverse Reaction Medications', values: { 4: 'morphine' } },
+                            { label: 'Adverse Reaction Description', values: { 4: 'Adverse Re' } },
+                            { label: 'Adverse Reaction Reported By', values: { 4: 'Caregiver c' } },
+                            { label: 'Adverse Reaction Interventions', values: { 4: 'Adverse drug' } }
+                          ]
+                        },
+                        {
+                          id: 'amaGuidelinesEvent',
+                          title: 'AMA Guidelines Event',
+                          rows: [
+                            { label: 'Reason for Refusing Exam/Tx', values: {} }
+                          ]
+                        },
+                        {
+                          id: 'labRadDetailsEvent',
+                          title: 'Lab/Rad Details Event',
+                          rows: [
+                            { label: 'Critical Lab Results', values: { 1: 'Glucose, ca' }, blue: true }
+                          ]
+                        },
+                        {
+                          id: 'clinicianNotification',
+                          title: 'Clinician Notification',
+                          rows: [
+                            { label: 'Name of Clinician Contacted', values: { 4: 'Canino MD,' } },
+                            { label: 'Reason for Call', values: { 4: 'Test' } },
+                            { label: 'Clinician Contacted Via', values: { 4: 'Personal co' } },
+                            { label: 'Information Provided to Clinician', values: { 4: 'Testing' } }
+                          ]
+                        }
+                      ].map((group) => {
+                        // Skip rendering this section if disabled in Navigator
+                        if (!navigatorChecked[group.id as keyof typeof navigatorChecked]) {
+                          return null;
+                        }
+
+                        return (
+                          <React.Fragment key={group.id}>
+                            {/* Group Header Row */}
+                            <tr className="bg-[#cbdcf0] select-none font-bold text-[#002a46]">
+                              <td className="sticky left-0 bg-[#cbdcf0] border-r border-b border-[#9bb5cb] p-1.5 shadow-[2px_0_4px_rgba(0,0,0,0.05)] text-[12px]" colSpan={1}>
+                                {group.title}
+                              </td>
+                              <td className="border-b border-[#9bb5cb]" colSpan={12}></td>
+                            </tr>
+
+                            {/* Group Member Rows */}
+                            {group.rows.map((row, rowIdx) => (
+                              <tr key={rowIdx} className="hover:bg-gray-50 border-b border-[#e6edf5]">
+                                {/* Sticky row header */}
+                                <td className="sticky left-0 bg-white border-r border-[#d9e4ef] p-1.5 text-gray-700 select-none shadow-[2px_0_4px_rgba(0,0,0,0.05)] font-sans text-[11px] truncate">
+                                  {row.label}
+                                </td>
+
+                                {/* Values for 12 columns */}
+                                {Array.from({ length: 12 }).map((_, colIdx) => {
+                                  const cellValue = (row.values as Record<number, string>)[colIdx] || '';
+                                  const isSelected = flowsheetSelectedCell?.row === row.label && flowsheetSelectedCell?.col === colIdx;
+                                  
+                                  // Highlight clinician contacted via (personal co) in col 4 as focused by default if not set
+                                  const showFocusBorder = isSelected || (!flowsheetSelectedCell && row.label === 'Clinician Contacted Via' && colIdx === 4);
+
+                                  return (
+                                    <td 
+                                      key={colIdx} 
+                                      onClick={() => setFlowsheetSelectedCell({ row: row.label, col: colIdx })}
+                                      className={`border-r border-[#e6edf5] p-1.5 text-[11px] align-middle text-left font-sans cursor-pointer transition-all ${
+                                        showFocusBorder ? 'ring-1 ring-inset ring-black outline-1 outline-black bg-[#edf3f8]' : ''
+                                      }`}
+                                    >
+                                      {cellValue && (
+                                        <span className={'blue' in row && row.blue ? 'text-blue-700 font-semibold' : 'text-gray-900'}>
+                                          {cellValue}
+                                        </span>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+
+              {/* Search Criteria Modal Dialog */}
+              {showSearchCriteria && (
+                <div className="absolute inset-0 bg-black/10 flex items-center justify-center z-50">
+                  <div className="w-[560px] bg-[#ece9d8] border-2 border-[#0054e3] shadow-lg flex flex-col font-sans select-none rounded-[4px] overflow-hidden" style={{ fontFamily: 'Tahoma, "Segoe UI", sans-serif' }}>
+                    {/* XP Style Header */}
+                    <div className="h-[28px] bg-gradient-to-r from-[#0058e6] to-[#3a93ff] px-2 flex items-center justify-between text-white font-bold text-[12px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-4 h-4 bg-[#0055d4] border border-white flex items-center justify-center text-[10px] font-extrabold text-white rounded-[2px]">P</span>
+                        <span className="tracking-wide">Search Criteria</span>
+                      </div>
+                      <button 
+                        onClick={() => setShowSearchCriteria(false)}
+                        className="w-[21px] h-[21px] bg-gradient-to-b from-[#e04030] to-[#b01000] border border-[#a00000] hover:from-[#f05040] hover:to-[#d02010] flex items-center justify-center font-bold text-white text-[11px] shadow-[inset_1px_1px_1px_rgba(255,255,255,0.5)] rounded-[3px] active:shadow-[inset_-1px_-1px_1px_rgba(0,0,0,0.5)]"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {/* Body content */}
+                    <div className="p-3 flex gap-3 text-[11.5px] text-black">
+                      
+                      {/* Left: Result Lookup fieldset */}
+                      <fieldset className="w-[220px] border border-[#aca899] rounded-[3px] p-2.5 flex flex-col gap-2">
+                        <legend className="text-[#003366] font-semibold px-1">Result Lookup</legend>
+                        
+                        <label className="flex items-center gap-2.5 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="result_lookup_mode" 
+                            checked={searchCriteriaLookupMode === 'clinical'} 
+                            onChange={() => setSearchCriteriaLookupMode('clinical')} 
+                            className="accent-[#0054e3]" 
+                          />
+                          <span>Clinical range</span>
+                        </label>
+
+                        <label className="flex items-center gap-2.5 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="result_lookup_mode" 
+                            checked={searchCriteriaLookupMode === 'posting'} 
+                            onChange={() => setSearchCriteriaLookupMode('posting')} 
+                            className="accent-[#0054e3]" 
+                          />
+                          <span>Posting range</span>
+                        </label>
+
+                        <label className="flex items-center gap-2.5 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="result_lookup_mode" 
+                            checked={searchCriteriaLookupMode === 'count'} 
+                            onChange={() => setSearchCriteriaLookupMode('count')} 
+                            className="accent-[#0054e3]" 
+                          />
+                          <span>Result count</span>
+                        </label>
+
+                        <label className="flex items-center gap-2.5 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="result_lookup_mode" 
+                            checked={searchCriteriaLookupMode === 'new'} 
+                            onChange={() => setSearchCriteriaLookupMode('new')} 
+                            className="accent-[#0054e3]" 
+                          />
+                          <span>New results</span>
+                        </label>
+
+                        <label className="flex items-center gap-2.5 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="result_lookup_mode" 
+                            checked={searchCriteriaLookupMode === 'admission'} 
+                            onChange={() => setSearchCriteriaLookupMode('admission')} 
+                            className="accent-[#0054e3]" 
+                          />
+                          <span>Admission date to current date</span>
+                        </label>
+                      </fieldset>
+
+                      {/* Right side form */}
+                      <div className="flex-1 flex flex-col gap-2.5 pt-1.5">
+                        {/* From Date/Time row */}
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-[35px] text-right text-gray-700">From:</span>
+                          <input 
+                            type="text" 
+                            value={searchCriteriaFromDate} 
+                            onChange={(e) => setSearchCriteriaFromDate(e.target.value)}
+                            className="w-[85px] border border-[#7f9db9] bg-white px-1.5 py-0.5 text-[11px] h-[21px] rounded-[1px] text-center" 
+                          />
+                          {/* Spinners */}
+                          <div className="flex flex-col border border-[#7f9db9] rounded-[1px] overflow-hidden bg-gradient-to-b from-white to-[#ece9d8]">
+                            <button onClick={() => {
+                              const parts = searchCriteriaFromDate.split('/');
+                              if(parts.length === 3) {
+                                const d = new Date(parseInt(parts[2]), parseInt(parts[0])-1, parseInt(parts[1])+1);
+                                setSearchCriteriaFromDate(`${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`);
+                              }
+                            }} className="px-1 text-[7px] leading-[8px] hover:bg-gray-100 border-b border-[#7f9db9] active:bg-gray-200">▲</button>
+                            <button onClick={() => {
+                              const parts = searchCriteriaFromDate.split('/');
+                              if(parts.length === 3) {
+                                const d = new Date(parseInt(parts[2]), parseInt(parts[0])-1, parseInt(parts[1])-1);
+                                setSearchCriteriaFromDate(`${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`);
+                              }
+                            }} className="px-1 text-[7px] leading-[8px] hover:bg-gray-100 active:bg-gray-200">▼</button>
+                          </div>
+
+                          <input 
+                            type="text" 
+                            value={searchCriteriaFromTime} 
+                            onChange={(e) => setSearchCriteriaFromTime(e.target.value)}
+                            className="w-[45px] border border-[#7f9db9] bg-white px-1.5 py-0.5 text-[11px] h-[21px] rounded-[1px] text-center ml-1" 
+                          />
+                          {/* Spinners */}
+                          <div className="flex flex-col border border-[#7f9db9] rounded-[1px] overflow-hidden bg-gradient-to-b from-white to-[#ece9d8]">
+                            <button onClick={() => {
+                              let val = parseInt(searchCriteriaFromTime, 10) + 1;
+                              if(val > 2359) val = 0;
+                              setSearchCriteriaFromTime(String(val).padStart(4, '0'));
+                            }} className="px-1 text-[7px] leading-[8px] hover:bg-gray-100 border-b border-[#7f9db9] active:bg-gray-200">▲</button>
+                            <button onClick={() => {
+                              let val = parseInt(searchCriteriaFromTime, 10) - 1;
+                              if(val < 0) val = 2359;
+                              setSearchCriteriaFromTime(String(val).padStart(4, '0'));
+                            }} className="px-1 text-[7px] leading-[8px] hover:bg-gray-100 active:bg-gray-200">▼</button>
+                          </div>
+
+                          <span className="text-[10px] text-gray-600 font-semibold ml-1.5">EDT</span>
+                        </div>
+
+                        {/* To Date/Time row */}
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-[35px] text-right text-gray-700">To:</span>
+                          <input 
+                            type="text" 
+                            value={searchCriteriaToDate} 
+                            onChange={(e) => setSearchCriteriaToDate(e.target.value)}
+                            className="w-[85px] border border-[#7f9db9] bg-white px-1.5 py-0.5 text-[11px] h-[21px] rounded-[1px] text-center" 
+                          />
+                          {/* Spinners */}
+                          <div className="flex flex-col border border-[#7f9db9] rounded-[1px] overflow-hidden bg-gradient-to-b from-white to-[#ece9d8]">
+                            <button onClick={() => {
+                              const parts = searchCriteriaToDate.split('/');
+                              if(parts.length === 3) {
+                                const d = new Date(parseInt(parts[2]), parseInt(parts[0])-1, parseInt(parts[1])+1);
+                                setSearchCriteriaToDate(`${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`);
+                              }
+                            }} className="px-1 text-[7px] leading-[8px] hover:bg-gray-100 border-b border-[#7f9db9] active:bg-gray-200">▲</button>
+                            <button onClick={() => {
+                              const parts = searchCriteriaToDate.split('/');
+                              if(parts.length === 3) {
+                                const d = new Date(parseInt(parts[2]), parseInt(parts[0])-1, parseInt(parts[1])-1);
+                                setSearchCriteriaToDate(`${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`);
+                              }
+                            }} className="px-1 text-[7px] leading-[8px] hover:bg-gray-100 active:bg-gray-200">▼</button>
+                          </div>
+
+                          <input 
+                            type="text" 
+                            value={searchCriteriaToTime} 
+                            onChange={(e) => setSearchCriteriaToTime(e.target.value)}
+                            className="w-[45px] border border-[#7f9db9] bg-white px-1.5 py-0.5 text-[11px] h-[21px] rounded-[1px] text-center ml-1" 
+                          />
+                          {/* Spinners */}
+                          <div className="flex flex-col border border-[#7f9db9] rounded-[1px] overflow-hidden bg-gradient-to-b from-white to-[#ece9d8]">
+                            <button onClick={() => {
+                              let val = parseInt(searchCriteriaToTime, 10) + 1;
+                              if(val > 2359) val = 0;
+                              setSearchCriteriaToTime(String(val).padStart(4, '0'));
+                            }} className="px-1 text-[7px] leading-[8px] hover:bg-gray-100 border-b border-[#7f9db9] active:bg-gray-200">▲</button>
+                            <button onClick={() => {
+                              let val = parseInt(searchCriteriaToTime, 10) - 1;
+                              if(val < 0) val = 2359;
+                              setSearchCriteriaToTime(String(val).padStart(4, '0'));
+                            }} className="px-1 text-[7px] leading-[8px] hover:bg-gray-100 active:bg-gray-200">▼</button>
+                          </div>
+
+                          <span className="text-[10px] text-gray-600 font-semibold ml-1.5">EDT</span>
+                        </div>
+
+                        {/* Number of results & Year limit row */}
+                        <div className="h-[0.5px] bg-[#d0cfc9] my-1"></div>
+                        <div className="grid grid-cols-2 gap-2 text-gray-500">
+                          <div className="flex items-center gap-1.5">
+                            <span>Number of results:</span>
+                            <input 
+                              type="text" 
+                              value="100" 
+                              disabled 
+                              className="w-[45px] bg-[#f0f0ea] border border-[#aca899] text-gray-400 text-center text-[11px] h-[21px]" 
+                            />
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span>Year Result Limit:</span>
+                            <input 
+                              type="text" 
+                              value="3" 
+                              disabled 
+                              className="w-[30px] bg-[#f0f0ea] border border-[#aca899] text-gray-400 text-center text-[11px] h-[21px]" 
+                            />
+                          </div>
+                        </div>
+
+                        {/* Hours previous limit */}
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-gray-700">Number of Hours Previous to the Admit Date:</span>
+                          <input 
+                            type="text" 
+                            defaultValue="0" 
+                            className="w-[40px] border border-[#7f9db9] bg-white px-1 text-center text-[11px] h-[21px]" 
+                          />
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Bottom Action Bar */}
+                    <div className="bg-[#ece9d8] border-t border-[#d0cfc9] p-3 flex justify-end gap-2 shrink-0">
+                      <button 
+                        onClick={() => {
+                          const formattedFrom = `${formatEhrDate(searchCriteriaFromDate)} ${formatEhrTime(searchCriteriaFromTime)}`;
+                          const formattedTo = `${formatEhrDate(searchCriteriaToDate)} ${formatEhrTime(searchCriteriaToTime)}`;
+                          setSearchCriteriaRangeText(`${formattedFrom} EST - ${formattedTo} EDT (Clinical Range)`);
+                          setShowSearchCriteria(false);
+                        }}
+                        className="bg-gradient-to-b from-[#ffffff] to-[#e0dfd6] hover:from-[#e5f1fb] hover:to-[#cce4f7] border-2 border-double border-[#0054e3] hover:border-[#003366] px-5 py-0.5 min-w-[75px] text-[11.5px] font-sans text-black rounded-[3px] shadow-[inset_1px_1px_0_white] active:bg-[#cce4f7]"
+                      >
+                        OK
+                      </button>
+                      <button 
+                        onClick={() => setShowSearchCriteria(false)}
+                        className="bg-gradient-to-b from-[#ffffff] to-[#e0dfd6] hover:from-[#e5f1fb] hover:to-[#cce4f7] border border-[#7f9db9] hover:border-[#0054e3] px-5 py-0.5 min-w-[75px] text-[11.5px] font-sans text-black rounded-[3px] shadow-[inset_1px_1px_0_white] active:bg-[#cce4f7]"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+            </div>
+          )}
+
+          {activeTab.type === 'ProtocolLibrary' && (
+            <div className="flex-1 flex flex-col h-full bg-[#f4f4f4] text-black overflow-hidden select-none font-sans" style={{ fontFamily: 'Tahoma, "Segoe UI", sans-serif' }}>
+              
+              {/* Mini Toolbar */}
+              <div className="h-[30px] bg-white border-b border-[#bdcddc] flex items-center justify-between px-2 shrink-0 select-none">
+                {/* Left controls */}
+                <div className="flex items-center gap-2 text-[11px]">
+                  {/* Patient List label and dropdown selector */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-gray-700">Patient List:</span>
+                    <select 
+                      value={protocolLibraryListSelection}
+                      onChange={(e) => setProtocolLibraryListSelection(e.target.value)}
+                      className="border border-[#7f9db9] bg-white text-[11px] px-1.5 py-0.5 h-[20px] rounded-[1px] focus:outline-none min-w-[200px]"
+                    >
+                      <option value="Holding in Recovery Room">Holding in Recovery Room</option>
+                      <option value="Emergency Department">Emergency Department</option>
+                      <option value="ICU Ward">ICU Ward</option>
+                      <option value="Surgery Suite A">Surgery Suite A</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Right controls */}
+                <div className="flex items-center gap-3 text-[11px]">
+                  <button className="text-blue-700 hover:underline font-semibold flex items-center gap-1">
+                    Physician Contact | 👤
+                  </button>
+                  <button className="text-gray-700 hover:text-black" title="Print List">
+                    🖨️
+                  </button>
+                </div>
+              </div>
+
+              {/* Patient List Table */}
+              <div className="flex-1 overflow-auto bg-white">
+                <table className="w-full border-collapse table-fixed text-[11px] font-sans">
+                  <thead>
+                    <tr className="bg-gradient-to-b from-[#fbfbfb] to-[#ecebeb] border-b border-[#bdcddc] select-none text-gray-700 text-left">
+                      <th className="border-r border-[#cbdcf0] p-1.5 w-[160px] font-normal cursor-pointer hover:bg-gray-100">
+                        <div className="flex items-center justify-between">
+                          <span>Location</span>
+                        </div>
+                      </th>
+                      <th className="border-r border-[#cbdcf0] p-1.5 font-normal cursor-pointer hover:bg-gray-100">
+                        <div className="flex items-center justify-between">
+                          <span>Patient</span>
+                        </div>
+                      </th>
+                      <th className="border-r border-[#cbdcf0] p-1.5 w-[200px] font-normal cursor-pointer hover:bg-gray-100">
+                        <div className="flex items-center justify-between">
+                          <span>Physician Contact</span>
+                        </div>
+                      </th>
+                      <th className="p-1.5 w-[220px] font-normal cursor-pointer hover:bg-gray-100">
+                        <div className="flex items-center justify-between">
+                          <span>Diagnosis</span>
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { loc: 'HPAR OLL 940 01', patient: 'CERNER, DTTESTONE', age: '62 Years Male', fin: 'FIN NBR: 991...', doctor: 'Gupta_Test , Hemant', diag: 'Pneumonia', hasAdd: false },
+                      { loc: 'HPAR OLL 940 02', patient: 'CERNER, ESMHCTONE', age: '50 Years FEMALE', fin: 'FIN NBR:...', doctor: 'Gupta_Test , Hemant', diag: 'Add', hasAdd: true },
+                      { loc: 'HPAR OLL 940 03', patient: 'CERNER, HEMTRNFOUR', age: '14 Years FEMALE', fin: 'FIN NBR:...', doctor: 'TEST , ABSP2', diag: 'Add', hasAdd: true },
+                      { loc: 'HPAR OLL 940 04', patient: 'CERNER, FEMALETWOMON', age: '4 Years FEMALE', fin: 'FIN...', doctor: 'TEST , ABSP2', diag: 'Add', hasAdd: true },
+                      { loc: 'HPAR OLL 940 05', patient: 'CERNER, MALEFOURYEAR', age: '8 Years Male', fin: 'FIN NBR:...', doctor: 'Assign', diag: 'Add', hasAdd: true, isDoctorLink: true },
+                      { loc: 'HPAR OLL 940 06', patient: 'CERNER, MOB', age: '51 Years Male', fin: 'FIN NBR: 9914544714', doctor: 'Gupta_Test , Hemant', diag: 'Add', hasAdd: true },
+                      { loc: 'HPAR OLL 940 08', patient: 'Name,;', age: '34 Years Male', fin: 'FIN NBR: PHARMACYONLY2', doctor: 'Gupta_Test , Hemant', diag: 'Add', hasAdd: true },
+                      { loc: 'HPAR OLL 940', patient: 'CERNER, PREADMITMB', age: '51 Years Male', fin: 'FIN NBR: 90...', doctor: 'Hardi, Umar M, MD', diag: 'Aspiration pneumonia...', hasAdd: false },
+                      { loc: 'HPAR OLL 940', patient: 'cerner, motestnew', age: '32 Years Male', fin: 'FIN NBR: 9000682...', doctor: 'Comeno_Test , Catherine', diag: 'Add', hasAdd: true }
+                    ].map((row, idx) => (
+                      <tr key={idx} className="hover:bg-[#edf3f8] border-b border-[#e1e9f1] h-[34px] group">
+                        {/* Location */}
+                        <td className="p-2 text-gray-800 font-sans border-r border-[#e1e9f1] truncate">
+                          {row.loc}
+                        </td>
+                        
+                        {/* Patient Name + Demographics */}
+                        <td className="p-2 border-r border-[#e1e9f1] font-sans">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-baseline gap-2 truncate">
+                              <span className="font-bold text-[#003366] text-[11.5px] cursor-pointer hover:underline">
+                                {row.patient}
+                              </span>
+                              <span className="text-[10px] text-gray-500">
+                                {row.age}
+                              </span>
+                              <span className="text-[10px] text-gray-400 font-mono">
+                                {row.fin}
+                              </span>
+                            </div>
+                            <span className="text-gray-300 group-hover:text-gray-500 text-[10px] px-1 select-none">▶</span>
+                          </div>
+                        </td>
+
+                        {/* Physician Contact */}
+                        <td className="p-2 border-r border-[#e1e9f1] font-sans text-gray-800 truncate">
+                          {row.isDoctorLink ? (
+                            <button className="text-blue-600 hover:underline bg-transparent border-none text-[11px] font-sans text-left">
+                              {row.doctor}
+                            </button>
+                          ) : (
+                            row.doctor
+                          )}
+                        </td>
+
+                        {/* Diagnosis */}
+                        <td className="p-2 font-sans truncate">
+                          {row.hasAdd ? (
+                            <button className="text-blue-600 hover:underline bg-transparent border-none text-[11px] font-sans text-left">
+                              Add
+                            </button>
+                          ) : (
+                            <span className="text-gray-800">{row.diag}</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
             </div>
           )}
 

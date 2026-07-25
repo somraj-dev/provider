@@ -20,11 +20,10 @@ function copyRecursive(src, dest) {
     process.exit(1);
   }
 
-  // Clean the destination renderer directory (except keep a backup of the original index.html)
-  if (fs.existsSync(dest)) {
-    fs.rmSync(dest, { recursive: true, force: true });
+  // Ensure destination exists
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
   }
-  fs.mkdirSync(dest, { recursive: true });
 
   const entries = fs.readdirSync(src, { withFileTypes: true });
   for (const entry of entries) {
