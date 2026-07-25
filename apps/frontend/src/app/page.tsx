@@ -2998,7 +2998,7 @@ ${ioVal}`;
         <button onClick={() => selectOrOpenTab('Customised', 'Customised Organizer', 'customised-tab')} className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Customised</button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Reports</button>
         <button onClick={() => selectOrOpenTab('ClinicalEventView', 'Clinic Event Page', 'clinical-event-view-tab')} className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm font-semibold">UpToDate</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">AxioCard</button>
+
         <button onClick={() => selectOrOpenTab('ProtocolLibrary', 'Ongoing Activities', 'protocol-library-tab')} className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm font-semibold">Ongoing Activities</button>
 
         {/* Modifying 3-dots (Right Side) */}
