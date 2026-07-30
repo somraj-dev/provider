@@ -34,7 +34,7 @@ import {
 interface TabItem {
   id: string;
   title: string;
-  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs' | 'BillingReceipt' | 'Customised' | 'ClinicalDecisionSupport' | 'ClinicalEventView' | 'ProtocolLibrary' | 'QualityMeasures';
+  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs' | 'BillingReceipt' | 'Customised' | 'ClinicalDecisionSupport' | 'ClinicalEventView' | 'ProtocolLibrary' | 'QualityMeasures' | 'PhysicianHandoff' | 'Reports';
 }
 
 const CHART_OPTIONS = [
@@ -540,6 +540,111 @@ ${ioVal}`;
   const [restrictedDiagnosis, setRestrictedDiagnosis] = useState('Traumatic injury');
   const [headFinding, setHeadFinding] = useState('All values');
 
+  // Physician Handoff states
+  const [handoffNavigator, setHandoffNavigator] = useState({
+    sampleInfo: true,
+    cbcSmear: true,
+    coagulation: true,
+    chemistry: true,
+    serology: false,
+    dischargeDoc: false
+  });
+  const [selectedHandoffCell, setSelectedHandoffCell] = useState<{row: string, col: number} | null>({ row: 'specimen', col: 0 });
+
+  // Reports (Results Review) states
+  const [reportsSubTab, setReportsSubTab] = useState('lab-extended');
+  const [reportsNavigator, setReportsNavigator] = useState({
+    lytesMetabolites: true,
+    carbTolerance: true,
+    extendedChemistry: true,
+    hepatic: true,
+    cardiacMarkers: true,
+    lipids: true,
+    routineCoagulation: true,
+    hemogram: true,
+    leukocytes: true,
+    redCells: true
+  });
+  const [selectedReportsCell, setSelectedReportsCell] = useState<{row: string, col: number} | null>({ row: 'potassium', col: 0 });
+  const [showReportsContextMenu, setShowReportsContextMenu] = useState(false);
+  const [reportsContextMenuPosition, setReportsContextMenuPosition] = useState({ x: 0, y: 0 });
+
+  // Status Bar States & Effects
+  const [loginDomain, setLoginDomain] = useState('PRODX');
+  const [statusBarPatient, setStatusBarPatient] = useState({ name: 'JOHN DOE', mrn: '1000245678' });
+  const [statusBarDateTime, setStatusBarDateTime] = useState('');
+
+  const getUserDisplayName = () => {
+    switch (email) {
+      case 'administrator':
+        return 'Axiovital Admin';
+      case 'dr_stewart':
+        return 'Dr. Herman Stewart';
+      case 'dr_sharma':
+        return 'Dr. R. Sharma';
+      case 'dr_iyer':
+        return 'Dr. K. Iyer';
+      case 'nurse_jenkins':
+        return 'Nurse Jenkins';
+      default:
+        return 'Axiovital Admin';
+    }
+  };
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const yyyy = now.getFullYear();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const formatted = `${dd}/${mm}/${yyyy} ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+      setStatusBarDateTime(formatted);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const currentTab = openTabs.find(t => t.id === activeTabId) || openTabs[0];
+    if (currentTab && (currentTab.type === 'PatientProfile' || currentTab.type === 'EditPatientProfile' || currentTab.type === 'PatientNotes')) {
+      const title = currentTab.title;
+      let name = 'JOHN DOE';
+      if (title.includes('Patient Profile:')) {
+        name = title.replace('Patient Profile:', '').trim();
+      } else if (title.includes('Edit Patient Profile:')) {
+        name = title.replace('Edit Patient Profile:', '').trim();
+      } else if (title.includes('Patient Notes:')) {
+        name = title.replace('Patient Notes:', '').trim();
+      }
+      
+      const upperName = name.toUpperCase();
+      const matchingDemo = Object.keys(patientDemographics).find(k => k.toUpperCase() === upperName);
+      if (matchingDemo) {
+        setStatusBarPatient({
+          name: matchingDemo,
+          mrn: patientDemographics[matchingDemo].mrn
+        });
+      } else {
+        const demoVal = Object.values(patientDemographics).find(d => upperName.includes(d.mrn));
+        if (demoVal) {
+          const keyName = Object.keys(patientDemographics).find(k => patientDemographics[k] === demoVal);
+          setStatusBarPatient({
+            name: keyName || name.toUpperCase(),
+            mrn: demoVal.mrn
+          });
+        } else {
+          setStatusBarPatient({ name: name.toUpperCase(), mrn: '1000245678' });
+        }
+      }
+    }
+  }, [activeTabId, openTabs]);
+
   // Refresh functionality states
   const [lastRefreshedAt, setLastRefreshedAt] = useState<number>(Date.now());
   const [minutesAgo, setMinutesAgo] = useState<number>(0);
@@ -633,9 +738,11 @@ ${ioVal}`;
   const [isOrdersDropdownOpen, setIsOrdersDropdownOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Reconciliation Popup State
   const [isHomeDropdownOpen, setIsHomeDropdownOpen] = useState(false);
   const [isHelpDropdownOpen, setIsHelpDropdownOpen] = useState(false);
+  const [isRibbon0DropdownOpen, setIsRibbon0DropdownOpen] = useState(false);
+  const [isRibbon1DropdownOpen, setIsRibbon1DropdownOpen] = useState(false);
+  const [isRibbon2DropdownOpen, setIsRibbon2DropdownOpen] = useState(false);
   const [isReconcileOpen, setIsReconcileOpen] = useState(false);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [isDetailedOrderActive, setIsDetailedOrderActive] = useState(false);
@@ -2452,7 +2559,8 @@ ${ioVal}`;
             <div className="space-y-1">
               <label className="text-[11px] font-medium tracking-wide block">Domain :</label>
               <select 
-                defaultValue="PRODX"
+                value={loginDomain}
+                onChange={(e) => setLoginDomain(e.target.value)}
                 className="w-full h-[24px] border border-gray-400 bg-white text-black px-1.5 text-[11.5px] focus:outline-none rounded-none appearance-none"
                 style={{ 
                   backgroundImage: 'url("data:image/svg+xml;utf8,<svg fill=\'black\' height=\'24\' viewBox=\'0 0 24 24\' width=\'24\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/><path d=\'M0 0h24v24H0z\' fill=\'none\'/></svg>")', 
@@ -2974,12 +3082,50 @@ ${ioVal}`;
         </div>
         
         {/* Modifying 3-dots (Right Side) */}
-        <div className="ml-auto flex items-center pr-1">
-          <div className="flex flex-col gap-[2px] cursor-pointer hover:bg-[#dbe6ef] p-1.5 rounded transition-colors" title="Customize Menu Bar">
+        <div className="ml-auto flex items-center pr-1 relative">
+          <div 
+            onClick={() => setIsRibbon0DropdownOpen(!isRibbon0DropdownOpen)} 
+            className="flex flex-col gap-[2px] cursor-pointer hover:bg-[#dbe6ef] p-1.5 rounded transition-colors" 
+            title="Customize Menu Bar"
+          >
             <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
             <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
             <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
           </div>
+          {isRibbon0DropdownOpen && (
+            <div className="absolute right-0 top-full mt-1 bg-[#0f4471] border border-[#0d3b62] text-white text-[11px] py-1 w-[220px] shadow-lg rounded-sm select-none z-[120] text-left font-sans">
+              <div 
+                onClick={() => { selectOrOpenTab('Customised', 'Customised Organizer', 'customised-tab'); setIsRibbon0DropdownOpen(false); }}
+                className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center"
+              >
+                <span>Show Opened Editors</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div onClick={() => setIsRibbon0DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Close All</span>
+                <span className="text-[9px] text-[#93c5fd]">Ctrl+K W</span>
+              </div>
+              <div onClick={() => setIsRibbon0DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Close Saved</span>
+                <span className="text-[9px] text-[#93c5fd]">Ctrl+K U</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div onClick={() => setIsRibbon0DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Enable Preview Editors</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div onClick={() => setIsRibbon0DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Lock Group</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div 
+                onClick={() => { selectOrOpenTab('Customised', 'Customised Organizer', 'customised-tab'); setIsRibbon0DropdownOpen(false); }}
+                className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center"
+              >
+                <span>Configure Editors</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -3001,22 +3147,70 @@ ${ioVal}`;
         >
           Patient List
         </button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Physician Handoff</button>
+        <button 
+          onClick={() => selectOrOpenTab('PhysicianHandoff', 'Physician Handoff', 'physician-handoff-tab')} 
+          className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm font-semibold"
+        >
+          Physician Handoff
+        </button>
         <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Care Workflow</button>
         <button onClick={() => selectOrOpenTab('QualityMeasures', 'Quality Measures', 'quality-measures-tab')} className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Quality Measures</button>
         <button onClick={() => selectOrOpenTab('Customised', 'Customised Organizer', 'customised-tab')} className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Customised</button>
-        <button className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm">Reports</button>
+        <button 
+          onClick={() => selectOrOpenTab('Reports', 'Results Review', 'results-review-tab')} 
+          className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm font-semibold"
+        >
+          Reports
+        </button>
         <button onClick={() => selectOrOpenTab('ClinicalEventView', 'Clinic Event Page', 'clinical-event-view-tab')} className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm font-semibold">UpToDate</button>
 
         <button onClick={() => selectOrOpenTab('ProtocolLibrary', 'Ongoing Activities', 'protocol-library-tab')} className="flex items-center gap-1 px-2 py-1 hover:bg-gray-100 rounded-sm font-semibold">Ongoing Activities</button>
 
         {/* Modifying 3-dots (Right Side) */}
-        <div className="ml-auto flex items-center pr-1">
-          <div className="flex flex-col gap-[2px] cursor-pointer hover:bg-gray-200 p-1.5 rounded transition-colors" title="Customize Toolbar">
+        <div className="ml-auto flex items-center pr-1 relative">
+          <div 
+            onClick={() => setIsRibbon1DropdownOpen(!isRibbon1DropdownOpen)}
+            className="flex flex-col gap-[2px] cursor-pointer hover:bg-gray-200 p-1.5 rounded transition-colors" 
+            title="Customize Toolbar"
+          >
             <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
             <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
             <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
           </div>
+          {isRibbon1DropdownOpen && (
+            <div className="absolute right-0 top-full mt-1 bg-[#0f4471] border border-[#0d3b62] text-white text-[11px] py-1 w-[220px] shadow-lg rounded-sm select-none z-[120] text-left font-sans">
+              <div 
+                onClick={() => { selectOrOpenTab('Customised', 'Customised Organizer', 'customised-tab'); setIsRibbon1DropdownOpen(false); }}
+                className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center"
+              >
+                <span>Show Opened Editors</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div onClick={() => setIsRibbon1DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Close All</span>
+                <span className="text-[9px] text-[#93c5fd]">Ctrl+K W</span>
+              </div>
+              <div onClick={() => setIsRibbon1DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Close Saved</span>
+                <span className="text-[9px] text-[#93c5fd]">Ctrl+K U</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div onClick={() => setIsRibbon1DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Enable Preview Editors</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div onClick={() => setIsRibbon1DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Lock Group</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div 
+                onClick={() => { selectOrOpenTab('Customised', 'Customised Organizer', 'customised-tab'); setIsRibbon1DropdownOpen(false); }}
+                className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center"
+              >
+                <span>Configure Editors</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -3064,12 +3258,50 @@ ${ioVal}`;
         </button>
 
         {/* Modifying 3-dots (Right Side) */}
-        <div className="ml-auto flex items-center pr-1">
-          <div className="flex flex-col gap-[2px] cursor-pointer hover:bg-gray-200 p-1.5 rounded transition-colors" title="Customize Shortcut Row">
+        <div className="ml-auto flex items-center pr-1 relative">
+          <div 
+            onClick={() => setIsRibbon2DropdownOpen(!isRibbon2DropdownOpen)}
+            className="flex flex-col gap-[2px] cursor-pointer hover:bg-gray-200 p-1.5 rounded transition-colors" 
+            title="Customize Shortcut Row"
+          >
             <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
             <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
             <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
           </div>
+          {isRibbon2DropdownOpen && (
+            <div className="absolute right-0 top-full mt-1 bg-[#0f4471] border border-[#0d3b62] text-white text-[11px] py-1 w-[220px] shadow-lg rounded-sm select-none z-[120] text-left font-sans">
+              <div 
+                onClick={() => { selectOrOpenTab('Customised', 'Customised Organizer', 'customised-tab'); setIsRibbon2DropdownOpen(false); }}
+                className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center"
+              >
+                <span>Show Opened Editors</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div onClick={() => setIsRibbon2DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Close All</span>
+                <span className="text-[9px] text-[#93c5fd]">Ctrl+K W</span>
+              </div>
+              <div onClick={() => setIsRibbon2DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Close Saved</span>
+                <span className="text-[9px] text-[#93c5fd]">Ctrl+K U</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div onClick={() => setIsRibbon2DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Enable Preview Editors</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div onClick={() => setIsRibbon2DropdownOpen(false)} className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center">
+                <span>Lock Group</span>
+              </div>
+              <div className="border-t border-[#1c5a8e] my-1"></div>
+              <div 
+                onClick={() => { selectOrOpenTab('Customised', 'Customised Organizer', 'customised-tab'); setIsRibbon2DropdownOpen(false); }}
+                className="px-4 py-1.5 hover:bg-[#185d95] cursor-pointer flex justify-between items-center"
+              >
+                <span>Configure Editors</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -3100,6 +3332,8 @@ ${ioVal}`;
           {activeTab.type === 'ClinicalEventView' && 'Clinic Event Page'}
           {activeTab.type === 'ProtocolLibrary' && 'Ongoing Activities'}
           {activeTab.type === 'QualityMeasures' && 'Quality Measures'}
+          {activeTab.type === 'PhysicianHandoff' && 'Results Flowsheet'}
+          {activeTab.type === 'Reports' && 'Results Review'}
         </span>
         
         <div className="flex items-center gap-2">
@@ -5170,65 +5404,6 @@ ${ioVal}`;
 
           {activeTab.type === 'Notifications' && (
             <div className="flex flex-1 flex-col overflow-auto p-4 space-y-4 bg-[#f8f9fa] text-[11px]">
-              
-              {/* Notification Center Title Bar */}
-              <div className="flex justify-between items-center bg-white border border-[#bdcddc] p-2 rounded-sm shadow-sm">
-                <span className="font-bold text-xs text-[#002a46]">Notification Center</span>
-                <div className="flex gap-2 items-center">
-                  <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2.5 py-1 rounded text-[10px] flex items-center gap-1 font-semibold text-gray-700">
-                    ✉️ Mark All as Read
-                  </button>
-                  <select className="bg-white border border-[#bdcddc] rounded px-1.5 py-0.5 text-[10px] focus:outline-none">
-                    <option>Notification Settings</option>
-                  </select>
-                  <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">🔄</button>
-                  <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">•••</button>
-                </div>
-              </div>
-
-              {/* Filters Row */}
-              <div className="bg-[#fafbfc] border border-[#bdcddc] p-3 rounded-sm shadow-sm grid grid-cols-4 gap-3 text-[10.5px]">
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">From Date</label>
-                  <input
-                    type="text"
-                    value={notifFromDate}
-                    onChange={(e) => setNotifFromDate(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold">To Date</label>
-                  <input
-                    type="text"
-                    value={notifToDate}
-                    onChange={(e) => setNotifToDate(e.target.value)}
-                    className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1 col-span-2 flex flex-col justify-end">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Enter keyword, patient or MRN"
-                      value={notifSearch}
-                      onChange={(e) => setNotifSearch(e.target.value)}
-                      className="flex-1 bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none"
-                    />
-                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2 py-1 text-[10px] font-semibold rounded">
-                      More Filters
-                    </button>
-                    <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white px-3 py-1 text-[10px] font-bold rounded">
-                      🔍 Search
-                    </button>
-                    <button className="bg-white border border-[#bdcddc] hover:bg-gray-50 px-2.5 py-1 text-[10px] font-semibold rounded">
-                      Reset
-                    </button>
-                  </div>
-                </div>
-              </div>
 
               {/* Data Table */}
               <div className="bg-white border border-[#bdcddc] rounded shadow-sm overflow-hidden flex flex-col">
@@ -5317,6 +5492,541 @@ ${ioVal}`;
                   </div>
                 </div>
               </div>
+
+            </div>
+          )}
+
+          {activeTab.type === 'PhysicianHandoff' && (
+            <div className="flex-1 flex flex-col h-full bg-[#f4f4f4] text-black overflow-hidden select-none" style={{ fontFamily: 'Tahoma, "Segoe UI", sans-serif' }}>
+              {/* Flowsheet Top Toolbar */}
+              <div className="h-[34px] bg-[#eef2f5] border-b border-[#bdcddc] flex items-center px-3 justify-between text-[11.5px] select-none shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-700">Flowsheet:</span>
+                    <select 
+                      defaultValue="All Results Flowsheet"
+                      className="border border-[#7f9db9] bg-white px-1.5 py-0.5 text-[11px] h-[22px] outline-none focus:border-blue-500 rounded-[1px] min-w-[150px]"
+                    >
+                      <option value="All Results Flowsheet">All Results Flowsheet</option>
+                      <option value="Critical Results Only">Critical Results Only</option>
+                      <option value="Standard Labs View">Standard Labs View</option>
+                    </select>
+                    <button className="h-[22px] px-1 bg-gradient-to-b from-[#f9f9f9] to-[#e3e3e3] border border-[#7f9db9] hover:bg-gray-100 flex items-center justify-center font-bold text-[10px] rounded-[1px] active:bg-gray-200">
+                      ...
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-700">Level:</span>
+                    <select 
+                      className="border border-[#7f9db9] bg-white px-1.5 py-0.5 text-[11px] h-[22px] outline-none focus:border-blue-500 rounded-[1px] min-w-[150px]"
+                      defaultValue="ALLRESULTSECT"
+                    >
+                      <option value="ALLRESULTSECT">ALLRESULTSECT</option>
+                      <option value="SUMMARYSECT">SUMMARYSECT</option>
+                      <option value="DETAILSECT">DETAILSECT</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input type="radio" name="handoff_view" defaultChecked className="accent-[#0f4471]" />
+                    <span className="text-gray-800 font-medium">Table</span>
+                  </label>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input type="radio" name="handoff_view" className="accent-[#0f4471]" />
+                    <span className="text-gray-800 font-medium">Group</span>
+                  </label>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input type="radio" name="handoff_view" className="accent-[#0f4471]" />
+                    <span className="text-gray-800 font-medium">List</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Date range banner */}
+              <div className="h-[26px] bg-[#97a9b9] border-b border-[#7e95a9] flex items-center justify-center text-white text-[11px] font-bold select-none shrink-0 font-sans shadow-sm">
+                <span>Last 300 Results in the Past 5 Years</span>
+              </div>
+
+              {/* Main Workspace Split Layout */}
+              <div className="flex flex-1 overflow-hidden relative">
+                {/* Left Navigator Sidebar */}
+                <div className="w-[180px] bg-[#eef2f5] border-r border-[#bdcddc] flex flex-col shrink-0 overflow-y-auto select-none">
+                  <div className="bg-[#cbd8e3] p-1.5 font-bold border-b border-[#bdcddc] text-[10.5px] text-[#0f4471]">
+                    Navigator
+                  </div>
+                  <div className="flex flex-col text-[11px] text-gray-700">
+                    {[
+                      { key: 'sampleInfo', label: 'Sample Information' },
+                      { key: 'cbcSmear', label: 'CBC and Peripheral Smear' },
+                      { key: 'coagulation', label: 'Coagulation' },
+                      { key: 'chemistry', label: 'General Chemistry' },
+                      { key: 'serology', label: 'Bacterial Serology and Molecul...' },
+                      { key: 'dischargeDoc', label: 'Discharge Documentation' }
+                    ].map((item) => (
+                      <label 
+                        key={item.key} 
+                        className={`flex items-center gap-2 px-2 py-1.5 border-b border-gray-200 cursor-pointer hover:bg-[#d5e1eb]/60 ${handoffNavigator[item.key as keyof typeof handoffNavigator] ? 'bg-white font-semibold text-[#002a46]' : ''}`}
+                      >
+                        <input 
+                          type="checkbox" 
+                          checked={handoffNavigator[item.key as keyof typeof handoffNavigator]}
+                          onChange={(e) => setHandoffNavigator(prev => ({ ...prev, [item.key]: e.target.checked }))}
+                          className="rounded-sm accent-[#0f4471] w-3 h-3"
+                        />
+                        <span className="truncate">{item.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right Grid Flowsheet Pane */}
+                <div className="flex-1 bg-white overflow-auto">
+                  <table className="w-full text-left border-collapse text-[10.5px] font-sans border-r border-[#bdcddc]">
+                    <thead>
+                      <tr className="bg-[#eef2f5] text-gray-700 font-bold border-b border-[#bdcddc] sticky top-0 z-10">
+                        <th className="p-2 border-r border-[#bdcddc] min-w-[200px] w-[200px] bg-[#eef2f5]">Results</th>
+                        {[
+                          '05-Jun-2013\n08:10 PDT',
+                          '09-Jun-2013\n12:10 PDT',
+                          '03-Jun-2013\n15:00 PDT',
+                          '03-Jun-2013\n12:43 PDT',
+                          '03-Jun-2013\n11:30 PDT',
+                          '27-May-2013\n13:24 PDT',
+                          '27-May-2013\n04:40 PDT',
+                          '29-May-2013\n03:30 PDT'
+                        ].map((dt, idx) => (
+                          <th key={idx} className="p-1.5 border-r border-[#bdcddc] min-w-[95px] text-center font-normal whitespace-pre-line text-[10px] leading-tight bg-[#eef2f5]">
+                            {dt}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* Section 1: Sample Information */}
+                      {handoffNavigator.sampleInfo && (
+                        <>
+                          <tr className="bg-[#d2e2f2] text-[#003366] font-bold border-b border-[#bdcddc]">
+                            <td colSpan={9} className="p-1 px-2.5 text-[11px]">Sample Information</td>
+                          </tr>
+                          <tr className="border-b border-gray-200 hover:bg-gray-50">
+                            <td className="p-1.5 px-3 border-r border-gray-200 text-gray-800 font-medium">Type of Specimen Collection</td>
+                            {[
+                              { val: 'Capillary' },
+                              { val: 'Unknown' },
+                              { val: '' },
+                              { val: 'Unknown' },
+                              { val: 'Line' },
+                              { val: 'Line' },
+                              { val: '' },
+                              { val: '' }
+                            ].map((cell, idx) => {
+                              const isSelected = selectedHandoffCell?.row === 'specimen' && selectedHandoffCell?.col === idx;
+                              return (
+                                <td 
+                                  key={idx} 
+                                  onClick={() => setSelectedHandoffCell({ row: 'specimen', col: idx })}
+                                  className={`p-1.5 border-r border-gray-200 text-center cursor-pointer select-none ${isSelected ? 'outline outline-[1.5px] outline-black outline-offset-[-1.5px] bg-[#eef5fc]' : ''}`}
+                                >
+                                  {cell.val}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        </>
+                      )}
+
+                      {/* Section 2: CBC and Peripheral Smear */}
+                      {handoffNavigator.cbcSmear && (
+                        <>
+                          <tr className="bg-[#d2e2f2] text-[#003366] font-bold border-b border-[#bdcddc]">
+                            <td colSpan={9} className="p-1 px-2.5 text-[11px]">CBC and Peripheral Smear</td>
+                          </tr>
+                          {[
+                            { key: 'wbc', name: 'White Blood Cells', values: ['4.5', '', '', '4.9', '0.7', '1.7', '', ''] },
+                            { key: 'rbc', name: 'Red Blood Cells', values: ['4.14', '', '', '4.12', 'L 3.56', '4.10', '', ''] },
+                            { key: 'hgb', name: 'Hemoglobin', values: ['L 107', '', '', 'L 119', 'L 103', 'L 107', '', ''] },
+                            { key: 'hct', name: 'Hematocrit', values: ['L 0.318', '', '', 'L 0.352', 'L 0.303', 'L 0.313', '', ''] },
+                            { key: 'mcv', name: 'Mean Corpuscular Volume', values: ['L 77.1', '', '', 'L 78.2', 'L 78.7', 'L 76.3', '', ''] },
+                            { key: 'mch', name: 'Mean Corpuscular Hemoglobin', values: ['25.8', '', '', '26.7', '26.1', '26.1', '', ''] },
+                            { key: 'rdw', name: 'RDW-CV', values: ['H 0.183', '', '', 'H 0.182', 'H 0.189', '0.147', '', ''] },
+                            { key: 'plt', name: 'Platelet Count', values: ['L 158', '', '', '291', 'L 152', 'L 151', '', ''] },
+                            { key: 'mpv', name: 'Mean Platelet Volume', values: ['9.8', '', '', '9.3', '9.9', '9.8', '', ''] },
+                            { key: 'neut', name: 'Neutrophils', values: ['2.04', '', '', '1.88', '4.73', '3.07', '', ''] },
+                            { key: 'lymph', name: 'Lymphocytes', values: ['1.54', '', '', '1.88', '2.89', '1.93', '', ''] },
+                            { key: 'mono', name: 'Monocytes', values: ['0.44', '', '', '0.57', '0.50', '0.33', '', ''] },
+                            { key: 'eos', name: 'Eosinophils', values: ['0.26', '', '', 'H 0.32', '0.47', '0.31', '', ''] },
+                            { key: 'baso', name: 'Basophils', values: ['0.05', '', '', '0.07', '0.08', '0.10', '', ''] },
+                            { key: 'film', name: 'Blood Film Screen', values: ['', '', '', 'Automated diff', '', 'Automated diff', '', ''] },
+                            { key: 'morph', name: 'RBC Morphology', values: ['Non-specific poi', '', '', 'Non-specific poi', '', 'Non-specific poi', 'Non-specific poi', ''] },
+                            { key: 'comments', name: 'Platelet Comments', values: ['', '', '', '', '', '', '', ''] }
+                          ].map((row) => (
+                            <tr key={row.key} className="border-b border-gray-200 hover:bg-gray-50">
+                              <td className="p-1.5 px-3 border-r border-gray-200 text-gray-800">{row.name}</td>
+                              {row.values.map((val, idx) => {
+                                const isSelected = selectedHandoffCell?.row === row.key && selectedHandoffCell?.col === idx;
+                                const isLow = val.startsWith('L');
+                                const isHigh = val.startsWith('H');
+                                const textClass = isLow ? 'text-blue-600 font-semibold' : isHigh ? 'text-red-500 font-semibold' : 'text-gray-900';
+                                return (
+                                  <td 
+                                    key={idx} 
+                                    onClick={() => setSelectedHandoffCell({ row: row.key, col: idx })}
+                                    className={`p-1.5 border-r border-gray-200 text-center cursor-pointer select-none ${textClass} ${isSelected ? 'outline outline-[1.5px] outline-black outline-offset-[-1.5px] bg-[#eef5fc]' : ''}`}
+                                  >
+                                    {val}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Section 3: Coagulation */}
+                      {handoffNavigator.coagulation && (
+                        <>
+                          <tr className="bg-[#d2e2f2] text-[#003366] font-bold border-b border-[#bdcddc]">
+                            <td colSpan={9} className="p-1 px-2.5 text-[11px]">Coagulation</td>
+                          </tr>
+                          {[
+                            { key: 'dose', name: 'Heparin LMW Time of Last Dose', values: ['', 'Unknown', '', '', '', '', '', ''] },
+                            { key: 'lmw', name: 'Heparin Low Molecular Weight', values: ['', 'L 0.41', '', '', '', '', '', ''] }
+                          ].map((row) => (
+                            <tr key={row.key} className="border-b border-gray-200 hover:bg-gray-50">
+                              <td className="p-1.5 px-3 border-r border-gray-200 text-gray-800">{row.name}</td>
+                              {row.values.map((val, idx) => {
+                                const isSelected = selectedHandoffCell?.row === row.key && selectedHandoffCell?.col === idx;
+                                const isLow = val.startsWith('L');
+                                const textClass = isLow ? 'text-blue-600 font-semibold' : 'text-gray-900';
+                                return (
+                                  <td 
+                                    key={idx} 
+                                    onClick={() => setSelectedHandoffCell({ row: row.key, col: idx })}
+                                    className={`p-1.5 border-r border-gray-200 text-center cursor-pointer select-none ${textClass} ${isSelected ? 'outline outline-[1.5px] outline-black outline-offset-[-1.5px] bg-[#eef5fc]' : ''}`}
+                                  >
+                                    {val}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Section 4: General Chemistry */}
+                      {handoffNavigator.chemistry && (
+                        <>
+                          <tr className="bg-[#d2e2f2] text-[#003366] font-bold border-b border-[#bdcddc]">
+                            <td colSpan={9} className="p-1 px-2.5 text-[11px]">General Chemistry</td>
+                          </tr>
+                          {[
+                            { key: 'na', name: 'Sodium', values: ['H 146', '140', '', '139', '', '141', '144', ''] },
+                            { key: 'k', name: 'Potassium', values: ['4.2', '* 4.4', '', '4.4', '', 'L 3.4', '3.8', ''] },
+                            { key: 'ca', name: 'Calcium Total', values: ['2.24', '2.38', '', 'L 2.21', '', 'L 2.10', '', ''] },
+                            { key: 'mg', name: 'Magnesium', values: ['L 0.67', '* L 0.72', '', '0.77', '', 'L 0.67', 'L 0.71', ''] },
+                            { key: 'phos', name: 'Phosphate', values: ['H 1.64', '* H 1.58', '', 'H 1.28', '', 'H 1.88', 'H 1.72', ''] },
+                            { key: 'urea', name: 'Urea', values: ['2.9', '* 4.0', '', '4.0', '', 'L 2.7', 'L 1.8', ''] },
+                            { key: 'cr', name: 'Creatinine', values: ['* 90', '* 95', '', '* H 108', '', '* 81', '* 72', ''] },
+                            { key: 'bil_un', name: 'Bilirubin Unconjugated', values: ['L <2', '* L <2', '', 'L <2', '', 'L <2', '', ''] },
+                            { key: 'bil_co', name: 'Bilirubin Conjugated', values: ['< 2', '* < 2', '', '< 2', '', '< 2', '', ''] },
+                            { key: 'alt', name: 'Alanine Aminotransferase', values: ['H 58', '* H 43', '', 'H 37', '', 'H 52', '', ''] },
+                            { key: 'ast', name: 'Aspartate Aminotransferase', values: ['H 72', '* H 55', '', '41', '', 'H 44', '', ''] },
+                            { key: 'alp', name: 'Alkaline Phosphatase', values: ['80', '76', '', '64', '', '78', '', ''] },
+                            { key: 'ggt', name: 'Gamma Glutamyltransferase', values: ['H 60', '* H 50', '', 'H 50', '', 'H 48', '', ''] },
+                            { key: 'ldh', name: 'Lactate Dehydrogenase', values: ['585', '* 660', '', '594', '', '503', '', ''] }
+                          ].map((row) => (
+                            <tr key={row.key} className="border-b border-gray-200 hover:bg-gray-50">
+                              <td className="p-1.5 px-3 border-r border-gray-200 text-gray-800">{row.name}</td>
+                              {row.values.map((val, idx) => {
+                                const isSelected = selectedHandoffCell?.row === row.key && selectedHandoffCell?.col === idx;
+                                const isLow = val.includes('L');
+                                const isHigh = val.includes('H');
+                                const textClass = isLow ? 'text-blue-600 font-semibold' : isHigh ? 'text-red-500 font-semibold' : 'text-gray-900';
+                                return (
+                                  <td 
+                                    key={idx} 
+                                    onClick={() => setSelectedHandoffCell({ row: row.key, col: idx })}
+                                    className={`p-1.5 border-r border-gray-200 text-center cursor-pointer select-none ${textClass} ${isSelected ? 'outline outline-[1.5px] outline-black outline-offset-[-1.5px] bg-[#eef5fc]' : ''}`}
+                                  >
+                                    {val}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab.type === 'Reports' && (
+            <div className="flex-1 flex flex-col h-full bg-[#f4f4f4] text-black overflow-hidden select-none font-sans relative" style={{ fontFamily: 'Tahoma, "Segoe UI", sans-serif' }} onClick={() => setShowReportsContextMenu(false)}>
+              
+              {/* Horizontal Sub-tabs bar */}
+              <div className="h-[28px] bg-[#eef2f5] border-b border-[#bdcddc] flex items-end px-2 shrink-0 select-none">
+                {[
+                  { id: 'lab-extended', label: 'Lab - Extended' },
+                  { id: 'lab-recent', label: 'Lab - Recent' },
+                  { id: 'results-recent', label: 'Results - Recent' },
+                  { id: 'results-extended', label: 'Results - Extended' },
+                  { id: 'microbiology', label: 'Microbiology' },
+                  { id: 'diagnostics', label: 'Diagnostics' },
+                  { id: 'vitals-recent', label: 'Vitals - Recent' },
+                  { id: 'vitals-extended', label: 'Vitals - Extended' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setReportsSubTab(tab.id);
+                    }}
+                    className={`px-3 py-1 text-[11px] border-t border-x rounded-t-[3px] mr-[2px] transition-colors cursor-pointer ${reportsSubTab === tab.id ? 'bg-white border-[#bdcddc] border-b-white font-semibold text-[#002a46] z-10 -mb-[1px]' : 'bg-[#e3ecf5]/60 hover:bg-[#d9e6f2] border-transparent text-gray-600'}`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Flowsheet Filter Toolbar */}
+              <div className="h-[34px] bg-[#eef2f5] border-b border-[#bdcddc] flex items-center px-3 justify-between text-[11.5px] select-none shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-700">Flowsheet:</span>
+                    <select 
+                      defaultValue="Labs View"
+                      className="border border-[#7f9db9] bg-white px-1.5 py-0.5 text-[11px] h-[22px] outline-none focus:border-blue-500 rounded-[1px] min-w-[130px]"
+                    >
+                      <option value="Labs View">Labs View</option>
+                      <option value="Standard Labs">Standard Labs</option>
+                      <option value="All Results">All Results</option>
+                    </select>
+                  </div>
+                  
+                  <button className="h-[22px] px-2.5 bg-gradient-to-b from-[#f9f9f9] to-[#e3e3e3] border border-[#7f9db9] hover:bg-gray-100 flex items-center justify-center text-[11px] rounded-[1px] active:bg-gray-200 text-gray-800">
+                    Procedure Selection
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-700">Level:</span>
+                    <select 
+                      className="border border-[#7f9db9] bg-white px-1.5 py-0.5 text-[11px] h-[22px] outline-none focus:border-blue-500 rounded-[1px] min-w-[130px]"
+                      defaultValue="Labs View"
+                    >
+                      <option value="Labs View">Labs View</option>
+                      <option value="Extended View">Extended View</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input type="radio" name="reports_view" defaultChecked className="accent-[#0f4471]" />
+                    <span className="text-gray-800 font-medium">Table</span>
+                  </label>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input type="radio" name="reports_view" className="accent-[#0f4471]" />
+                    <span className="text-gray-800 font-medium">Group</span>
+                  </label>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input type="radio" name="reports_view" className="accent-[#0f4471]" />
+                    <span className="text-gray-800 font-medium">List</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Date Header bar */}
+              <div className="h-[26px] bg-[#97a9b9] border-b border-[#7e95a9] flex items-center justify-between text-white text-[11px] font-bold select-none shrink-0 font-sans shadow-sm px-3">
+                <div className="flex items-center border border-[#7e95a9] bg-[#a8b8c7] rounded-[1px] overflow-hidden">
+                  <button className="px-1 py-0.5 hover:bg-[#8da0b1] active:bg-[#7d91a3]">◀</button>
+                  <button className="px-1 py-0.5 hover:bg-[#8da0b1] active:bg-[#7d91a3]">▶</button>
+                </div>
+                <span>December 23, 2024 0:00</span>
+                <div className="flex items-center border border-[#7e95a9] bg-[#a8b8c7] rounded-[1px] overflow-hidden">
+                  <button className="px-1 py-0.5 hover:bg-[#8da0b1] active:bg-[#7d91a3]">◀</button>
+                  <button className="px-1 py-0.5 hover:bg-[#8da0b1] active:bg-[#7d91a3]">▶</button>
+                </div>
+              </div>
+
+              {/* Split layout: Navigator (Left) and Grid (Right) */}
+              <div className="flex flex-1 overflow-hidden relative">
+                {/* Left Navigator Pane */}
+                <div className="w-[180px] bg-[#eef2f5] border-r border-[#bdcddc] flex flex-col shrink-0 overflow-y-auto select-none">
+                  <div className="bg-[#cbd8e3] p-1.5 font-bold border-b border-[#bdcddc] text-[10.5px] text-[#0f4471] flex justify-between items-center">
+                    <span>Navigator</span>
+                    <span className="text-gray-400 font-mono text-[9px] cursor-pointer">✕</span>
+                  </div>
+                  <div className="flex flex-col text-[11px] text-gray-700">
+                    {[
+                      { key: 'lytesMetabolites', label: 'Lytes-Metabolites' },
+                      { key: 'carbTolerance', label: 'Carbohydrate Tolerance' },
+                      { key: 'extendedChemistry', label: 'Extended Chemistry' },
+                      { key: 'hepatic', label: 'Hepatic' },
+                      { key: 'cardiacMarkers', label: 'Cardiac Markers' },
+                      { key: 'lipids', label: 'LIPIDS' },
+                      { key: 'routineCoagulation', label: 'Routine Coagulation' },
+                      { key: 'hemogram', label: 'Hemogram' },
+                      { key: 'leukocytes', label: 'Leukocytes' },
+                      { key: 'redCells', label: 'Red Cells' }
+                    ].map((item) => (
+                      <label 
+                        key={item.key} 
+                        className={`flex items-center gap-2 px-2 py-1.5 border-b border-gray-200 cursor-pointer hover:bg-[#d5e1eb]/60 ${reportsNavigator[item.key as keyof typeof reportsNavigator] ? 'bg-white font-semibold text-[#002a46]' : ''}`}
+                      >
+                        <input 
+                          type="checkbox" 
+                          checked={reportsNavigator[item.key as keyof typeof reportsNavigator]}
+                          onChange={(e) => setReportsNavigator(prev => ({ ...prev, [item.key]: e.target.checked }))}
+                          className="rounded-sm accent-[#0f4471] w-3 h-3"
+                        />
+                        <span className="truncate">{item.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right Flowsheet grid */}
+                <div className="flex-1 bg-white overflow-auto flex flex-col">
+                  {/* Show more results banner */}
+                  <div className="p-2 border-b border-gray-200 bg-[#f7f9fa] shrink-0">
+                    <button className="px-3 py-1 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 rounded shadow-sm text-[10.5px] cursor-pointer font-medium">
+                      Show more results
+                    </button>
+                  </div>
+
+                  <table className="w-full text-left border-collapse text-[10.5px] font-sans border-r border-[#bdcddc] flex-1">
+                    <thead>
+                      <tr className="bg-[#eef2f5] text-gray-700 font-bold border-b border-[#bdcddc] sticky top-0 z-10">
+                        <th className="p-2 border-r border-[#bdcddc] min-w-[220px] w-[220px] bg-[#eef2f5]">Labs View</th>
+                        <th className="p-1.5 border-r border-[#bdcddc] text-center font-normal whitespace-pre-line text-[10px] leading-tight bg-[#eef2f5]">
+                          12/23/2024<br/>0:00
+                        </th>
+                        {/* Dummy columns to pad layout */}
+                        <th className="p-1.5 border-r border-[#bdcddc] bg-[#eef2f5] w-[100px]"></th>
+                        <th className="p-1.5 border-r border-[#bdcddc] bg-[#eef2f5] w-[100px]"></th>
+                        <th className="p-1.5 bg-[#eef2f5]"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* Category: Lytes-Metabolites */}
+                      {reportsNavigator.lytesMetabolites && (
+                        <>
+                          <tr className="bg-[#d2e2f2] text-[#003366] font-bold border-b border-[#bdcddc]">
+                            <td colSpan={5} className="p-1 px-2.5 text-[11px]">Lytes-Metabolites</td>
+                          </tr>
+                          {[
+                            { key: 'sodium', name: 'Sodium Level, External', val: '34.1 [2](L)' },
+                            { key: 'potassium', name: 'Potassium Level, External', val: '13.33 - 50.34' },
+                            { key: 'chloride', name: 'Chloride Level, External', val: '34.1 - 47.9' },
+                            { key: 'anion', name: 'Anion Gap, External', val: '13.5 - 34.1' },
+                            { key: 'urea', name: 'Urea Nitrogen, External', val: '7.8 - 45.1' },
+                            { key: 'creatinine', name: 'Creatinine, External', val: '39 - 50.3' },
+                            { key: 'egfr', name: 'eGFR, External', val: '39 - 50.3' },
+                            { key: 'hgbA1c', name: 'Hemoglobin A1C, External', val: '(L) 13.33' },
+                            { key: 'co2', name: 'CO2, External', val: '10.3 - 34.1' }
+                          ].map((row) => {
+                            const isSelected = selectedReportsCell?.row === row.key;
+                            const isLow = row.val.includes('(L)') || row.val.includes('34.1 [2](L)');
+                            const isPotassium = row.key === 'potassium';
+                            const textClass = isLow ? 'text-blue-600 font-semibold' : isPotassium ? 'text-[#e67e22] font-semibold' : 'text-gray-900';
+                            return (
+                              <tr key={row.key} className="border-b border-gray-200 hover:bg-gray-50">
+                                <td className="p-1.5 px-3 border-r border-gray-200 text-gray-800 font-medium">{row.name}</td>
+                                <td 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedReportsCell({ row: row.key, col: 0 });
+                                  }}
+                                  onContextMenu={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setSelectedReportsCell({ row: row.key, col: 0 });
+                                    setReportsContextMenuPosition({ x: e.clientX, y: e.clientY });
+                                    setShowReportsContextMenu(true);
+                                  }}
+                                  className={`p-1.5 border-r border-gray-200 text-center cursor-pointer select-none min-w-[120px] ${textClass} ${isSelected ? 'outline outline-[1.5px] outline-black outline-offset-[-1.5px] bg-[#eef5fc]' : ''}`}
+                                >
+                                  {row.val}
+                                </td>
+                                <td className="border-r border-gray-100"></td>
+                                <td className="border-r border-gray-100"></td>
+                                <td></td>
+                              </tr>
+                            );
+                          })}
+                        </>
+                      )}
+
+                      {/* Category: Carbohydrate Tolerance */}
+                      {reportsNavigator.carbTolerance && (
+                        <>
+                          <tr className="bg-[#d2e2f2] text-[#003366] font-bold border-b border-[#bdcddc]">
+                            <td colSpan={5} className="p-1 px-2.5 text-[11px]">Carbohydrate Tolerance Test</td>
+                          </tr>
+                          <tr className="border-b border-gray-200 hover:bg-gray-50">
+                            <td className="p-1.5 px-3 border-r border-gray-200 text-gray-800 font-medium">Estimated Average Glucose, External</td>
+                            <td 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedReportsCell({ row: 'glucose', col: 0 });
+                              }}
+                              onContextMenu={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelectedReportsCell({ row: 'glucose', col: 0 });
+                                setReportsContextMenuPosition({ x: e.clientX, y: e.clientY });
+                                setShowReportsContextMenu(true);
+                              }}
+                              className={`p-1.5 border-r border-gray-200 text-center cursor-pointer select-none text-blue-600 font-semibold ${selectedReportsCell?.row === 'glucose' ? 'outline outline-[1.5px] outline-black outline-offset-[-1.5px] bg-[#eef5fc]' : ''}`}
+                            >
+                              (L) 7.8
+                            </td>
+                            <td className="border-r border-gray-100"></td>
+                            <td className="border-r border-gray-100"></td>
+                            <td></td>
+                          </tr>
+                        </>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Context Menu Overlay */}
+              {showReportsContextMenu && (
+                <div 
+                  className="fixed z-50 bg-[#f0f0f0] border border-[#979797] shadow-lg text-[11px] py-1 text-black font-sans min-w-[140px] select-none"
+                  style={{ 
+                    top: `${reportsContextMenuPosition.y}px`, 
+                    left: `${reportsContextMenuPosition.x}px`,
+                    boxShadow: '2px 2px 4px rgba(0,0,0,0.15)'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {[
+                    'View Details...',
+                    'View Comments...',
+                    'Modify...',
+                    'Unchart...',
+                    'Change Date/Time...',
+                    'Forward/Refuse...'
+                  ].map((menuItem) => (
+                    <div 
+                      key={menuItem}
+                      onClick={() => setShowReportsContextMenu(false)}
+                      className="px-4 py-1 hover:bg-[#0078d7] hover:text-white cursor-pointer transition-colors"
+                    >
+                      {menuItem}
+                    </div>
+                  ))}
+                </div>
+              )}
 
             </div>
           )}
@@ -9468,11 +10178,11 @@ No qualifying data available.`;
       {!isFullscreen && (
         <div className="bg-[#002a46] text-white px-3 py-1 flex justify-between items-center text-[9.5px] border-t border-[#001729]">
           <span>Ready</span>
-          <span>Patient: JOHN DOE ( MRN: 1000245678 )</span>
-          <span>User: Axiovital Admin</span>
+          <span>Patient: {statusBarPatient.name} ( MRN: {statusBarPatient.mrn} )</span>
+          <span>User: {getUserDisplayName()}</span>
           <span>AXIOVITAL HEALTHCARE SYSTEM</span>
-          <span>PROD</span>
-          <span>05/28/2025 03:45 PM</span>
+          <span>{loginDomain}</span>
+          <span>{statusBarDateTime || '05/28/2025 03:45 PM'}</span>
         </div>
       )}
 
