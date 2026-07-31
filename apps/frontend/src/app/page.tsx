@@ -6087,15 +6087,15 @@ ${ioVal}`;
                     <div className="space-y-0.5">
                       <div><span className="text-gray-300">Age:</span> 39 years</div>
                       <div><span className="text-gray-300">Advance Directive:</span></div>
-                      <div><span className="text-gray-300">Clinical Trial:</span> &lt;No Data Available&gt;</div>
+                      <div><span className="text-gray-300">Clinic:</span> O1XTQ</div>
                     </div>
                     <div className="space-y-0.5">
                       <div><span className="text-gray-300">Sex:</span> Female</div>
-                      <div><span className="text-gray-300">Code Status:</span> &lt;No Data Available&gt;</div>
+                      <div><span className="text-gray-300">Code Status:</span> Active</div>
                       <div><span className="text-gray-300">Loc:</span> NU02</div>
                     </div>
                     <div className="space-y-0.5">
-                      <div><span className="text-gray-300">MRN:</span> 00490248563</div>
+                      <div><span className="text-gray-300">MRN:</span> AVX-SL-A1H4XE</div>
                       <div><span className="text-gray-300">Isolation:</span> &lt;No Data Available&gt;</div>
                       <div className="truncate"><span className="text-gray-300">Inpatient FIN:</span> 00096526415 [Admit Dt: 10/6/2020 3:14:12 PM CDT]</div>
                     </div>
