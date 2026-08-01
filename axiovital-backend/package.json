@@ -1,0 +1,29 @@
+{
+  "name": "axiovital-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "AxioVital Healthcare OS — Production Backend Monorepo",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "modules/*"
+  ],
+  "scripts": {
+    "dev:gateway": "npm run start:dev --workspace=apps/api-gateway",
+    "build:gateway": "npm run build --workspace=apps/api-gateway",
+    "build:packages": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  }
+}

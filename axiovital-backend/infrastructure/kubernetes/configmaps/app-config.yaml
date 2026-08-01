@@ -1,0 +1,21 @@
+# AxioVital Application ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: axiovital-config
+  namespace: axiovital
+  labels:
+    app.kubernetes.io/part-of: axiovital-provider
+data:
+  NODE_ENV: "production"
+  FRONTEND_PORT: "3000"
+  BACKEND_PORT: "4000"
+  AI_SERVICE_PORT: "8000"
+  DATABASE_HOST: "postgres-svc"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "axiovital"
+  REDIS_HOST: "redis-svc"
+  REDIS_PORT: "6379"
+  OPENSEARCH_HOST: "opensearch-svc"
+  OPENSEARCH_PORT: "9200"
+  # TODO: Add production-specific configuration

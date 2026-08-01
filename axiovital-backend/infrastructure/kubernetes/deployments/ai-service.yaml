@@ -1,0 +1,37 @@
+# AxioVital AI Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-service
+  namespace: axiovital
+  labels:
+    app: ai-service
+    app.kubernetes.io/part-of: axiovital-provider
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-service
+  template:
+    metadata:
+      labels:
+        app: ai-service
+    spec:
+      containers:
+        - name: ai-service
+          image: axiovital/ai-service:latest  # TODO: Use real registry
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: axiovital-config
+            - secretRef:
+                name: axiovital-secrets
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"
+          # TODO: Add readiness and liveness probes

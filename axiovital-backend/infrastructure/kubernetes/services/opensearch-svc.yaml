@@ -1,0 +1,17 @@
+# OpenSearch Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensearch-svc
+  namespace: axiovital
+spec:
+  selector:
+    app: opensearch
+  ports:
+    - name: http
+      port: 9200
+      targetPort: 9200
+    - name: transport
+      port: 9600
+      targetPort: 9600
+  type: ClusterIP

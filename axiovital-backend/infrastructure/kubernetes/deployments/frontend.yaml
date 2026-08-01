@@ -1,0 +1,35 @@
+# AxioVital Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: axiovital
+  labels:
+    app: frontend
+    app.kubernetes.io/part-of: axiovital-provider
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: axiovital/frontend:latest  # TODO: Use real registry
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: axiovital-config
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          # TODO: Add readiness and liveness probes

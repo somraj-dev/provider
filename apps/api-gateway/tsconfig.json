@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
+    "strictBindCallApply": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@axiovital/database": ["../../packages/database/src"],
+      "@axiovital/common": ["../../packages/common/src"],
+      "@axiovital/auth": ["../../packages/auth/src"],
+      "@axiovital/logger": ["../../packages/logger/src"],
+      "@axiovital/events": ["../../packages/events/src"],
+      "@axiovital/storage": ["../../packages/storage/src"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "../../packages/*/src/**/*",
+    "../../modules/*/src/**/*"
+  ],
+  "exclude": ["node_modules", "dist", "test"]
+}

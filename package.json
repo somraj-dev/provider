@@ -6,14 +6,15 @@
   "license": "UNLICENSED",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "modules/*"
   ],
   "scripts": {
     "dev:frontend": "npm run dev --workspace=apps/frontend",
-    "dev:backend": "npm run start:dev --workspace=apps/backend",
+    "dev:gateway": "npm run start:dev --workspace=apps/api-gateway",
     "dev:desktop": "npm run start --workspace=apps/desktop",
     "build:frontend": "npm run build --workspace=apps/frontend",
-    "build:backend": "npm run build --workspace=apps/backend",
+    "build:gateway": "npm run build --workspace=apps/api-gateway",
     "build:desktop": "npm run make --workspace=apps/desktop",
     "build:packages": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
