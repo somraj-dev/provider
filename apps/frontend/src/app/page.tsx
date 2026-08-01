@@ -909,6 +909,12 @@ ${ioVal}`;
   const [dragOffsetSub, setDragOffsetSub] = useState({ x: 0, y: 0 });
   const [selectedMedReconcile, setSelectedMedReconcile] = useState<any>(null);
 
+  // Care Team Popup State
+  const [isCareTeamOpen, setIsCareTeamOpen] = useState(false);
+  const [careTeamPos, setCareTeamPos] = useState({ x: 300, y: 180 });
+  const [isDraggingCareTeam, setIsDraggingCareTeam] = useState(false);
+  const [dragOffsetCareTeam, setDragOffsetCareTeam] = useState({ x: 0, y: 0 });
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -921,7 +927,7 @@ ${ioVal}`;
     };
   }, []);
 
-  // Dragging handlers for Reconciliation and Sub-detail popups
+  // Dragging handlers for Reconciliation, Sub-detail and Care Team popups
   React.useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDraggingReconcile) {
@@ -936,14 +942,21 @@ ${ioVal}`;
           y: Math.max(0, e.clientY - dragOffsetSub.y),
         });
       }
+      if (isDraggingCareTeam) {
+        setCareTeamPos({
+          x: Math.max(0, e.clientX - dragOffsetCareTeam.x),
+          y: Math.max(0, e.clientY - dragOffsetCareTeam.y),
+        });
+      }
     };
 
     const handleMouseUp = () => {
       if (isDraggingReconcile) setIsDraggingReconcile(false);
       if (isDraggingSub) setIsDraggingSub(false);
+      if (isDraggingCareTeam) setIsDraggingCareTeam(false);
     };
 
-    if (isDraggingReconcile || isDraggingSub) {
+    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
@@ -951,7 +964,7 @@ ${ioVal}`;
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub]);
+  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam]);
 
   const [showConversationLauncher, setShowConversationLauncher] = React.useState(false);
 
@@ -6252,7 +6265,12 @@ ${ioVal}`;
                     <div>
                       <div className="font-extrabold text-[12px] uppercase text-white tracking-wide">{displayName}</div>
                       <div className="text-[9.5px] text-gray-300">Allergies: shellfish</div>
-                      <div className="text-[9.5px] text-[#80c0ff] hover:underline cursor-pointer">Care Team: View Details</div>
+                      <div 
+                        onClick={() => setIsCareTeamOpen(true)}
+                        className="text-[9.5px] text-[#80c0ff] hover:underline cursor-pointer"
+                      >
+                        Care Team: View Details
+                      </div>
                     </div>
                   </div>
 
@@ -6265,17 +6283,17 @@ ${ioVal}`;
                     </div>
                     <div className="space-y-0.5">
                       <div><span className="text-gray-300">Age:</span> 39 years</div>
-                      <div><span className="text-gray-300">Advance Directive:</span></div>
+                      <div><span className="text-gray-300">LTD:</span></div>
                       <div><span className="text-gray-300">Clinic:</span> O1XTQ</div>
                     </div>
                     <div className="space-y-0.5">
                       <div><span className="text-gray-300">Sex:</span> Female</div>
                       <div><span className="text-gray-300">Code Status:</span> Active</div>
-                      <div><span className="text-gray-300">Loc:</span> NU02</div>
+                      <div><span className="text-gray-300">Loc:</span> GLW-01</div>
                     </div>
                     <div className="space-y-0.5">
                       <div><span className="text-gray-300">MRN:</span> AVX-SL-A1H4XE</div>
-                      <div><span className="text-gray-300">Isolation:</span> &lt;No Data Available&gt;</div>
+                      <div><span className="text-gray-300">Nominee:</span> Mr. Ajan singh</div>
                       <div className="truncate"><span className="text-gray-300">Inpatient FIN:</span> 00096526415 [Admit Dt: 10/6/2020 3:14:12 PM CDT]</div>
                     </div>
                   </div>
@@ -9775,11 +9793,6 @@ No qualifying data available.`;
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Action</th>
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
-                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Comment</th>
-                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Originator Name</th>
-                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Create Date</th>
-                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Stop Date</th>
-                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Stop Type</th>
                       <th className="p-1 px-2 border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Status</th>
                     </tr>
                   </thead>
@@ -9810,11 +9823,6 @@ No qualifying data available.`;
                         <td onClick={() => openLabReportTab(row)} className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-700 whitespace-nowrap text-[11px]">
                           {row.detailsDesc}
                         </td>
-                        <td onClick={() => openLabReportTab(row)} className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-600 whitespace-nowrap text-[11px]">{row.comment}</td>
-                        <td onClick={() => openLabReportTab(row)} className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-600 whitespace-nowrap text-[11px]">{row.originator}</td>
-                        <td onClick={() => openLabReportTab(row)} className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">{row.createDate}</td>
-                        <td onClick={() => openLabReportTab(row)} className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">{row.stopDate}</td>
-                        <td onClick={() => openLabReportTab(row)} className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-700 whitespace-nowrap text-[11px]">{row.stopType}</td>
                         <td
                           onClick={(e) => {
                             e.stopPropagation();
@@ -12548,6 +12556,70 @@ No qualifying data available.`;
                 className="bg-white border border-[#6c757d] hover:bg-gray-100 text-gray-800 font-semibold px-5 py-1 rounded-sm shadow-sm transition-colors"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Care Team Draggable Popup Card */}
+      {isCareTeamOpen && (
+        <div 
+          className="fixed bg-white border-2 border-[#194d7b] shadow-2xl rounded-none w-[420px] flex flex-col select-none z-[99990] overflow-hidden text-[11px] text-gray-800 font-sans"
+          style={{ left: `${careTeamPos.x}px`, top: `${careTeamPos.y}px` }}
+        >
+          {/* Window Title Bar */}
+          <div 
+            onMouseDown={(e) => {
+              setIsDraggingCareTeam(true);
+              setDragOffsetCareTeam({ x: e.clientX - careTeamPos.x, y: e.clientY - careTeamPos.y });
+            }}
+            className="bg-gradient-to-r from-[#194d7b] via-[#216298] to-[#194d7b] text-white px-2 py-1 flex justify-between items-center cursor-move font-semibold text-[11.5px] border-b border-[#0d365a]"
+          >
+            <div className="flex items-center gap-1.5 font-sans">
+              <span className="bg-[#0b3c66] text-white font-bold px-1.5 py-0.2 rounded text-[10px] border border-sky-300 shadow-sm">C</span>
+              <span className="tracking-wide">Care Team Details: John Doe</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setIsCareTeamOpen(false)} className="hover:bg-red-600 px-1.5 rounded transition-colors leading-none pb-0.5">✕</button>
+            </div>
+          </div>
+
+          {/* Details Body */}
+          <div className="p-4 space-y-3 bg-[#fafbfc] select-text">
+            <div className="space-y-2 border border-gray-300 p-3 bg-white shadow-xs">
+              <div className="grid grid-cols-[110px_1fr] gap-x-2 gap-y-2.5 text-[11px] text-gray-700 font-sans">
+                <span className="text-gray-500 font-semibold text-right">Primary Physician:</span>
+                <span className="font-bold text-gray-900">Sanders MD, Michael Lawrence</span>
+
+                <span className="text-gray-500 font-semibold text-right">Role:</span>
+                <span className="font-semibold text-blue-900">Admitting Physician / Owner</span>
+
+                <span className="text-gray-500 font-semibold text-right">Department:</span>
+                <span className="text-gray-900">Orthopedics</span>
+
+                <span className="text-gray-500 font-semibold text-right">Current Hospital:</span>
+                <span className="text-gray-900">CHC Willard</span>
+
+                <span className="text-gray-500 font-semibold text-right">Ownership Status:</span>
+                <span className="text-green-700 font-bold">Active — Currently Owning Data</span>
+
+                <span className="text-gray-500 font-semibold text-right">Doctor Contact:</span>
+                <span className="text-gray-900 font-mono">(417) 555-5555</span>
+
+                <span className="text-gray-500 font-semibold text-right">Pager:</span>
+                <span className="text-gray-900 font-mono">#4928</span>
+
+                <span className="text-gray-500 font-semibold text-right">Access Level:</span>
+                <span className="text-gray-900">Full Access (Read/Write/Sign)</span>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-1.5 select-none">
+              <button 
+                onClick={() => setIsCareTeamOpen(false)}
+                className="bg-white border border-[#194d7b] hover:bg-[#eef4f8] text-[#194d7b] font-bold px-4 py-1 rounded-sm shadow-sm transition-colors text-[10.5px]"
+              >
+                Close View
               </button>
             </div>
           </div>
