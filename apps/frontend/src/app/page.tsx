@@ -35,7 +35,7 @@ import {
 interface TabItem {
   id: string;
   title: string;
-  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs' | 'BillingReceipt' | 'Customised' | 'ClinicalDecisionSupport' | 'ClinicalEventView' | 'ProtocolLibrary' | 'QualityMeasures' | 'PhysicianHandoff' | 'Reports' | 'LabReportDetail';
+  type: 'MessageCenter' | 'Analytics' | 'PatientList' | 'Notifications' | 'PatientProfile' | 'EditPatientProfile' | 'MedicalReport' | 'HelpCentre' | 'RescheduleRequests' | 'AdmitPatient' | 'ReferralTransfer' | 'DischargeList' | 'DeveloperTools' | 'Orders' | 'Home' | 'PatientNotes' | 'Labs' | 'BillingReceipt' | 'Customised' | 'ClinicalDecisionSupport' | 'ClinicalEventView' | 'ProtocolLibrary' | 'QualityMeasures' | 'PhysicianHandoff' | 'Reports' | 'LabReportDetail' | 'ProcessExplorer';
 }
 
 const CHART_OPTIONS = [
@@ -266,6 +266,157 @@ const patientDemographics: Record<string, {
     height: '160 cm',
     bloodType: 'AB-',
     healthLife: 'Yes'
+  }
+};
+
+const extensionApps = [
+  { name: 'AccessHIM P115 UMCTX', key: 'AccessHIM' },
+  { name: 'Anesthesia P115 UMCTX', key: 'Anesthesia' },
+  { name: 'AppBar P115 UMCTX', key: 'AppBar' },
+  { name: 'CPDI Validation P115 UMCTX', key: 'CPDI' },
+  { name: 'FirstNet P115 UMCTX', key: 'FirstNet' },
+  { name: 'NEXT Bar P115 UMCTX', key: 'NEXTBar' },
+  { name: 'PowerChart P115 UMCTX', key: 'PowerChart' },
+  { name: 'Registration Access Management', key: 'Registration' },
+  { name: 'Report Request P115 UMCTX', key: 'ReportRequest' },
+  { name: 'RevCycle P115 UMCTX', key: 'RevCycle' },
+  { name: 'SkyVue P115 UMCTX', key: 'SkyVue' },
+  { name: 'Stafflink P115 UMCTX', key: 'Stafflink' },
+  { name: 'Surginet P115 UMCTX', key: 'Surginet' },
+  { name: 'User Folder P115 UMCTX', key: 'UserFolder' },
+  { name: 'zIssueCollector P115 UMCTX', key: 'zIssueCollector' },
+  { name: 'zMTA P115 UMCTX', key: 'zMTA' }
+];
+
+const getAppIcon = (key: string) => {
+  switch (key) {
+    case 'AccessHIM':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#2980b9] rounded-md shadow-md border border-[#1f5f8b]">
+          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </div>
+      );
+    case 'Anesthesia':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#27ae60] rounded-md shadow-md border border-[#1e8449]">
+          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
+        </div>
+      );
+    case 'AppBar':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#2980b9] rounded-md shadow-md text-white font-black text-xl border border-[#1f5f8b]">
+          A
+        </div>
+      );
+    case 'CPDI':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#34495e] rounded-md shadow-md border border-[#2c3e50]">
+          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+        </div>
+      );
+    case 'FirstNet':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#c0392b] rounded-md shadow-md border border-[#962d22]">
+          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 01-3-3h7a3 3 0 013 3v1" />
+          </svg>
+        </div>
+      );
+    case 'NEXTBar':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#8e44ad] rounded-md shadow-md border border-[#732d91]">
+          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+          </svg>
+        </div>
+      );
+    case 'PowerChart':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#1abc9c] rounded-md shadow-md text-white font-black text-xl border border-[#16a085]">
+          P
+        </div>
+      );
+    case 'Registration':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#16a085] rounded-md shadow-md border border-[#117a65]">
+          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+      );
+    case 'ReportRequest':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#2980b9] rounded-md shadow-md border border-[#1f5f8b]">
+          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+        </div>
+      );
+    case 'RevCycle':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#27ae60] rounded-md shadow-md text-white font-black text-xl border border-[#1e8449]">
+          R
+        </div>
+      );
+    case 'SkyVue':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#2c3e50] rounded-md shadow-md border border-[#1a252f]">
+          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+          </svg>
+        </div>
+      );
+    case 'Stafflink':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#2980b9] rounded-md shadow-md text-white font-black text-lg border border-[#1f5f8b]">
+          CA
+        </div>
+      );
+    case 'Surginet':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#27ae60] rounded-md shadow-md text-white font-black text-xl border border-[#1e8449]">
+          S
+        </div>
+      );
+    case 'UserFolder':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#f39c12] rounded-md shadow-md border border-[#c27d0e]">
+          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        </div>
+      );
+    case 'zIssueCollector':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#2980b9] rounded-md shadow-md border border-[#1f5f8b]">
+          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+      );
+    case 'zMTA':
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-[#7f8c8d] rounded-md shadow-md border border-[#626e6f]">
+          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+      );
+    default:
+      return (
+        <div className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-md text-xl">
+          📦
+        </div>
+      );
   }
 };
 
@@ -2647,6 +2798,28 @@ ${ioVal}`;
             <div className="flex items-center gap-2">
               <span className="font-semibold text-xs tracking-wide">AxioVital Operating Environment</span>
             </div>
+            <div className="flex items-center">
+              <button className="text-gray-300 hover:text-white p-1 hover:bg-white/10 rounded transition-colors" title="Presentation">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 3h18" />
+                  <rect x="4" y="3" width="16" height="12" rx="1" />
+                  <rect x="9" y="6" width="6" height="6" rx="1" />
+                  <polygon points="11.5,7.5 13.5,9 11.5,10.5" fill="currentColor" />
+                  <path d="M12 15v4" />
+                  <path d="M9 19h6" />
+                </svg>
+              </button>
+            </div>
           </div>
 
       {/* Classic Menu Bar */}
@@ -3086,7 +3259,12 @@ ${ioVal}`;
               >
                 Toggle Developer Tools
               </div>
-              <div onClick={() => setIsHelpDropdownOpen(false)} className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]">Open Process Explorer</div>
+              <div 
+                onClick={() => { selectOrOpenTab('ProcessExplorer', 'Process Explorer', 'process-explorer-tab'); setIsHelpDropdownOpen(false); }}
+                className="px-4 py-1 hover:bg-[#0f4471] hover:text-white rounded-none cursor-pointer outline-none text-[#333333]"
+              >
+                Open Process Explorer
+              </div>
             </div>
             <div className="border-t border-[#e2e2e2] my-0.5"></div>
             <div className="py-0.5">
@@ -3347,6 +3525,7 @@ ${ioVal}`;
           {activeTab.type === 'Labs' && 'Labs'}
           {(activeTab.type as string) === 'Home' && 'Home'}
           {(activeTab.type as string) === 'DeveloperTools' && 'Developer Configuration & System Administration'}
+          {activeTab.type === 'ProcessExplorer' && 'Process Explorer'}
           {activeTab.type === 'BillingReceipt' && 'Billing & Payments Receipt'}
           {activeTab.type === 'ClinicalEventView' && 'Clinic Event Page'}
           {activeTab.type === 'ProtocolLibrary' && 'Ongoing Activities'}
@@ -8758,6 +8937,34 @@ No qualifying data available.`;
 
                 </div>
 
+              </div>
+            </div>
+          )}
+
+          {activeTab.type === 'ProcessExplorer' && (
+            <div className="flex-1 bg-white p-6 overflow-auto font-sans select-none">
+              <div className="max-w-[1400px] mx-auto space-y-6">
+                <div>
+                  <h1 className="text-lg font-bold text-[#0f4471] mb-1">Process Explorer & Extensions Support</h1>
+                  <p className="text-gray-500 text-[10.5px]">Select any active process or extension from the registry below to launch it within the operating environment.</p>
+                </div>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-9 gap-4 pt-2">
+                  {extensionApps.map((app) => (
+                    <div 
+                      key={app.key}
+                      onClick={() => alert(`Launching ${app.name}...`)}
+                      className="flex flex-col items-center p-3 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 active:bg-gray-100 transition-all cursor-pointer text-center group"
+                    >
+                      <div className="transform group-hover:scale-105 transition-transform">
+                        {getAppIcon(app.key)}
+                      </div>
+                      <span className="mt-2.5 text-[10.5px] font-medium text-gray-700 leading-tight break-words max-w-[110px] group-hover:text-blue-900 group-hover:font-semibold font-sans">
+                        {app.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
