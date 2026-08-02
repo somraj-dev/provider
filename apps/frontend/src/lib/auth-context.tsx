@@ -94,13 +94,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password: passwordInput,
       });
 
-      if (res.accessToken && res.refreshToken) {
-        apiClient.setTokens(res.accessToken, res.refreshToken);
+      const tokenData = res?.data || res;
+
+      if (tokenData?.accessToken && tokenData?.refreshToken) {
+        apiClient.setTokens(tokenData.accessToken, tokenData.refreshToken);
 
         // Get user profile
         let userProfile: UserSession;
         try {
-          const profile = await apiClient.get('/auth/profile');
+          const profileRes = await apiClient.get('/auth/profile');
+          const profile = profileRes?.data || profileRes;
           userProfile = {
             id: profile.id,
             email: profile.email,
@@ -113,12 +116,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch {
           // Fallback user session object if profile call fails
           userProfile = {
-            id: res.userId || 'user-1',
+            id: tokenData.userId || 'user-1',
             email,
             firstName: emailSelect,
             lastName: '',
             displayName: emailSelect,
-            roles: res.roles || ['USER'],
+            roles: tokenData.roles || ['USER'],
             tenantId: useTenant,
           };
         }
