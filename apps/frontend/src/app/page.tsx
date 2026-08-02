@@ -923,6 +923,13 @@ ${ioVal}`;
 
   // Bed Transfer Popup State
   const [isBedTransferOpen, setIsBedTransferOpen] = useState(false);
+
+  // Cancel Warning Popup State
+  const [isCancelWarningOpen, setIsCancelWarningOpen] = useState(false);
+  const [cancelWarningData, setCancelWarningData] = useState({ title: '', message: '' });
+  const [cancelWarningPos, setCancelWarningPos] = useState({ x: 400, y: 250 });
+  const [isDraggingCancelWarning, setIsDraggingCancelWarning] = useState(false);
+  const [dragOffsetCancelWarning, setDragOffsetCancelWarning] = useState({ x: 0, y: 0 });
   const [bedTransferPos, setBedTransferPos] = useState({ x: 150, y: 50 });
   const [isDraggingBedTransfer, setIsDraggingBedTransfer] = useState(false);
   const [dragOffsetBedTransfer, setDragOffsetBedTransfer] = useState({ x: 0, y: 0 });
@@ -935,6 +942,7 @@ ${ioVal}`;
 
   // Facility Transfer State
   const [isFacilityTransferOpen, setIsFacilityTransferOpen] = useState(false);
+  const [isRecipientTransferOpen, setIsRecipientTransferOpen] = useState(false);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -987,6 +995,12 @@ ${ioVal}`;
           y: Math.max(0, e.clientY - dragOffsetDischargeEncounter.y),
         });
       }
+      if (isDraggingCancelWarning) {
+        setCancelWarningPos({
+          x: Math.max(0, e.clientX - dragOffsetCancelWarning.x),
+          y: Math.max(0, e.clientY - dragOffsetCancelWarning.y),
+        });
+      }
     };
 
     const handleMouseUp = () => {
@@ -996,9 +1010,10 @@ ${ioVal}`;
       if (isDraggingPrintLabels) setIsDraggingPrintLabels(false);
       if (isDraggingBedTransfer) setIsDraggingBedTransfer(false);
       if (isDraggingDischargeEncounter) setIsDraggingDischargeEncounter(false);
+      if (isDraggingCancelWarning) setIsDraggingCancelWarning(false);
     };
 
-    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam || isDraggingPrintLabels || isDraggingBedTransfer || isDraggingDischargeEncounter) {
+    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam || isDraggingPrintLabels || isDraggingBedTransfer || isDraggingDischargeEncounter || isDraggingCancelWarning) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
@@ -1006,7 +1021,7 @@ ${ioVal}`;
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam, isDraggingPrintLabels, dragOffsetPrintLabels, isDraggingBedTransfer, dragOffsetBedTransfer, isDraggingDischargeEncounter, dragOffsetDischargeEncounter]);
+  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam, isDraggingPrintLabels, dragOffsetPrintLabels, isDraggingBedTransfer, dragOffsetBedTransfer, isDraggingDischargeEncounter, dragOffsetDischargeEncounter, isDraggingCancelWarning, dragOffsetCancelWarning]);
 
   const [showConversationLauncher, setShowConversationLauncher] = React.useState(false);
 
@@ -6410,6 +6425,18 @@ ${ioVal}`;
                                 setIsDischargeEncounterOpen(true);
                               } else if (item === 'Facility Transfer') {
                                 setIsFacilityTransferOpen(true);
+                              } else if (item === 'Cancel Discharge' || item === 'Cancel Pending Discharge') {
+                                setCancelWarningData({
+                                  title: 'Cancel Discharge',
+                                  message: 'This patient currently has a pending discharge.\nWould you like to cancel the pending discharge?'
+                                });
+                                setIsCancelWarningOpen(true);
+                              } else if (item === 'Cancel Transfer' || item === 'Cancel Pending Transfer') {
+                                setCancelWarningData({
+                                  title: 'Facility Transfer',
+                                  message: 'This patient currently has a pending transfer to LGH HOPE Centre/LGH HOPE Centre/LGH MIU//\nwith an estimated complete date and time of .\nWould you like to complete the pending transfer?'
+                                });
+                                setIsCancelWarningOpen(true);
                               } else {
                                 setTimeout(() => alert(`${item} selected`), 10);
                               }
@@ -13065,7 +13092,10 @@ No qualifying data available.`;
           {/* Bottom Action Bar */}
           <div className="w-full p-2 bg-[#f4f8fc] flex justify-end gap-3 z-10">
             <button 
-              onClick={() => setIsFacilityTransferOpen(false)}
+              onClick={() => {
+                setIsFacilityTransferOpen(false);
+                setIsRecipientTransferOpen(true);
+              }}
               className="bg-[#337ab7] hover:bg-[#286090] text-white px-8 py-1.5 rounded-[2px] outline-none font-bold text-[12px] border border-[#2e6da4] shadow-sm"
             >
               Save
@@ -13076,6 +13106,118 @@ No qualifying data available.`;
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+
+      {/* Recipient Transfer Page */}
+      {isRecipientTransferOpen && (
+        <div className="fixed inset-0 bg-white z-[99999] flex flex-col font-sans select-none overflow-y-auto pt-2">
+          {/* Main Content Area */}
+          <div className="mx-4 mb-4 border border-[#c4c4c4] bg-white mt-1 shadow-[0_2px_5px_rgba(0,0,0,0.1)]">
+            <div className="p-5 pt-3">
+              <h2 className="text-[#0f4a86] text-[22px] font-bold mb-5 tracking-tight">Recipient Transfer</h2>
+              
+              <div className="grid grid-cols-[140px_1fr] gap-y-2.5 text-[14px] mb-5 text-black">
+                <div>CRID:</div>
+                <div className="filter blur-sm bg-gray-200 w-[200px] h-5 rounded"></div>
+                
+                <div>Date of Birth:</div>
+                <div className="filter blur-sm bg-gray-200 w-[150px] h-5 rounded"></div>
+                
+                <div>FROM Center:</div>
+                <div className="filter blur-sm bg-gray-200 w-[500px] h-5 rounded"></div>
+                
+                <div>TO Center:</div>
+                <div className="filter blur-sm bg-gray-200 w-[500px] h-5 rounded"></div>
+              </div>
+
+              {/* TO Center Data Fieldset */}
+              <fieldset className="border border-[#007a68] border-opacity-30 p-5 pt-3 mb-4 text-[14px] text-black">
+                <legend className="text-[#007a68] px-2 bg-white font-normal ml-3">TO Center Data</legend>
+
+                <div className="space-y-4 pt-1">
+                  <div className="flex items-center gap-2">
+                    <label>Confirmed recipient with transferring FROM Center:</label>
+                    <input type="checkbox" className="w-[13px] h-[13px] border-gray-400" />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label>Agreed upon effective date: <span className="text-[13px]">(date the transferring TO center assumes responsibility for recipient)</span></label>
+                    <div className="flex items-center">
+                      <input type="text" className="border border-[#7c9bc0] px-2 py-1 w-[200px] h-[26px] outline-none shadow-inner" />
+                      <button className="bg-[#e4ebf1] border border-l-0 border-[#7c9bc0] px-2 h-[26px] flex items-center justify-center hover:bg-[#d0dbe6]">
+                        📅
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label>Was a duplicate CRID created at your center:</label>
+                    <div className="flex items-center gap-3 ml-2">
+                      <label className="flex items-center gap-1.5"><input type="radio" name="dup_crid" className="w-3.5 h-3.5" /> Yes</label>
+                      <label className="flex items-center gap-1.5"><input type="radio" name="dup_crid" className="w-3.5 h-3.5" /> No</label>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pl-4">
+                    <label className="text-gray-600">Duplicate CRID:</label>
+                    <input type="text" className="border border-[#7c9bc0] px-2 py-1 w-[200px] h-[26px] outline-none shadow-inner" />
+                  </div>
+
+                  <div className="space-y-1.5 mt-2">
+                    <label>Reason for transfer:</label>
+                    <div className="flex flex-col gap-1.5 pl-8 mt-1">
+                      <label className="flex items-center gap-2"><input type="radio" name="reason" className="w-[13px] h-[13px]" /> Center closed</label>
+                      <label className="flex items-center gap-2"><input type="radio" name="reason" className="w-[13px] h-[13px]" /> Center split / merged</label>
+                      <label className="flex items-center gap-2"><input type="radio" name="reason" className="w-[13px] h-[13px]" /> Follow-up care</label>
+                      <label className="flex items-center gap-2"><input type="radio" name="reason" className="w-[13px] h-[13px]" /> Subsequent infusion</label>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pl-8 pt-1">
+                    <label className="text-gray-500">Date of subsequent infusion:</label>
+                    <div className="flex items-center">
+                      <input type="text" className="border border-[#7c9bc0] bg-[#f0f0f0] px-2 py-1 w-[150px] h-[26px] outline-none shadow-inner" disabled />
+                      <button className="bg-[#8db4e2] border border-l-0 border-[#7c9bc0] px-2 h-[26px] flex items-center justify-center opacity-60 cursor-not-allowed">
+                        📅
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-3">
+                    <label>Data Manager agrees that their center will assume reporting responsibility:</label>
+                    <input type="checkbox" className="w-[13px] h-[13px] border-gray-400" />
+                  </div>
+                </div>
+              </fieldset>
+
+              {/* Bottom Buttons */}
+              <div className="flex items-center justify-center gap-[18px] mt-6 pb-2 border-t border-gray-200 pt-5">
+                <button className="flex items-center justify-center gap-1.5 bg-gradient-to-b from-[#eaf2f8] to-[#9dbce0] border border-[#6f90b2] px-10 py-1.5 rounded-[12px] text-[13px] hover:brightness-95 shadow-[0_1px_2px_rgba(0,0,0,0.2)] text-black min-w-[130px]">
+                  <span className="text-[#00529b] text-[10px]">▶</span> Submit
+                </button>
+                <button className="flex items-center justify-center gap-1.5 bg-gradient-to-b from-[#f8f8f8] to-[#d0d0d0] border border-[#999999] px-6 py-1.5 rounded-[12px] text-[13px] hover:brightness-95 shadow-[0_1px_2px_rgba(0,0,0,0.2)] text-black min-w-[150px]">
+                  <span className="text-[#007a68] text-[10px]">▶</span> Return to My Work
+                </button>
+                <div className="border-[3px] border-[#6b2c6b] p-[2px]">
+                  <button 
+                    onClick={() => setIsRecipientTransferOpen(false)}
+                    className="flex items-center justify-center gap-1.5 bg-gradient-to-b from-[#eaf2f8] to-[#9dbce0] border border-[#6f90b2] px-8 py-1.5 rounded-[12px] text-[13px] hover:brightness-95 shadow-[0_1px_2px_rgba(0,0,0,0.2)] text-black min-w-[150px]"
+                  >
+                    <span className="text-[#00529b] text-[10px]">▶</span> Cancel Transfer
+                  </button>
+                </div>
+                <button 
+                  onClick={() => setIsRecipientTransferOpen(false)}
+                  className="flex items-center justify-center gap-1.5 bg-gradient-to-b from-[#eaf2f8] to-[#9dbce0] border border-[#6f90b2] px-8 py-1.5 rounded-[12px] text-[13px] hover:brightness-95 shadow-[0_1px_2px_rgba(0,0,0,0.2)] text-black min-w-[150px]"
+                >
+                  <span className="text-[#00529b] text-[10px]">▶</span> Decline Transfer
+                </button>
+              </div>
+
+            </div>
           </div>
         </div>
       )}
@@ -13605,6 +13747,79 @@ No qualifying data available.`;
         </div>
       )}
 
+      {/* Cancel Warning Popup */}
+      {isCancelWarningOpen && (
+        <div 
+          className="fixed bg-[#f0f0f0] border-[1px] border-[#a0a0a0] shadow-xl w-[450px] flex flex-col select-none z-[99995] text-[12px] text-gray-800 font-sans"
+          style={{ 
+            left: `${cancelWarningPos.x}px`, 
+            top: `${cancelWarningPos.y}px`
+          }}
+        >
+          {/* Title Bar */}
+          <div 
+            onMouseDown={(e) => {
+              setIsDraggingCancelWarning(true);
+              setDragOffsetCancelWarning({ x: e.clientX - cancelWarningPos.x, y: e.clientY - cancelWarningPos.y });
+            }}
+            className="px-2 py-1 flex justify-between items-center cursor-move text-black"
+            style={{
+              background: 'linear-gradient(to bottom, #d6e2f1 0%, #b8cde4 100%)',
+              borderBottom: '1px solid #99b4d1'
+            }}
+          >
+            <span className="font-normal">{cancelWarningData.title}</span>
+            <button 
+              onClick={() => setIsCancelWarningOpen(false)}
+              className="flex items-center justify-center font-bold text-[10px] bg-red-600 text-white w-6 h-4 border border-[#8a2924] hover:bg-red-500 rounded-sm outline-none"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="flex p-4 gap-4 bg-white">
+            <div className="shrink-0 pt-1">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="11" fill="url(#blue-grad)" stroke="#1c4779" strokeWidth="1" />
+                <path d="M12 6c-2.2 0-3.5 1.5-3.5 3 h2c0-1 1-1.5 1.5-1.5 c.8 0 1.5.5 1.5 1.5 c0 1.5-2 1.5-2 3.5 v.5 h2 v-.3 c0-1.5 2-2 2-3.7 C15.5 7 14 6 12 6zm-1.5 10 h3 v3 h-3 v-3z" fill="white" />
+                <defs>
+                  <linearGradient id="blue-grad" x1="0" y1="0" x2="0" y2="24" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#679be0" />
+                    <stop offset="1" stopColor="#1a5399" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div className="flex-1 text-[12px] whitespace-pre-line text-[#333]">
+              {cancelWarningData.message}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-center gap-2 p-3 bg-[#f0f0f0] border-t border-[#dfdfdf]">
+            <button 
+              onClick={() => setIsCancelWarningOpen(false)}
+              className="min-w-[75px] px-4 py-1 bg-white border border-[#0060a6] text-black hover:bg-[#e6f0fa] hover:border-[#003c74] rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-[#0060a6]"
+            >
+              Yes
+            </button>
+            <button 
+              onClick={() => setIsCancelWarningOpen(false)}
+              className="min-w-[75px] px-4 py-1 bg-white border border-[#8f8f8f] text-black hover:bg-[#e5f1fb] hover:border-[#0078d7] rounded shadow-sm outline-none"
+            >
+              No
+            </button>
+            <button 
+              onClick={() => setIsCancelWarningOpen(false)}
+              className="min-w-[75px] px-4 py-1 bg-white border border-[#8f8f8f] text-black hover:bg-[#e5f1fb] hover:border-[#0078d7] rounded shadow-sm outline-none"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Print Labels Draggable Popup Card */}
       {isPrintLabelsOpen && (
         <div 
@@ -13923,9 +14138,25 @@ No qualifying data available.`;
             <div 
               key={item}
               className="px-3.5 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800 transition-colors" 
-              onClick={() => { 
-                alert(`${item} clicked for ${patientContextMenu.patientName}`); 
-                setPatientContextMenu(null); 
+              onClick={() => {
+                if (item === 'Cancel Discharge' || item === 'Cancel Pending Discharge') {
+                  setCancelWarningData({
+                    title: 'Cancel Discharge',
+                    message: 'This patient currently has a pending discharge.\nWould you like to cancel the pending discharge?'
+                  });
+                  setIsCancelWarningOpen(true);
+                  setPatientContextMenu(null);
+                } else if (item === 'Cancel Transfer' || item === 'Cancel Pending Transfer') {
+                  setCancelWarningData({
+                    title: 'Facility Transfer',
+                    message: 'This patient currently has a pending transfer to LGH HOPE Centre/LGH HOPE Centre/LGH MIU//\nwith an estimated complete date and time of .\nWould you like to complete the pending transfer?'
+                  });
+                  setIsCancelWarningOpen(true);
+                  setPatientContextMenu(null);
+                } else {
+                  alert(`${item} clicked for ${patientContextMenu.patientName}`); 
+                  setPatientContextMenu(null); 
+                }
               }}
             >
               {item}
