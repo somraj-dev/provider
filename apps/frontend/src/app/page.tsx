@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
+import { wsClient } from '@/lib/ws-client';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -431,6 +432,19 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [apiPatients, setApiPatients] = useState<any[]>([]);
   const [isSubmittingAdmit, setIsSubmittingAdmit] = useState(false);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      wsClient.connect(auth?.tenantId);
+      const handleAdmitted = (payload: any) => {
+        console.log('⚡ Real-time PATIENT_ADMITTED event received:', payload);
+      };
+      wsClient.subscribe('patient_admitted', handleAdmitted);
+      return () => {
+        wsClient.unsubscribe('patient_admitted', handleAdmitted);
+      };
+    }
+  }, [isLoggedIn, auth?.tenantId]);
   
   const [messageCenterView, setMessageCenterView] = useState<'list' | 'detail'>('list');
   const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
