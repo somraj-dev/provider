@@ -915,6 +915,12 @@ ${ioVal}`;
   const [isDraggingCareTeam, setIsDraggingCareTeam] = useState(false);
   const [dragOffsetCareTeam, setDragOffsetCareTeam] = useState({ x: 0, y: 0 });
 
+  // Print Labels Popup State
+  const [isPrintLabelsOpen, setIsPrintLabelsOpen] = useState(false);
+  const [printLabelsPos, setPrintLabelsPos] = useState({ x: 260, y: 100 });
+  const [isDraggingPrintLabels, setIsDraggingPrintLabels] = useState(false);
+  const [dragOffsetPrintLabels, setDragOffsetPrintLabels] = useState({ x: 0, y: 0 });
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -927,7 +933,7 @@ ${ioVal}`;
     };
   }, []);
 
-  // Dragging handlers for Reconciliation, Sub-detail and Care Team popups
+  // Dragging handlers for Reconciliation, Sub-detail, Care Team and Print Labels popups
   React.useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDraggingReconcile) {
@@ -948,15 +954,22 @@ ${ioVal}`;
           y: Math.max(0, e.clientY - dragOffsetCareTeam.y),
         });
       }
+      if (isDraggingPrintLabels) {
+        setPrintLabelsPos({
+          x: Math.max(0, e.clientX - dragOffsetPrintLabels.x),
+          y: Math.max(0, e.clientY - dragOffsetPrintLabels.y),
+        });
+      }
     };
 
     const handleMouseUp = () => {
       if (isDraggingReconcile) setIsDraggingReconcile(false);
       if (isDraggingSub) setIsDraggingSub(false);
       if (isDraggingCareTeam) setIsDraggingCareTeam(false);
+      if (isDraggingPrintLabels) setIsDraggingPrintLabels(false);
     };
 
-    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam) {
+    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam || isDraggingPrintLabels) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
@@ -964,7 +977,7 @@ ${ioVal}`;
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam]);
+  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam, isDraggingPrintLabels, dragOffsetPrintLabels]);
 
   const [showConversationLauncher, setShowConversationLauncher] = React.useState(false);
 
@@ -6334,6 +6347,8 @@ ${ioVal}`;
                                 setTimeout(() => alert('Process Alert initiated for ' + displayName), 10);
                               } else if (item === 'Update Patient Information') {
                                 selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: ' + displayName, 'edit-patient-doe');
+                              } else if (item === 'Print Labels') {
+                                setIsPrintLabelsOpen(true);
                               } else {
                                 setTimeout(() => alert(`${item} selected`), 10);
                               }
@@ -12621,6 +12636,197 @@ No qualifying data available.`;
               >
                 Close View
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Print Labels Draggable Popup Card */}
+      {isPrintLabelsOpen && (
+        <div 
+          className="fixed bg-white border-[4px] border-[#a2c5eb] shadow-2xl rounded-[3px] w-[500px] flex flex-col select-none z-[99995] text-[11px] text-gray-800 font-sans"
+          style={{ 
+            left: `${printLabelsPos.x}px`, 
+            top: `${printLabelsPos.y}px`,
+            boxShadow: '0 10px 25px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6)'
+          }}
+        >
+          {/* Windows 7 Style Title Bar */}
+          <div 
+            onMouseDown={(e) => {
+              setIsDraggingPrintLabels(true);
+              setDragOffsetPrintLabels({ x: e.clientX - printLabelsPos.x, y: e.clientY - printLabelsPos.y });
+            }}
+            className="text-[#1e395b] px-1.5 py-1 flex justify-between items-center cursor-move font-normal text-[11.5px] border-b border-[#96b4d3]"
+            style={{
+              background: 'linear-gradient(to bottom, #ebf3fc 0%, #d2e4f9 40%, #c1dbf6 50%, #b1d0f4 100%)',
+              textShadow: '0 1px 0 rgba(255,255,255,0.8)'
+            }}
+          >
+            <div className="flex items-center gap-1.5 font-sans">
+              <span className="font-semibold text-gray-800 text-[11px]">Charting for: TTPTEST, PATIENT02</span>
+            </div>
+            {/* Custom Windows Vista/7 Glossy Close Button */}
+            <button 
+              onClick={() => setIsPrintLabelsOpen(false)} 
+              className="flex items-center justify-center font-bold text-[10px] text-white transition-all shadow-sm outline-none"
+              style={{
+                background: 'linear-gradient(to bottom, #f18d7f 0%, #d85040 50%, #c63322 51%, #d74e3c 100%)',
+                border: '1px solid #992c1e',
+                borderRadius: '3px',
+                width: '45px',
+                height: '18px',
+                textShadow: '0 -1px 0 rgba(0,0,0,0.4)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 1px 1px rgba(0,0,0,0.2)'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.filter = 'brightness(1.15)'}
+              onMouseOut={(e) => e.currentTarget.style.filter = 'none'}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Form Body - Exactly same 1:1 replica layout */}
+          <div className="p-3.5 space-y-3.5 bg-white text-[11px] overflow-y-auto max-h-[72vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-gray-150">
+            
+
+            {/* Form Fields */}
+            <div className="space-y-3 font-sans text-gray-800">
+              
+              {/* Performed Date/Time */}
+              <div className="flex items-center">
+                <span className="w-[140px] text-right pr-2 font-normal"><span className="text-red-600 mr-0.5">*</span>Performed date / time :</span>
+                <input type="text" defaultValue="07/10/2017" className="border border-[#7f9db9] px-1 py-0.5 w-[90px] text-center text-[10.5px] outline-none" />
+                <div className="flex flex-col -space-y-0.5 ml-0.5">
+                  <button className="text-[6px] border border-gray-300 px-1 bg-gray-50 leading-none">▲</button>
+                  <button className="text-[6px] border-x border-b border-gray-300 px-1 bg-gray-50 leading-none">▼</button>
+                </div>
+                <select className="border border-[#7f9db9] px-0.5 py-0.5 ml-1 bg-white outline-none w-[35px]"><option>▼</option></select>
+                
+                <input type="text" defaultValue="1414" className="border border-[#7f9db9] px-1 py-0.5 w-[50px] text-center ml-3 text-[10.5px] outline-none" />
+                <div className="flex flex-col -space-y-0.5 ml-0.5">
+                  <button className="text-[6px] border border-gray-300 px-1 bg-gray-50 leading-none">▲</button>
+                  <button className="text-[6px] border-x border-b border-gray-300 px-1 bg-gray-50 leading-none">▼</button>
+                </div>
+                
+                <span className="text-gray-700 font-normal ml-2">CDT</span>
+              </div>
+
+              {/* Performed By */}
+              <div className="flex items-center">
+                <span className="w-[140px] text-right pr-2 font-normal"><span className="text-red-600 mr-0.5">*</span>Performed by :</span>
+                <div className="flex items-center max-w-[280px] flex-1">
+                  <input type="text" defaultValue="TTP , Nurse" className="border border-[#7f9db9] px-1.5 py-0.5 w-full outline-none text-[10.5px]" />
+                  <button className="border-y border-r border-[#7f9db9] bg-gray-100 hover:bg-gray-200 px-1.5 py-0.5 flex items-center justify-center">🔍</button>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-200 my-2"></div>
+
+              {/* Med Education Fields */}
+              <div className="flex items-center">
+                <span className="w-[200px] text-right pr-2 text-gray-700">Medication Education - Individual Taught:</span>
+                <select className="border border-[#7f9db9] px-1 py-0.5 w-[140px] bg-white outline-none"><option></option></select>
+                <span className="text-blue-600 hover:underline cursor-pointer ml-2 text-[10px]">Trend</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-[200px] text-right pr-2 text-gray-700">Med Edu Dosing/Indication/Side Effect:</span>
+                <select className="border border-[#7f9db9] px-1 py-0.5 w-[140px] bg-white outline-none"><option></option></select>
+                <span className="text-blue-600 hover:underline cursor-pointer ml-2 text-[10px]">Trend</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-[200px] text-right pr-2 text-gray-700">Medication Education Evaluation:</span>
+                <select className="border border-[#7f9db9] px-1 py-0.5 w-[140px] bg-white outline-none"><option></option></select>
+                <span className="text-blue-600 hover:underline cursor-pointer ml-2 text-[10px]">Trend</span>
+              </div>
+
+              {/* Lot Number & Manufacturer (Highlighted with orange border!) */}
+              <div className="border border-[#cb7a75] p-3 bg-white space-y-2.5 rounded-xs shadow-3xs" style={{ outline: '1px solid #cb7a75' }}>
+                <div className="flex items-center">
+                  <span className="w-[140px] text-right pr-2 font-normal text-gray-700"><span className="text-red-600 mr-0.5">*</span>Lot Number :</span>
+                  <input type="text" className="border border-[#7f9db9] bg-[#ffffd0] px-1.5 py-0.5 w-[160px] outline-none text-[10.5px]" />
+                </div>
+                <div className="flex items-center">
+                  <span className="w-[140px] text-right pr-2 font-normal text-gray-700"><span className="text-red-600 mr-0.5">*</span>Manufacturer :</span>
+                  <select className="border border-[#7f9db9] bg-[#ffffd0] px-0.5 py-0.5 w-[250px] outline-none text-[10.5px]">
+                    <option></option>
+                    <option>GlaxoSmithKline Biologicals</option>
+                    <option>Sanofi Pasteur</option>
+                    <option>Merck & Co.</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Expiration Date */}
+              <div className="flex items-center">
+                <span className="w-[140px] text-right pr-2 font-normal"><span className="text-red-600 mr-0.5">*</span>Expiration Date :</span>
+                <input type="text" placeholder="MM/DD/YYYY" className="border border-[#7f9db9] bg-[#ffffd0] px-1 py-0.5 w-[100px] text-center outline-none" />
+                <div className="flex flex-col -space-y-0.5 ml-0.5">
+                  <button className="text-[6px] border border-gray-300 px-1 bg-gray-50 leading-none">▲</button>
+                  <button className="text-[6px] border-x border-b border-gray-300 px-1 bg-gray-50 leading-none">▼</button>
+                </div>
+                <select className="border border-[#7f9db9] px-0.5 py-0.5 ml-1 bg-white outline-none w-[35px]"><option>▼</option></select>
+              </div>
+
+              {/* Vaccines For Children */}
+              <div className="flex items-center">
+                <span className="w-[140px] text-right pr-2 text-gray-700">Vaccines For Children :</span>
+                <select className="border border-[#7f9db9] px-1 py-0.5 w-[180px] bg-white outline-none"><option></option></select>
+              </div>
+
+              {/* Vaccine Information Statements */}
+              <div className="border border-gray-200 p-2.5 space-y-2 bg-[#fcfcfc]">
+                <div className="text-[10px] font-bold text-gray-600 mb-1">Vaccine Information Statements :</div>
+                <div className="flex items-center">
+                  <span className="w-[120px] text-right pr-2 font-normal"><span className="text-red-600 mr-0.5">*</span>Given :</span>
+                  <input type="text" placeholder="MM/DD/YYYY" className="border border-[#7f9db9] px-1.5 py-0.5 w-[100px] outline-none" />
+                  <div className="flex flex-col -space-y-0.5 ml-0.5">
+                    <button className="text-[6px] border border-gray-300 px-1 bg-gray-50 leading-none">▲</button>
+                    <button className="text-[6px] border-x border-b border-gray-300 px-1 bg-gray-50 leading-none">▼</button>
+                  </div>
+                  <select className="border border-[#7f9db9] px-0.5 py-0.5 ml-1 bg-white outline-none w-[35px]"><option>▼</option></select>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-[120px] text-right pr-2 font-normal"><span className="text-red-600 mr-0.5">*</span>Statements :</span>
+                  <select className="border border-[#7f9db9] bg-[#ffffd0] px-0.5 py-0.5 w-[200px] outline-none text-[10.5px]"><option></option></select>
+                  <button className="border border-[#7f9db9] bg-gray-100 px-1.5 py-0.5 flex items-center justify-center font-bold text-[10px] ml-1">+</button>
+                  <button className="border border-[#7f9db9] bg-gray-100 px-1.5 py-0.5 flex items-center justify-center font-bold text-[10px] ml-1">-</button>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-[120px] text-right pr-2 font-normal"><span className="text-red-600 mr-0.5">*</span>Published :</span>
+                  <input type="text" placeholder="MM/DD/YYYY" className="border border-[#7f9db9] px-1.5 py-0.5 w-[100px] outline-none" />
+                  <div className="flex flex-col -space-y-0.5 ml-0.5">
+                    <button className="text-[6px] border border-gray-300 px-1 bg-gray-50 leading-none">▲</button>
+                    <button className="text-[6px] border-x border-b border-gray-300 px-1 bg-gray-50 leading-none">▼</button>
+                  </div>
+                  <select className="border border-[#7f9db9] px-0.5 py-0.5 ml-1 bg-white outline-none w-[35px]"><option>▼</option></select>
+                </div>
+              </div>
+
+              {/* Dose/Route/Site */}
+              <div className="space-y-2 border-t border-gray-200 pt-2.5">
+                <div className="flex items-center">
+                  <span className="w-[180px] text-right pr-2 font-normal"><span className="text-red-600 mr-0.5">*</span>DTaP-polio pediatric vaccine:</span>
+                  <input type="text" defaultValue="0.5" className="border border-[#7f9db9] px-1 py-0.5 w-[45px] text-center outline-none" />
+                  <select className="border border-[#7f9db9] px-0.5 py-0.5 ml-1 bg-white outline-none w-[50px]"><option>mL</option></select>
+                  <span className="text-gray-700 ml-3">Volume :</span>
+                  <input type="text" className="border border-[#7f9db9] px-1 py-0.5 w-[65px] ml-1 outline-none" />
+                  <span className="text-gray-600 ml-1">mL</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-[180px] text-right pr-2 font-normal"><span className="text-red-600 mr-0.5">*</span>Route :</span>
+                  <select className="border border-[#7f9db9] px-0.5 py-0.5 w-[80px] bg-white outline-none"><option>IM</option></select>
+                  <span className="text-gray-700 ml-3"><span className="text-red-600 mr-0.5">*</span>Site :</span>
+                  <select className="border border-[#7f9db9] bg-[#ffffd0] px-0.5 py-0.5 w-[100px] ml-1 outline-none"><option></option></select>
+                </div>
+                <div className="flex items-center text-gray-500 pl-[30px] gap-2">
+                  <span>Total Volume :</span>
+                  <input type="text" defaultValue="0.5" disabled className="border border-gray-200 bg-gray-50 px-1 py-0.5 w-[50px] text-center text-gray-500 outline-none" />
+                  <span className="ml-3">Infused Over :</span>
+                  <input type="text" defaultValue="0" className="border border-[#7f9db9] px-1 py-0.5 w-[50px] text-center outline-none text-gray-800" />
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
