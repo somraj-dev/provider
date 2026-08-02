@@ -1249,7 +1249,7 @@ ${ioVal}`;
   // Mock Notifications rows matching image 1:1 exactly
   const notificationRows = [
     { priority: 'High', priorityColor: 'text-red-600', icon: '🚨', name: 'Critical Lab Result', patient: 'James, William', mrn: '1000245678', category: 'Results', message: 'Critical Potassium level 2.8 mmol/L', dateTime: '28/05/2025 10:15 AM', status: 'Unread', statusColor: 'text-red-600 font-bold' },
-    { priority: 'Medium', priorityColor: 'text-orange-600', icon: '✉️', name: 'New Order Received', patient: 'Patel, Rahul', mrn: '1000245679', category: 'Orders', message: 'MRI Brain WO Contrast', dateTime: '28/05/2025 09:48 AM', status: 'Unread', statusColor: 'text-red-600 font-bold' },
+    { priority: 'Medium', priorityColor: 'text-orange-600', icon: '✉️', name: 'New Plan Received', patient: 'Patel, Rahul', mrn: '1000245679', category: 'Plans', message: 'MRI Brain WO Contrast', dateTime: '28/05/2025 09:48 AM', status: 'Unread', statusColor: 'text-red-600 font-bold' },
     { priority: 'Low', priorityColor: 'text-blue-600', icon: '⚙️', name: 'System Alert', patient: '—', mrn: '—', category: 'System', message: 'Scheduled system maintenance on 31/05/2025', dateTime: '28/05/2025 09:30 AM', status: 'Read', statusColor: 'text-gray-500' },
     { priority: 'Low', priorityColor: 'text-blue-600', icon: '🔔', name: 'Appointment Reminder', patient: 'Johnson, Maria', mrn: '1000245680', category: 'Reminders', message: 'Follow-up appointment on 30/05/2025 11:00 AM', dateTime: '28/05/2025 09:00 AM', status: 'Unread', statusColor: 'text-red-600 font-bold' },
     { priority: 'Medium', priorityColor: 'text-orange-600', icon: '📄', name: 'Document Pending', patient: 'Lee, David', mrn: '1000245681', category: 'Documents', message: 'Consent form pending signature', dateTime: '28/05/2025 08:45 AM', status: 'Unread', statusColor: 'text-red-600 font-bold' },
@@ -1262,32 +1262,32 @@ ${ioVal}`;
 
   // Mock Orders Data matching the Orders tab mockup exactly
   const mockOrdersData = [
-    { patientName: 'JAMES, WILLIAM', orderPlanName: 'CBC with Differential', action: 'Order', detailsDate: '05/28/17 08:30', detailsDesc: 'Routine blood test', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 08:30', stopDate: '05/28/2017 08:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'JAMES, WILLIAM', orderPlanName: 'Comprehensive Metabolic Panel', action: 'Order', detailsDate: '05/28/17 08:30', detailsDesc: 'Kidney & liver function', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 08:30', stopDate: '05/28/2017 08:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'PATEL, RAHUL', orderPlanName: 'MRI Brain W/O Contrast', action: 'Order', detailsDate: '05/28/17 09:15', detailsDesc: 'Headache evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 09:15', stopDate: '05/28/2017 09:15', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'PATEL, RAHUL', orderPlanName: 'Neurology Consult', action: 'Order', detailsDate: '05/28/17 09:15', detailsDesc: 'Neuro assessment', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 09:15', stopDate: '05/28/2017 09:15', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'JOHNSON, MARIA', orderPlanName: 'PT Evaluation', action: 'Order', detailsDate: '05/28/17 10:00', detailsDesc: 'Post-op rehab', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:00', stopDate: '05/28/2017 10:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'JOHNSON, MARIA', orderPlanName: 'Pain Management Consult', action: 'Order', detailsDate: '05/28/17 10:00', detailsDesc: 'Pain control', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:00', stopDate: '05/28/2017 10:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'LEE, DAVID', orderPlanName: 'Chest X-Ray', action: 'Order', detailsDate: '05/28/17 10:30', detailsDesc: 'Cough and fever', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:30', stopDate: '05/28/2017 10:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'LEE, DAVID', orderPlanName: 'Sputum Culture', action: 'Order', detailsDate: '05/28/17 10:30', detailsDesc: 'Infection workup', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:30', stopDate: '05/28/2017 10:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'GARCIA, LUCIA', orderPlanName: 'Echocardiogram', action: 'Order', detailsDate: '05/28/17 11:00', detailsDesc: 'Cardiac evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:00', stopDate: '05/28/2017 11:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'GARCIA, LUCIA', orderPlanName: 'Cardiology Consult', action: 'Order', detailsDate: '05/28/17 11:00', detailsDesc: 'Heart failure eval', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:00', stopDate: '05/28/2017 11:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'KIM, JAMES', orderPlanName: 'Hemoglobin A1C', action: 'Order', detailsDate: '05/28/17 11:30', detailsDesc: 'Diabetes monitoring', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:30', stopDate: '05/28/2017 11:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'KIM, JAMES', orderPlanName: 'Diabetes Education', action: 'Order', detailsDate: '05/28/17 11:30', detailsDesc: 'Patient education', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:30', stopDate: '05/28/2017 11:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'BROWN, ELIZABETH', orderPlanName: 'Urinalysis', action: 'Order', detailsDate: '05/28/17 12:00', detailsDesc: 'UTI symptoms', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:00', stopDate: '05/28/2017 12:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'BROWN, ELIZABETH', orderPlanName: 'Urine Culture', action: 'Order', detailsDate: '05/28/17 12:00', detailsDesc: 'Confirm infection', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:00', stopDate: '05/28/2017 12:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'THOMAS, MICHAEL', orderPlanName: 'CT Abdomen & Pelvis', action: 'Order', detailsDate: '05/28/17 12:30', detailsDesc: 'Abdominal pain', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:30', stopDate: '05/28/2017 12:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'THOMAS, MICHAEL', orderPlanName: 'Surgery Consult', action: 'Order', detailsDate: '05/28/17 12:30', detailsDesc: 'Surgical evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:30', stopDate: '05/28/2017 12:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'ANDERSON, SUSAN', orderPlanName: 'Lipid Panel', action: 'Order', detailsDate: '05/28/17 13:00', detailsDesc: 'Cholesterol check', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:00', stopDate: '05/28/2017 13:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'ANDERSON, SUSAN', orderPlanName: 'Nutrition Consult', action: 'Order', detailsDate: '05/28/17 13:00', detailsDesc: 'Dietary counseling', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:00', stopDate: '05/28/2017 13:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'MILLER, ROBERT', orderPlanName: 'Pulmonary Function Test', action: 'Order', detailsDate: '05/28/17 13:30', detailsDesc: 'COPD evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:30', stopDate: '05/28/2017 13:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'MILLER, ROBERT', orderPlanName: 'Respiratory Therapy Eval', action: 'Order', detailsDate: '05/28/17 13:30', detailsDesc: 'Breathing assessment', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:30', stopDate: '05/28/2017 13:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'DAVIS, PATRICIA', orderPlanName: 'DEXA Scan', action: 'Order', detailsDate: '05/28/17 14:00', detailsDesc: 'Bone density', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:00', stopDate: '05/28/2017 14:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'DAVIS, PATRICIA', orderPlanName: 'Vitamin D Level', action: 'Order', detailsDate: '05/28/17 14:00', detailsDesc: 'Bone health', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:00', stopDate: '05/28/2017 14:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'WHITE, CHARLES', orderPlanName: 'Sleep Study', action: 'Order', detailsDate: '05/28/17 14:30', detailsDesc: 'Sleep apnea evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:30', stopDate: '05/28/2017 14:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'WHITE, CHARLES', orderPlanName: 'ENT Consult', action: 'Order', detailsDate: '05/28/17 14:30', detailsDesc: 'Snoring and fatigue', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:30', stopDate: '05/28/2017 14:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'WILSON, BETTY', orderPlanName: 'Mammogram Screening', action: 'Order', detailsDate: '05/28/17 15:00', detailsDesc: 'Breast cancer screening', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 15:00', stopDate: '05/28/2017 15:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'WILSON, BETTY', orderPlanName: 'Ob/Gyn Annual Exam', action: 'Order', detailsDate: '05/28/17 15:00', detailsDesc: 'Routine exam', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 15:00', stopDate: '05/28/2017 15:00', stopType: 'Physician Stop', status: 'Open' }
+    { patientName: 'JAMES, WILLIAM', orderPlanName: 'CBC with Differential', action: 'Plan', detailsDate: '05/28/17 08:30', detailsDesc: 'Routine blood test', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 08:30', stopDate: '05/28/2017 08:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'JAMES, WILLIAM', orderPlanName: 'Comprehensive Metabolic Panel', action: 'Plan', detailsDate: '05/28/17 08:30', detailsDesc: 'Kidney & liver function', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 08:30', stopDate: '05/28/2017 08:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'PATEL, RAHUL', orderPlanName: 'MRI Brain W/O Contrast', action: 'Plan', detailsDate: '05/28/17 09:15', detailsDesc: 'Headache evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 09:15', stopDate: '05/28/2017 09:15', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'PATEL, RAHUL', orderPlanName: 'Neurology Consult', action: 'Plan', detailsDate: '05/28/17 09:15', detailsDesc: 'Neuro assessment', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 09:15', stopDate: '05/28/2017 09:15', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'JOHNSON, MARIA', orderPlanName: 'PT Evaluation', action: 'Plan', detailsDate: '05/28/17 10:00', detailsDesc: 'Post-op rehab', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:00', stopDate: '05/28/2017 10:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'JOHNSON, MARIA', orderPlanName: 'Pain Management Consult', action: 'Plan', detailsDate: '05/28/17 10:00', detailsDesc: 'Pain control', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:00', stopDate: '05/28/2017 10:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'LEE, DAVID', orderPlanName: 'Chest X-Ray', action: 'Plan', detailsDate: '05/28/17 10:30', detailsDesc: 'Cough and fever', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:30', stopDate: '05/28/2017 10:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'LEE, DAVID', orderPlanName: 'Sputum Culture', action: 'Plan', detailsDate: '05/28/17 10:30', detailsDesc: 'Infection workup', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:30', stopDate: '05/28/2017 10:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'GARCIA, LUCIA', orderPlanName: 'Echocardiogram', action: 'Plan', detailsDate: '05/28/17 11:00', detailsDesc: 'Cardiac evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:00', stopDate: '05/28/2017 11:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'GARCIA, LUCIA', orderPlanName: 'Cardiology Consult', action: 'Plan', detailsDate: '05/28/17 11:00', detailsDesc: 'Heart failure eval', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:00', stopDate: '05/28/2017 11:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'KIM, JAMES', orderPlanName: 'Hemoglobin A1C', action: 'Plan', detailsDate: '05/28/17 11:30', detailsDesc: 'Diabetes monitoring', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:30', stopDate: '05/28/2017 11:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'KIM, JAMES', orderPlanName: 'Diabetes Education', action: 'Plan', detailsDate: '05/28/17 11:30', detailsDesc: 'Patient education', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:30', stopDate: '05/28/2017 11:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'BROWN, ELIZABETH', orderPlanName: 'Urinalysis', action: 'Plan', detailsDate: '05/28/17 12:00', detailsDesc: 'UTI symptoms', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:00', stopDate: '05/28/2017 12:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'BROWN, ELIZABETH', orderPlanName: 'Urine Culture', action: 'Plan', detailsDate: '05/28/17 12:00', detailsDesc: 'Confirm infection', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:00', stopDate: '05/28/2017 12:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'THOMAS, MICHAEL', orderPlanName: 'CT Abdomen & Pelvis', action: 'Plan', detailsDate: '05/28/17 12:30', detailsDesc: 'Abdominal pain', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:30', stopDate: '05/28/2017 12:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'THOMAS, MICHAEL', orderPlanName: 'Surgery Consult', action: 'Plan', detailsDate: '05/28/17 12:30', detailsDesc: 'Surgical evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:30', stopDate: '05/28/2017 12:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'ANDERSON, SUSAN', orderPlanName: 'Lipid Panel', action: 'Plan', detailsDate: '05/28/17 13:00', detailsDesc: 'Cholesterol check', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:00', stopDate: '05/28/2017 13:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'ANDERSON, SUSAN', orderPlanName: 'Nutrition Consult', action: 'Plan', detailsDate: '05/28/17 13:00', detailsDesc: 'Dietary counseling', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:00', stopDate: '05/28/2017 13:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'MILLER, ROBERT', orderPlanName: 'Pulmonary Function Test', action: 'Plan', detailsDate: '05/28/17 13:30', detailsDesc: 'COPD evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:30', stopDate: '05/28/2017 13:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'MILLER, ROBERT', orderPlanName: 'Respiratory Therapy Eval', action: 'Plan', detailsDate: '05/28/17 13:30', detailsDesc: 'Breathing assessment', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:30', stopDate: '05/28/2017 13:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'DAVIS, PATRICIA', orderPlanName: 'DEXA Scan', action: 'Plan', detailsDate: '05/28/17 14:00', detailsDesc: 'Bone density', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:00', stopDate: '05/28/2017 14:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'DAVIS, PATRICIA', orderPlanName: 'Vitamin D Level', action: 'Plan', detailsDate: '05/28/17 14:00', detailsDesc: 'Bone health', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:00', stopDate: '05/28/2017 14:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'WHITE, CHARLES', orderPlanName: 'Sleep Study', action: 'Plan', detailsDate: '05/28/17 14:30', detailsDesc: 'Sleep apnea evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:30', stopDate: '05/28/2017 14:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'WHITE, CHARLES', orderPlanName: 'ENT Consult', action: 'Plan', detailsDate: '05/28/17 14:30', detailsDesc: 'Snoring and fatigue', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:30', stopDate: '05/28/2017 14:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'WILSON, BETTY', orderPlanName: 'Mammogram Screening', action: 'Plan', detailsDate: '05/28/17 15:00', detailsDesc: 'Breast cancer screening', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 15:00', stopDate: '05/28/2017 15:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'WILSON, BETTY', orderPlanName: 'Ob/Gyn Annual Exam', action: 'Plan', detailsDate: '05/28/17 15:00', detailsDesc: 'Routine exam', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 15:00', stopDate: '05/28/2017 15:00', stopType: 'Physician Stop', status: 'Open' }
   ];
 
   // Mock charts data for Home tab metric line graphs
@@ -3887,11 +3887,11 @@ ${ioVal}`;
                       <thead>
                         <tr className="bg-[#f0f4f8] text-[#333333] select-none sticky top-0 z-10 text-[11px]">
                           <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Patient Name</th>
-                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order/Plan Name</th>
-                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Action</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Plan Name</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Action</th>
                           <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
                           <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
-                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Comment</th>
+                          <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Comment</th>
                           <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Originator Name</th>
                           <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Create Date</th>
                           <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Stop Date</th>
@@ -3916,7 +3916,7 @@ ${ioVal}`;
                             <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-[#004b87] hover:underline whitespace-nowrap text-[11px]">
                               {row.orderPlanName}
                             </td>
-                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] whitespace-nowrap text-gray-800 text-[11px]">{row.action}</td>
+                            <td className="p-1 px-2 border-r border-b border-[#e5edf5] whitespace-nowrap text-gray-800 text-[11px]">{row.action === 'Order' ? 'Plan' : row.action}</td>
                             <td className="p-1 px-2 border-r border-b border-[#e5edf5] text-gray-500 whitespace-nowrap text-[11px]">
                               {row.detailsDate}...
                             </td>
@@ -3997,7 +3997,7 @@ ${ioVal}`;
                           </div>
                           <div className="pl-2 space-y-0.5 mt-1 text-[10px]">
                             <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Results FYI</div>
-                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Orders</div>
+                            <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Items</div>
                             <div className="p-0.5 hover:bg-blue-100/30 rounded-sm cursor-pointer">Documents</div>
                           </div>
                         </div>
@@ -9692,11 +9692,11 @@ No qualifying data available.`;
                   <thead>
                     <tr className="bg-[#f0f4f8] text-[#333333] select-none sticky top-0 z-10 text-[11px]">
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Patient Name</th>
-                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order/Plan Name</th>
-                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Action</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Plan Name</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Action</th>
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
-                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Comment</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Comment</th>
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Originator Name</th>
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Create Date</th>
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Stop Date</th>
@@ -9804,8 +9804,8 @@ No qualifying data available.`;
                   <thead>
                     <tr className="bg-[#f0f4f8] text-[#333333] select-none sticky top-0 z-10 text-[11px]">
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Patient Name</th>
-                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order/Plan Name</th>
-                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Order Action</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Plan Name</th>
+                      <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Action</th>
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
                       <th className="p-1 px-2 border-r border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Details</th>
                       <th className="p-1 px-2 border-b border-[#bdcddc] font-normal text-gray-700 whitespace-nowrap">Status</th>
