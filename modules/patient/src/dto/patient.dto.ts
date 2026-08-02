@@ -6,11 +6,23 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Gender, BloodGroup, MaritalStatus, AllergySeverity } from '@prisma/client';
 
 export class CreatePatientDto {
+  @ApiPropertyOptional({ example: 'Mr.', description: 'Title (Mr., Mrs., Ms., Dr.)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  title?: string;
+
   @ApiProperty({ example: 'John' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   firstName!: string;
+
+  @ApiPropertyOptional({ example: 'Michael' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  middleName?: string;
 
   @ApiProperty({ example: 'Doe' })
   @IsString()
@@ -36,7 +48,22 @@ export class CreatePatientDto {
   @IsEnum(MaritalStatus)
   maritalStatus?: MaritalStatus;
 
-  @ApiPropertyOptional({ example: 'IND-9876543210' })
+  @ApiPropertyOptional({ example: 'Indian' })
+  @IsOptional()
+  @IsString()
+  nationality?: string;
+
+  @ApiPropertyOptional({ example: 'Hindu' })
+  @IsOptional()
+  @IsString()
+  religion?: string;
+
+  @ApiPropertyOptional({ example: 'Hindi' })
+  @IsOptional()
+  @IsString()
+  language?: string;
+
+  @ApiPropertyOptional({ example: 'XXXX-XXXX-XXXX', description: 'Aadhaar / National ID' })
   @IsOptional()
   @IsString()
   nationalId?: string;
@@ -51,10 +78,25 @@ export class CreatePatientDto {
   @IsNotEmpty()
   phone!: string;
 
-  @ApiPropertyOptional({ example: '123 Health Ave' })
+  @ApiPropertyOptional({ example: '+91-9876543211' })
   @IsOptional()
   @IsString()
-  address?: string;
+  alternateMobile?: string;
+
+  @ApiPropertyOptional({ example: '123 Health Avenue' })
+  @IsOptional()
+  @IsString()
+  addressLine1?: string;
+
+  @ApiPropertyOptional({ example: 'Near City Hospital' })
+  @IsOptional()
+  @IsString()
+  addressLine2?: string;
+
+  @ApiPropertyOptional({ example: 'Opposite Central Park' })
+  @IsOptional()
+  @IsString()
+  landmark?: string;
 
   @ApiPropertyOptional({ example: 'Mumbai' })
   @IsOptional()
@@ -70,6 +112,11 @@ export class CreatePatientDto {
   @IsOptional()
   @IsString()
   country?: string;
+
+  @ApiPropertyOptional({ example: '400001' })
+  @IsOptional()
+  @IsString()
+  postalCode?: string;
 
   @ApiPropertyOptional({ example: 'Jane Doe' })
   @IsOptional()

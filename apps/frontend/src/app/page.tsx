@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
+import { apiClient } from '@/lib/api-client';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -421,11 +423,14 @@ const getAppIcon = (key: string) => {
 };
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const auth = useAuth();
+  const isLoggedIn = auth?.isLoggedIn ?? false;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
+  const [loginDomain, setLoginDomain] = useState('PROD');
   const [searchQuery, setSearchQuery] = useState('');
+  const [apiPatients, setApiPatients] = useState<any[]>([]);
+  const [isSubmittingAdmit, setIsSubmittingAdmit] = useState(false);
   
   const [messageCenterView, setMessageCenterView] = useState<'list' | 'detail'>('list');
   const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
@@ -722,7 +727,6 @@ ${ioVal}`;
   const [reportsContextMenuPosition, setReportsContextMenuPosition] = useState({ x: 0, y: 0 });
 
   // Status Bar States & Effects
-  const [loginDomain, setLoginDomain] = useState('PRODX');
   const [statusBarPatient, setStatusBarPatient] = useState({ name: 'JOHN DOE', mrn: '1000245678' });
   const [statusBarDateTime, setStatusBarDateTime] = useState('');
 
@@ -1110,22 +1114,109 @@ ${ioVal}`;
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [selectedRescheduleReq, setSelectedRescheduleReq] = useState<any>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      setLoginError('Please enter both email and password.');
       return;
     }
-    setLoginError('');
-    setIsLoggedIn(true);
+    await auth?.login(email, password);
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
+  const handleLogout = async () => {
+    await auth?.logout();
     setEmail('');
     setPassword('');
     setOpenTabs([{ id: 'patient-doe', title: 'Patient Profile: JOHN DOE', type: 'PatientProfile' }]);
     setActiveTabId('patient-doe');
+  };
+
+  const handleSearchExistingPatient = async () => {
+    try {
+      let query = '';
+      if (admitSearchBy === 'Aadhaar' && admitSearchAadhaar) {
+        query = admitSearchAadhaar;
+      } else if (admitSearchFirst || admitSearchLast) {
+        query = `${admitSearchFirst} ${admitSearchLast}`.trim();
+      }
+      if (!query) {
+        alert('Please enter a search term (First Name, Last Name, or Aadhaar Number).');
+        return;
+      }
+
+      const res = await apiClient.get(`/patients?q=${encodeURIComponent(query)}`);
+      const results = res.data || [];
+      if (results.length === 0) {
+        alert('No matching patient records found in hospital database.');
+      } else {
+        const p = results[0];
+        setAdmitTitle(p.title || 'Select');
+        setAdmitFirst(p.firstName || '');
+        setAdmitMiddle(p.middleName || '');
+        setAdmitLast(p.lastName || '');
+        setAdmitDobVal(p.dateOfBirth ? new Date(p.dateOfBirth).toLocaleDateString('en-GB') : '');
+        setAdmitGender(p.gender ? p.gender.charAt(0) + p.gender.slice(1).toLowerCase() : 'Select');
+        setAdmitMobileVal(p.phone || '');
+        setAdmitEmailVal(p.email || '');
+        setAdmitAddr1(p.addressLine1 || '');
+        setAdmitCityVal(p.city || '');
+        alert(`Found matching patient: ${p.firstName} ${p.lastName} (MRN: ${p.mrn}). Details populated!`);
+      }
+    } catch (err: any) {
+      alert(`Search Error: ${err?.message || 'Search failed'}`);
+    }
+  };
+
+  const handleSaveAndAdmit = async () => {
+    if (!admitFirst || !admitLast || !admitDobVal || !admitMobileVal) {
+      alert('Please fill in all required fields marked with * (First Name, Last Name, Date of Birth, Mobile Number).');
+      return;
+    }
+
+    setIsSubmittingAdmit(true);
+    try {
+      const payload = {
+        title: admitTitle !== 'Select' ? admitTitle : undefined,
+        firstName: admitFirst,
+        middleName: admitMiddle || undefined,
+        lastName: admitLast,
+        dateOfBirth: admitDobVal.includes('/')
+          ? admitDobVal.split('/').reverse().join('-')
+          : admitDobVal,
+        gender: admitGender !== 'Select' ? admitGender.toUpperCase() : 'MALE',
+        maritalStatus: admitMarital !== 'Select' ? admitMarital.toUpperCase() : 'SINGLE',
+        bloodGroup: admitBlood !== 'Select' ? admitBlood.replace('+', '_POSITIVE').replace('-', '_NEGATIVE') : undefined,
+        phone: admitMobileVal,
+        alternateMobile: admitAltMobile || undefined,
+        email: admitEmailVal || undefined,
+        nationality: admitNation !== 'Select' ? admitNation : undefined,
+        religion: admitReligion !== 'Select' ? admitReligion : undefined,
+        language: admitLang !== 'Select' ? admitLang : undefined,
+        addressLine1: admitAddr1,
+        addressLine2: admitAddr2 || undefined,
+        landmark: admitLandmark || undefined,
+        city: admitCityVal,
+        state: admitStateVal !== 'Select' ? admitStateVal : undefined,
+        country: admitCountryVal,
+        postalCode: admitZipVal,
+        admissionType: admitTypeVal !== 'Select' ? admitTypeVal : 'Routine',
+        visitType: admitVisitVal !== 'Select' ? admitVisitVal : 'Inpatient',
+        referredBy: admitReferredBy || undefined,
+        referringDoctor: admitRefDoctor || undefined,
+        department: admitDeptVal !== 'Select' ? admitDeptVal : 'General Medicine',
+        bedId: admitBedRoom || undefined,
+        primaryInsurance: admitInsPrimary !== 'Select' ? admitInsPrimary : undefined,
+        insuranceId: admitInsIdVal || undefined,
+        policyId: admitPolicyId || undefined,
+      };
+
+      const res = await apiClient.post('/admissions/admit-workflow', payload);
+      alert(`Patient ${res.patient?.firstName || admitFirst} ${res.patient?.lastName || admitLast} admitted successfully!\nMRN: ${res.patient?.mrn || 'Assigned'}\nBed: ${res.bed?.bedNumber || 'Unassigned'}`);
+      selectOrOpenTab('PatientList', 'Patient List', 'patient-list-tab');
+    } catch (err: any) {
+      alert(`Admission Error: ${err?.message || 'Failed to submit admission'}`);
+    } finally {
+      setIsSubmittingAdmit(false);
+    }
   };
 
   const selectOrOpenTab = (type: TabItem['type'], title: string, id: string) => {
@@ -2743,9 +2834,9 @@ ${ioVal}`;
 
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4 w-[280px]">
-            {loginError && (
+            {auth?.loginError && (
               <div className="bg-red-950/40 border border-red-800 text-red-300 p-2 text-center text-[10px] mb-2 font-medium">
-                {loginError}
+                {auth?.loginError}
               </div>
             )}
 
@@ -2815,7 +2906,7 @@ ${ioVal}`;
               </button>
               <button 
                 type="button"
-                onClick={() => { setEmail(''); setPassword(''); setLoginError(''); }}
+                onClick={() => { setEmail(''); setPassword(''); }}
                 className="w-[100px] h-[25px] border border-[#7f7f7f] bg-[#cccccc] hover:bg-[#d8d8d8] text-black font-medium shadow-sm active:bg-[#b8b8b8] focus:outline-none text-[11px] transition-all"
                 style={{
                   borderWidth: '1.5px',
@@ -9212,7 +9303,7 @@ No qualifying data available.`;
                       />
                     </div>
 
-                    <button className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-4 py-1.5 rounded shadow-sm">
+                    <button onClick={handleSearchExistingPatient} className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-4 py-1.5 rounded shadow-sm">
                       Search
                     </button>
                   </div>
@@ -9475,7 +9566,9 @@ No qualifying data available.`;
                 <div className="flex justify-end gap-2 border-t border-gray-100 p-4 select-none">
                   <button className="bg-white border border-gray-300 hover:bg-gray-50 px-4 py-1.5 rounded text-gray-700 font-bold">Clear</button>
                   <button className="bg-white border border-gray-300 hover:bg-gray-50 px-4 py-1.5 rounded text-[#0f4471] font-bold">Save & Continue</button>
-                  <button onClick={() => selectOrOpenTab('PatientList', 'Patient List', 'patient-list-tab')} className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-5 py-1.5 rounded shadow-sm">Save & Admit</button>
+                  <button onClick={handleSaveAndAdmit} disabled={isSubmittingAdmit} className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-5 py-1.5 rounded shadow-sm disabled:opacity-50">
+                    {isSubmittingAdmit ? 'Admitting...' : 'Save & Admit'}
+                  </button>
                 </div>
               </div>
 

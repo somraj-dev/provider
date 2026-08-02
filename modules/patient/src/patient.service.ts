@@ -14,51 +14,76 @@ export class PatientService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Generate unique MRN (Medical Record Number): MRN-YYYYMMDD-XXXX
+   * Generate unique MRN (Medical Record Number) using MrnSequence table.
+   * Uses SELECT ... FOR UPDATE to prevent race conditions.
+   * Format: MRN-{sequence padded to 7 digits}
    */
-  private async generateMRN(tenantId: string): Promise<string> {
-    const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const count = await this.prisma.patient.count({ where: { tenantId } });
-    const sequence = String(count + 1).padStart(4, '0');
-    return `MRN-${todayStr}-${sequence}`;
+  private async generateMRN(tenantId: string, tx?: any): Promise<string> {
+    const prisma = tx || this.prisma;
+    const prefix = 'MRN';
+
+    // Upsert + increment atomically using raw SQL for safety
+    const result = await prisma.$queryRaw<Array<{ last_value: number }>>`
+      INSERT INTO mrn_sequences (id, tenant_id, prefix, last_value, updated_at)
+      VALUES (gen_random_uuid(), ${tenantId}::uuid, ${prefix}, 1, NOW())
+      ON CONFLICT (tenant_id, prefix)
+      DO UPDATE SET last_value = mrn_sequences.last_value + 1, updated_at = NOW()
+      RETURNING last_value
+    `;
+
+    const sequence = String(result[0].last_value).padStart(7, '0');
+    return `${prefix}-${sequence}`;
   }
 
   async createPatient(tenantId: string, dto: CreatePatientDto, actorId: string) {
-    const mrn = await this.generateMRN(tenantId);
+    const patient = await this.prisma.$transaction(async (tx) => {
+      const mrn = await this.generateMRN(tenantId, tx);
 
-    const patient = await this.prisma.patient.create({
-      data: {
-        tenantId,
-        mrn,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        dateOfBirth: new Date(dto.dateOfBirth),
-        gender: dto.gender,
-        bloodGroup: dto.bloodGroup,
-        maritalStatus: dto.maritalStatus,
-        nationalId: dto.nationalId,
-        email: dto.email,
-        phone: dto.phone,
-        address: dto.address,
-        city: dto.city,
-        state: dto.state,
-        country: dto.country || 'IN',
-        emergencyContactName: dto.emergencyContactName,
-        emergencyContactPhone: dto.emergencyContactPhone,
-        emergencyContactRel: dto.emergencyContactRel,
-        primaryDoctorId: dto.primaryDoctorId,
-      },
-    });
+      const created = await tx.patient.create({
+        data: {
+          tenantId,
+          mrn,
+          title: dto.title,
+          firstName: dto.firstName,
+          middleName: dto.middleName,
+          lastName: dto.lastName,
+          dateOfBirth: new Date(dto.dateOfBirth),
+          gender: dto.gender,
+          bloodGroup: dto.bloodGroup,
+          maritalStatus: dto.maritalStatus,
+          nationality: dto.nationality,
+          religion: dto.religion,
+          language: dto.language,
+          nationalId: dto.nationalId,
+          email: dto.email,
+          phone: dto.phone,
+          alternateMobile: dto.alternateMobile,
+          addressLine1: dto.addressLine1,
+          addressLine2: dto.addressLine2,
+          landmark: dto.landmark,
+          city: dto.city,
+          state: dto.state,
+          country: dto.country || 'IN',
+          postalCode: dto.postalCode,
+          emergencyContactName: dto.emergencyContactName,
+          emergencyContactPhone: dto.emergencyContactPhone,
+          emergencyContactRel: dto.emergencyContactRel,
+          primaryDoctorId: dto.primaryDoctorId,
+        },
+      });
 
-    await this.prisma.auditLog.create({
-      data: {
-        tenantId,
-        userId: actorId,
-        action: AuditAction.CREATE,
-        resourceType: 'Patient',
-        resourceId: patient.id,
-        description: `Created patient record ${patient.mrn} (${patient.firstName} ${patient.lastName})`,
-      },
+      await tx.auditLog.create({
+        data: {
+          tenantId,
+          userId: actorId,
+          action: AuditAction.CREATE,
+          resourceType: 'Patient',
+          resourceId: created.id,
+          description: `Created patient record ${created.mrn} (${created.firstName} ${created.lastName})`,
+        },
+      });
+
+      return created;
     });
 
     this.logger.log(`Patient created: ${patient.mrn} in tenant ${tenantId}`);
