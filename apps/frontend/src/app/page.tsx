@@ -921,6 +921,21 @@ ${ioVal}`;
   const [isDraggingPrintLabels, setIsDraggingPrintLabels] = useState(false);
   const [dragOffsetPrintLabels, setDragOffsetPrintLabels] = useState({ x: 0, y: 0 });
 
+  // Bed Transfer Popup State
+  const [isBedTransferOpen, setIsBedTransferOpen] = useState(false);
+  const [bedTransferPos, setBedTransferPos] = useState({ x: 150, y: 50 });
+  const [isDraggingBedTransfer, setIsDraggingBedTransfer] = useState(false);
+  const [dragOffsetBedTransfer, setDragOffsetBedTransfer] = useState({ x: 0, y: 0 });
+
+  // Discharge Encounter Popup State
+  const [isDischargeEncounterOpen, setIsDischargeEncounterOpen] = useState(false);
+  const [dischargeEncounterPos, setDischargeEncounterPos] = useState({ x: 150, y: 50 });
+  const [isDraggingDischargeEncounter, setIsDraggingDischargeEncounter] = useState(false);
+  const [dragOffsetDischargeEncounter, setDragOffsetDischargeEncounter] = useState({ x: 0, y: 0 });
+
+  // Facility Transfer State
+  const [isFacilityTransferOpen, setIsFacilityTransferOpen] = useState(false);
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -960,6 +975,18 @@ ${ioVal}`;
           y: Math.max(0, e.clientY - dragOffsetPrintLabels.y),
         });
       }
+      if (isDraggingBedTransfer) {
+        setBedTransferPos({
+          x: Math.max(0, e.clientX - dragOffsetBedTransfer.x),
+          y: Math.max(0, e.clientY - dragOffsetBedTransfer.y),
+        });
+      }
+      if (isDraggingDischargeEncounter) {
+        setDischargeEncounterPos({
+          x: Math.max(0, e.clientX - dragOffsetDischargeEncounter.x),
+          y: Math.max(0, e.clientY - dragOffsetDischargeEncounter.y),
+        });
+      }
     };
 
     const handleMouseUp = () => {
@@ -967,9 +994,11 @@ ${ioVal}`;
       if (isDraggingSub) setIsDraggingSub(false);
       if (isDraggingCareTeam) setIsDraggingCareTeam(false);
       if (isDraggingPrintLabels) setIsDraggingPrintLabels(false);
+      if (isDraggingBedTransfer) setIsDraggingBedTransfer(false);
+      if (isDraggingDischargeEncounter) setIsDraggingDischargeEncounter(false);
     };
 
-    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam || isDraggingPrintLabels) {
+    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam || isDraggingPrintLabels || isDraggingBedTransfer || isDraggingDischargeEncounter) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
@@ -977,7 +1006,7 @@ ${ioVal}`;
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam, isDraggingPrintLabels, dragOffsetPrintLabels]);
+  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam, isDraggingPrintLabels, dragOffsetPrintLabels, isDraggingBedTransfer, dragOffsetBedTransfer, isDraggingDischargeEncounter, dragOffsetDischargeEncounter]);
 
   const [showConversationLauncher, setShowConversationLauncher] = React.useState(false);
 
@@ -1265,27 +1294,27 @@ ${ioVal}`;
     { patientName: 'JAMES, WILLIAM', orderPlanName: 'CBC with Differential', action: 'Plan', detailsDate: '05/28/17 08:30', detailsDesc: 'Routine blood test', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 08:30', stopDate: '05/28/2017 08:30', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'JAMES, WILLIAM', orderPlanName: 'Comprehensive Metabolic Panel', action: 'Plan', detailsDate: '05/28/17 08:30', detailsDesc: 'Kidney & liver function', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 08:30', stopDate: '05/28/2017 08:30', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'PATEL, RAHUL', orderPlanName: 'MRI Brain W/O Contrast', action: 'Plan', detailsDate: '05/28/17 09:15', detailsDesc: 'Headache evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 09:15', stopDate: '05/28/2017 09:15', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'PATEL, RAHUL', orderPlanName: 'Neurology Consult', action: 'Plan', detailsDate: '05/28/17 09:15', detailsDesc: 'Neuro assessment', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 09:15', stopDate: '05/28/2017 09:15', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'PATEL, RAHUL', orderPlanName: 'Referral to City Neuro Hospital', action: 'Referral', detailsDate: '05/28/17 09:15', detailsDesc: 'Transfer for advanced neuro care', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 09:15', stopDate: '05/28/2017 09:15', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'JOHNSON, MARIA', orderPlanName: 'PT Evaluation', action: 'Plan', detailsDate: '05/28/17 10:00', detailsDesc: 'Post-op rehab', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:00', stopDate: '05/28/2017 10:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'JOHNSON, MARIA', orderPlanName: 'Pain Management Consult', action: 'Plan', detailsDate: '05/28/17 10:00', detailsDesc: 'Pain control', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:00', stopDate: '05/28/2017 10:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'JOHNSON, MARIA', orderPlanName: 'Referral to St. Mary Regional Medical', action: 'Referral', detailsDate: '05/28/17 10:00', detailsDesc: 'Transfer for specialty pain mgmt', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:00', stopDate: '05/28/2017 10:00', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'LEE, DAVID', orderPlanName: 'Chest X-Ray', action: 'Plan', detailsDate: '05/28/17 10:30', detailsDesc: 'Cough and fever', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:30', stopDate: '05/28/2017 10:30', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'LEE, DAVID', orderPlanName: 'Sputum Culture', action: 'Plan', detailsDate: '05/28/17 10:30', detailsDesc: 'Infection workup', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 10:30', stopDate: '05/28/2017 10:30', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'GARCIA, LUCIA', orderPlanName: 'Echocardiogram', action: 'Plan', detailsDate: '05/28/17 11:00', detailsDesc: 'Cardiac evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:00', stopDate: '05/28/2017 11:00', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'GARCIA, LUCIA', orderPlanName: 'Cardiology Consult', action: 'Plan', detailsDate: '05/28/17 11:00', detailsDesc: 'Heart failure eval', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:00', stopDate: '05/28/2017 11:00', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'GARCIA, LUCIA', orderPlanName: 'Referral to Metro Heart Institute', action: 'Referral', detailsDate: '05/28/17 11:00', detailsDesc: 'Transfer for cardiac surgery eval', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:00', stopDate: '05/28/2017 11:00', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'KIM, JAMES', orderPlanName: 'Hemoglobin A1C', action: 'Plan', detailsDate: '05/28/17 11:30', detailsDesc: 'Diabetes monitoring', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:30', stopDate: '05/28/2017 11:30', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'KIM, JAMES', orderPlanName: 'Diabetes Education', action: 'Plan', detailsDate: '05/28/17 11:30', detailsDesc: 'Patient education', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 11:30', stopDate: '05/28/2017 11:30', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'BROWN, ELIZABETH', orderPlanName: 'Urinalysis', action: 'Plan', detailsDate: '05/28/17 12:00', detailsDesc: 'UTI symptoms', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:00', stopDate: '05/28/2017 12:00', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'BROWN, ELIZABETH', orderPlanName: 'Urine Culture', action: 'Plan', detailsDate: '05/28/17 12:00', detailsDesc: 'Confirm infection', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:00', stopDate: '05/28/2017 12:00', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'THOMAS, MICHAEL', orderPlanName: 'CT Abdomen & Pelvis', action: 'Plan', detailsDate: '05/28/17 12:30', detailsDesc: 'Abdominal pain', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:30', stopDate: '05/28/2017 12:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'THOMAS, MICHAEL', orderPlanName: 'Surgery Consult', action: 'Plan', detailsDate: '05/28/17 12:30', detailsDesc: 'Surgical evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:30', stopDate: '05/28/2017 12:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'THOMAS, MICHAEL', orderPlanName: 'Referral to General Surgical Center', action: 'Referral', detailsDate: '05/28/17 12:30', detailsDesc: 'Transfer for emergency surgery', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 12:30', stopDate: '05/28/2017 12:30', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'ANDERSON, SUSAN', orderPlanName: 'Lipid Panel', action: 'Plan', detailsDate: '05/28/17 13:00', detailsDesc: 'Cholesterol check', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:00', stopDate: '05/28/2017 13:00', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'ANDERSON, SUSAN', orderPlanName: 'Nutrition Consult', action: 'Plan', detailsDate: '05/28/17 13:00', detailsDesc: 'Dietary counseling', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:00', stopDate: '05/28/2017 13:00', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'MILLER, ROBERT', orderPlanName: 'Pulmonary Function Test', action: 'Plan', detailsDate: '05/28/17 13:30', detailsDesc: 'COPD evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:30', stopDate: '05/28/2017 13:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'MILLER, ROBERT', orderPlanName: 'Respiratory Therapy Eval', action: 'Plan', detailsDate: '05/28/17 13:30', detailsDesc: 'Breathing assessment', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:30', stopDate: '05/28/2017 13:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'MILLER, ROBERT', orderPlanName: 'Referral to Pulmonary Care Hospital', action: 'Referral', detailsDate: '05/28/17 13:30', detailsDesc: 'Transfer for advanced COPD care', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 13:30', stopDate: '05/28/2017 13:30', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'DAVIS, PATRICIA', orderPlanName: 'DEXA Scan', action: 'Plan', detailsDate: '05/28/17 14:00', detailsDesc: 'Bone density', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:00', stopDate: '05/28/2017 14:00', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'DAVIS, PATRICIA', orderPlanName: 'Vitamin D Level', action: 'Plan', detailsDate: '05/28/17 14:00', detailsDesc: 'Bone health', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:00', stopDate: '05/28/2017 14:00', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'WHITE, CHARLES', orderPlanName: 'Sleep Study', action: 'Plan', detailsDate: '05/28/17 14:30', detailsDesc: 'Sleep apnea evaluation', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:30', stopDate: '05/28/2017 14:30', stopType: 'Physician Stop', status: 'Open' },
-    { patientName: 'WHITE, CHARLES', orderPlanName: 'ENT Consult', action: 'Plan', detailsDate: '05/28/17 14:30', detailsDesc: 'Snoring and fatigue', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:30', stopDate: '05/28/2017 14:30', stopType: 'Physician Stop', status: 'Open' },
+    { patientName: 'WHITE, CHARLES', orderPlanName: 'Referral to Sleep Disorders Clinic', action: 'Referral', detailsDate: '05/28/17 14:30', detailsDesc: 'Transfer for sleep study & ENT eval', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 14:30', stopDate: '05/28/2017 14:30', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'WILSON, BETTY', orderPlanName: 'Mammogram Screening', action: 'Plan', detailsDate: '05/28/17 15:00', detailsDesc: 'Breast cancer screening', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 15:00', stopDate: '05/28/2017 15:00', stopType: 'Physician Stop', status: 'Open' },
     { patientName: 'WILSON, BETTY', orderPlanName: 'Ob/Gyn Annual Exam', action: 'Plan', detailsDate: '05/28/17 15:00', detailsDesc: 'Routine exam', comment: 'AXIO, MD', originator: 'AXIO, MD', createDate: '05/28/2017 15:00', stopDate: '05/28/2017 15:00', stopType: 'Physician Stop', status: 'Open' }
   ];
@@ -4132,13 +4161,15 @@ ${ioVal}`;
                         <h3 className="font-bold text-xs text-gray-800">Message Details</h3>
                         <div className="grid grid-cols-[80px_1fr] gap-y-1">
                           <span className="text-gray-500 font-semibold">From:</span>
-                          <span className="font-semibold">System</span>
+                          <span className="font-semibold">{selectedMessage?.action === 'Referral' ? 'Apollo' : 'System'}</span>
                           <span className="text-gray-500 font-semibold">To:</span>
                           <span>Axiovital Admin</span>
                           <span className="text-gray-500 font-semibold">Subject:</span>
                           <span className="font-semibold text-[#0f719b]">
                             {selectedMessage 
-                              ? `Clinical Note Ready for Review - ${selectedMessage.orderPlanName}` 
+                              ? (selectedMessage.action === 'Referral'
+                                ? `Patient Referral - ${selectedMessage.orderPlanName}`
+                                : `Clinical Note Ready for Review - ${selectedMessage.orderPlanName}`)
                               : 'Clinical Note Ready for Review'}
                           </span>
                           <span className="text-gray-500 font-semibold">Date/Time:</span>
@@ -4147,15 +4178,39 @@ ${ioVal}`;
                       </div>
                       <div className="space-y-3 leading-relaxed text-gray-800">
                         <div className="font-semibold border-b border-gray-100 pb-1">Message Content</div>
-                        <p>
-                          The clinical note for patient {selectedMessage?.patientName || 'JOHN DOE'} (MRN:{' '}
-                          {selectedMessage ? (patientDemographics[selectedMessage.patientName]?.mrn || '1000245678') : '1000245678'}) is ready to review and sign in AxioNote.
-                        </p>
-                        <p>Please click the link below or use the Clinical menu &gt; AxioNote - Edge Platform from the top toolbar to launch the platform.</p>
-                        <div className="py-2">
-                          <button className="text-[#0f719b] font-semibold underline hover:text-[#0b5475]">Launch AxioNote - Edge Platform</button>
-                        </div>
-                        <p className="text-gray-500 text-[10.5px]">Thank you,<br />AxioVital Clinical System</p>
+                        {selectedMessage?.action === 'Referral' ? (
+                          <>
+                            <p>
+                              <strong>Apollo Hospital</strong> has initiated a patient referral for <strong>{selectedMessage.patientName}</strong> (MRN:{' '}
+                              {patientDemographics[selectedMessage.patientName]?.mrn || '1000245678'}).
+                            </p>
+                            <p>
+                              <strong>Referral Destination:</strong> {selectedMessage.orderPlanName.replace('Referral to ', '')}
+                            </p>
+                            <p>
+                              <strong>Reason for Referral:</strong> {selectedMessage.detailsDesc}
+                            </p>
+                            <p>
+                              Please review and accept this referral at your earliest convenience. The patient records and clinical history have been shared securely via the AxioVital interoperability platform.
+                            </p>
+                            <div className="py-2">
+                              <button className="text-[#0f719b] font-semibold underline hover:text-[#0b5475]">View Referral Details</button>
+                            </div>
+                            <p className="text-gray-500 text-[10.5px]">Thank you,<br />Apollo Hospital — Referral Coordination Team</p>
+                          </>
+                        ) : (
+                          <>
+                            <p>
+                              The clinical note for patient {selectedMessage?.patientName || 'JOHN DOE'} (MRN:{' '}
+                              {selectedMessage ? (patientDemographics[selectedMessage.patientName]?.mrn || '1000245678') : '1000245678'}) is ready to review and sign in AxioNote.
+                            </p>
+                            <p>Please click the link below or use the Clinical menu &gt; AxioNote - Edge Platform from the top toolbar to launch the platform.</p>
+                            <div className="py-2">
+                              <button className="text-[#0f719b] font-semibold underline hover:text-[#0b5475]">Launch AxioNote - Edge Platform</button>
+                            </div>
+                            <p className="text-gray-500 text-[10.5px]">Thank you,<br />AxioVital Clinical System</p>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -6349,6 +6404,12 @@ ${ioVal}`;
                                 selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: ' + displayName, 'edit-patient-doe');
                               } else if (item === 'Print Labels') {
                                 setIsPrintLabelsOpen(true);
+                              } else if (item === 'Bed Transfer') {
+                                setIsBedTransferOpen(true);
+                              } else if (item === 'Discharge Encounter') {
+                                setIsDischargeEncounterOpen(true);
+                              } else if (item === 'Facility Transfer') {
+                                setIsFacilityTransferOpen(true);
                               } else {
                                 setTimeout(() => alert(`${item} selected`), 10);
                               }
@@ -12635,6 +12696,909 @@ No qualifying data available.`;
                 className="bg-white border border-[#194d7b] hover:bg-[#eef4f8] text-[#194d7b] font-bold px-4 py-1 rounded-sm shadow-sm transition-colors text-[10.5px]"
               >
                 Close View
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Facility Transfer Fullscreen Page */}
+      {isFacilityTransferOpen && (
+        <div className="fixed inset-0 bg-white z-[99999] flex flex-col font-sans select-none overflow-hidden border-[3px] border-[#92bced]">
+          {/* Title Bar */}
+          <div 
+            className="flex justify-between items-center px-2 py-1"
+            style={{ background: 'linear-gradient(to bottom, #d6eaf8 0%, #a4cbf1 100%)', borderBottom: '1px solid #7eaadb' }}
+          >
+            <div className="text-[#204060] font-bold text-[14px] flex items-center gap-1">
+              Inter-Hospital Patient Transfer
+            </div>
+            <button 
+              onClick={() => setIsFacilityTransferOpen(false)}
+              className="bg-[#d9534f] hover:bg-[#c9302c] text-white w-[45px] h-[22px] flex items-center justify-center font-bold shadow-inner rounded-[2px] text-[12px]"
+              style={{ border: '1px solid #b52b27' }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Main Scrollable Body */}
+          <div className="flex-1 overflow-y-auto p-4 bg-[#f4f8fc] text-[12px] text-[#333333]">
+            <div className="max-w-[1050px] mx-auto bg-white border border-[#a6c9e2] shadow-sm p-4">
+              
+              {/* Top Meta Info */}
+              <div className="flex flex-col gap-3 pl-8 pb-4">
+                <div className="flex items-center gap-1">
+                  <span className="w-[150px] text-right"><span className="text-red-600 font-bold">*</span> Transfer Date / Time :</span>
+                  <div className="flex items-center ml-2">
+                    <input type="text" value="07/10/2017" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[100px] outline-none bg-white text-center shadow-inner text-[11px]" />
+                    <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                      <button className="h-[11px] w-[16px] flex items-center justify-center text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                      <button className="h-[11px] w-[16px] flex items-center justify-center text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                    </div>
+                  </div>
+                  <div className="flex items-center ml-4">
+                    <input type="text" value="1414" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[60px] outline-none bg-white text-center shadow-inner text-[11px]" />
+                    <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                      <button className="h-[11px] w-[16px] flex items-center justify-center text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                      <button className="h-[11px] w-[16px] flex items-center justify-center text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                    </div>
+                    <span className="ml-2">CDT</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-1">
+                  <span className="w-[150px] text-right"><span className="text-red-600 font-bold">*</span> Performed By :</span>
+                  <div className="flex ml-2 shadow-inner border border-[#a9c6e2]">
+                    <input type="text" value="TTP , Nurse" readOnly className="px-2 py-1 w-[200px] outline-none border-none text-[11px]" />
+                    <button className="bg-[#eef3f8] border-l border-[#a9c6e2] px-2 hover:bg-[#d5e4f2] text-[#428bca] font-bold flex items-center justify-center">
+                      <svg width="14" height="14" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="10" x2="14" y2="14" stroke="#9b68ad" strokeWidth="3.5" /><circle cx="7" cy="7" r="5" fill="#42d4f4" stroke="#255594" strokeWidth="1.5" /><path d="M5 5 Q 7 3 9 5" stroke="rgba(255,255,255,0.8)" strokeWidth="1" fill="none" /></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Current (Sending) Hospital Information */}
+              <div className="mt-2 pb-3">
+                <div className="text-[#2a6496] font-bold mb-2 border-b border-[#d6eaf8] pb-1">Current (Sending) Hospital Information</div>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3 pt-2">
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Hospital Name :</span>
+                    <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                      <option>City Care Multispeciality Hospital</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Hospital Code :</span>
+                    <input type="text" value="CCH001" className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]" readOnly />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Department :</span>
+                    <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                      <option>General Medicine</option>
+                    </select>
+                  </div>
+                  <div className="flex items-start gap-1 row-span-2">
+                    <span className="w-[130px] text-right pt-1"><span className="text-red-600 font-bold">*</span> Address :</span>
+                    <textarea className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 h-[55px] resize-none shadow-inner text-[11px]" readOnly defaultValue="123 Health Street,&#10;Chicago, IL 60601, USA"></textarea>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Contact Person :</span>
+                    <div className="flex border border-[#a9c6e2] shadow-inner bg-white flex-1 ml-2">
+                      <input type="text" value="Dr. Ramesh Sharma" readOnly className="px-2 py-1 w-full outline-none border-none text-[11px]" />
+                      <button className="bg-[#eef3f8] border-l border-[#a9c6e2] px-2 hover:bg-[#d5e4f2] text-[#428bca] font-bold flex items-center justify-center">
+                        <svg width="14" height="14" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="10" x2="14" y2="14" stroke="#9b68ad" strokeWidth="3.5" /><circle cx="7" cy="7" r="5" fill="#42d4f4" stroke="#255594" strokeWidth="1.5" /><path d="M5 5 Q 7 3 9 5" stroke="rgba(255,255,255,0.8)" strokeWidth="1" fill="none" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Phone Number :</span>
+                    <input type="text" value="+1 312 555 0198" className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]" readOnly />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Email :</span>
+                    <input type="text" value="transferdesk@citycarehospital.com" className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]" readOnly />
+                  </div>
+                </div>
+              </div>
+
+              {/* Receiving Hospital Information */}
+              <div className="mt-2 pb-3">
+                <div className="text-[#2a6496] font-bold mb-2 border-b border-[#d6eaf8] pb-1">Receiving Hospital Information</div>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3 pt-2">
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Hospital Name :</span>
+                    <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                      <option>Metro Advanced Hospital</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Hospital Code :</span>
+                    <input type="text" value="MAH002" className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]" readOnly />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Department :</span>
+                    <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                      <option>Cardiology</option>
+                    </select>
+                  </div>
+                  <div className="flex items-start gap-1 row-span-2">
+                    <span className="w-[130px] text-right pt-1"><span className="text-red-600 font-bold">*</span> Address :</span>
+                    <textarea className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 h-[55px] resize-none shadow-inner text-[11px]" readOnly defaultValue="456 Wellness Avenue,&#10;Chicago, IL 60611, USA"></textarea>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Contact Person :</span>
+                    <div className="flex border border-[#a9c6e2] shadow-inner bg-white flex-1 ml-2">
+                      <input type="text" value="Dr. Anita Verma" readOnly className="px-2 py-1 w-full outline-none border-none text-[11px]" />
+                      <button className="bg-[#eef3f8] border-l border-[#a9c6e2] px-2 hover:bg-[#d5e4f2] text-[#428bca] font-bold flex items-center justify-center">
+                        <svg width="14" height="14" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="10" x2="14" y2="14" stroke="#9b68ad" strokeWidth="3.5" /><circle cx="7" cy="7" r="5" fill="#42d4f4" stroke="#255594" strokeWidth="1.5" /><path d="M5 5 Q 7 3 9 5" stroke="rgba(255,255,255,0.8)" strokeWidth="1" fill="none" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Phone Number :</span>
+                    <input type="text" value="+1 312 555 0456" className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]" readOnly />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[130px] text-right"><span className="text-red-600 font-bold">*</span> Email :</span>
+                    <input type="text" value="admissions@metrohospital.com" className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]" readOnly />
+                  </div>
+                </div>
+              </div>
+
+              {/* Transfer Details */}
+              <div className="mt-2 pb-3">
+                <div className="text-[#2a6496] font-bold mb-2 border-b border-[#d6eaf8] pb-1">Transfer Details</div>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3 pt-2">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-1">
+                      <span className="w-[150px] text-right"><span className="text-red-600 font-bold">*</span> Reason for Transfer :</span>
+                      <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                        <option>Advanced Level of Care Required</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-[150px] text-right"><span className="text-red-600 font-bold">*</span> Mode of Transfer :</span>
+                      <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                        <option>Ambulance - ALS</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-[150px] text-right"><span className="text-red-600 font-bold">*</span> Priority :</span>
+                      <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                        <option>High</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-[150px] text-right"><span className="text-red-600 font-bold">*</span> Accompanied By :</span>
+                      <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                        <option>Nurse</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-[150px] text-right">Accompanied Personnel :</span>
+                      <input type="text" value="Nurse, Paramedic" className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]" />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-1">
+                      <span className="w-[160px] text-right"><span className="text-red-600 font-bold">*</span> Estimated Departure Time :</span>
+                      <div className="flex items-center ml-2">
+                        <input type="text" value="07/10/2017" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[90px] outline-none text-center shadow-inner text-[11px]" />
+                        <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                          <button className="h-[11px] w-[16px] text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                          <button className="h-[11px] w-[16px] text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                        </div>
+                      </div>
+                      <div className="flex items-center ml-2">
+                        <input type="text" value="1500" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[55px] outline-none text-center shadow-inner text-[11px]" />
+                        <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                          <button className="h-[11px] w-[16px] text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                          <button className="h-[11px] w-[16px] text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                        </div>
+                      </div>
+                      <span className="ml-2">CDT</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-[160px] text-right"><span className="text-red-600 font-bold">*</span> Estimated Arrival Time :</span>
+                      <div className="flex items-center ml-2">
+                        <input type="text" value="07/10/2017" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[90px] outline-none text-center shadow-inner text-[11px]" />
+                        <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                          <button className="h-[11px] w-[16px] text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                          <button className="h-[11px] w-[16px] text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                        </div>
+                      </div>
+                      <div className="flex items-center ml-2">
+                        <input type="text" value="1600" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[55px] outline-none text-center shadow-inner text-[11px]" />
+                        <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                          <button className="h-[11px] w-[16px] text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                          <button className="h-[11px] w-[16px] text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                        </div>
+                      </div>
+                      <span className="ml-2">CDT</span>
+                    </div>
+                    <div className="flex items-start gap-1">
+                      <span className="w-[160px] text-right pt-1">Comments :</span>
+                      <textarea className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 h-[70px] resize-none shadow-inner text-[11px]" defaultValue="Patient requires advanced cardiac&#10;intervention not available in current hospital."></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Clinical Information */}
+              <div className="mt-2 pb-3">
+                <div className="text-[#2a6496] font-bold mb-2 border-b border-[#d6eaf8] pb-1">Clinical Information</div>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3 pt-2">
+                  <div className="flex items-center gap-1">
+                    <span className="w-[140px] text-right">Condition at Transfer :</span>
+                    <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                      <option>Stable</option>
+                    </select>
+                  </div>
+                  <div className="flex items-start gap-1 row-span-2">
+                    <span className="w-[140px] text-right pt-1">Treatment Given :</span>
+                    <textarea className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 h-[45px] resize-none shadow-inner text-[11px]" readOnly defaultValue="IV Fluids, Antibiotics, Oxygen Support,&#10;Pain Management"></textarea>
+                  </div>
+                  <div className="flex items-start gap-1">
+                    <span className="w-[140px] text-right pt-1">Vital Signs Summary :</span>
+                    <textarea className="border border-[#a9c6e2] px-2 py-1 flex-1 outline-none ml-2 h-[45px] resize-none shadow-inner text-[11px]" readOnly defaultValue="BP: 120/80 mmHg, Pulse: 88 bpm,&#10;SpO2: 96% (RA), Temp: 98.6°F"></textarea>
+                  </div>
+                  <div className="flex items-center gap-1 mt-auto">
+                    <span className="w-[140px] text-right">Special Precautions :</span>
+                    <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                      <option>Fall Risk</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transfer Authorization */}
+              <div className="mt-2 pb-3">
+                <div className="text-[#2a6496] font-bold mb-2 border-b border-[#d6eaf8] pb-1">Transfer Authorization</div>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3 pt-2">
+                  <div className="flex items-center gap-1">
+                    <span className="w-[150px] text-right"><span className="text-red-600 font-bold">*</span> Requested By :</span>
+                    <div className="flex border border-[#a9c6e2] shadow-inner bg-white flex-1 ml-2">
+                      <input type="text" value="Dr. Ramesh Sharma" readOnly className="px-2 py-1 w-full outline-none border-none text-[11px]" />
+                      <button className="bg-[#eef3f8] border-l border-[#a9c6e2] px-2 hover:bg-[#d5e4f2] text-[#428bca] font-bold flex items-center justify-center">
+                        <svg width="14" height="14" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="10" x2="14" y2="14" stroke="#9b68ad" strokeWidth="3.5" /><circle cx="7" cy="7" r="5" fill="#42d4f4" stroke="#255594" strokeWidth="1.5" /><path d="M5 5 Q 7 3 9 5" stroke="rgba(255,255,255,0.8)" strokeWidth="1" fill="none" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[150px] text-right"><span className="text-red-600 font-bold">*</span> Approved By :</span>
+                    <div className="flex border border-[#a9c6e2] shadow-inner bg-white flex-1 ml-2">
+                      <input type="text" value="Dr. Mehta, P." readOnly className="px-2 py-1 w-full outline-none border-none text-[11px]" />
+                      <button className="bg-[#eef3f8] border-l border-[#a9c6e2] px-2 hover:bg-[#d5e4f2] text-[#428bca] font-bold flex items-center justify-center">
+                        <svg width="14" height="14" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="10" x2="14" y2="14" stroke="#9b68ad" strokeWidth="3.5" /><circle cx="7" cy="7" r="5" fill="#42d4f4" stroke="#255594" strokeWidth="1.5" /><path d="M5 5 Q 7 3 9 5" stroke="rgba(255,255,255,0.8)" strokeWidth="1" fill="none" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[150px] text-right"><span className="text-red-600 font-bold">*</span> Requested Date / Time :</span>
+                    <div className="flex items-center ml-2">
+                      <input type="text" value="07/10/2017" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[90px] outline-none text-center shadow-inner text-[11px]" />
+                      <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                        <button className="h-[11px] w-[16px] text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                        <button className="h-[11px] w-[16px] text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                      </div>
+                    </div>
+                    <div className="flex items-center ml-2">
+                      <input type="text" value="1200" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[55px] outline-none text-center shadow-inner text-[11px]" />
+                      <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                        <button className="h-[11px] w-[16px] text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                        <button className="h-[11px] w-[16px] text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                      </div>
+                    </div>
+                    <span className="ml-2">CDT</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[150px] text-right"><span className="text-red-600 font-bold">*</span> Approved Date / Time :</span>
+                    <div className="flex items-center ml-2">
+                      <input type="text" value="07/10/2017" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[90px] outline-none text-center shadow-inner text-[11px]" />
+                      <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                        <button className="h-[11px] w-[16px] text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                        <button className="h-[11px] w-[16px] text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                      </div>
+                    </div>
+                    <div className="flex items-center ml-2">
+                      <input type="text" value="1245" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[55px] outline-none text-center shadow-inner text-[11px]" />
+                      <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                        <button className="h-[11px] w-[16px] text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                        <button className="h-[11px] w-[16px] text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                      </div>
+                    </div>
+                    <span className="ml-2">CDT</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Handover Information */}
+              <div className="mt-2 pb-8">
+                <div className="text-[#2a6496] font-bold mb-2 border-b border-[#d6eaf8] pb-1">Handover Information</div>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3 pt-2">
+                  <div className="flex items-center gap-1">
+                    <span className="w-[150px] text-right">Handover Completed :</span>
+                    <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                      <option>Yes</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[150px] text-right">Handover To :</span>
+                    <div className="flex border border-[#a9c6e2] shadow-inner bg-white flex-1 ml-2">
+                      <input type="text" value="Dr. Anita Verma" readOnly className="px-2 py-1 w-full outline-none border-none text-[11px]" />
+                      <button className="bg-[#eef3f8] border-l border-[#a9c6e2] px-2 hover:bg-[#d5e4f2] text-[#428bca] font-bold flex items-center justify-center">
+                        <svg width="14" height="14" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="10" x2="14" y2="14" stroke="#9b68ad" strokeWidth="3.5" /><circle cx="7" cy="7" r="5" fill="#42d4f4" stroke="#255594" strokeWidth="1.5" /><path d="M5 5 Q 7 3 9 5" stroke="rgba(255,255,255,0.8)" strokeWidth="1" fill="none" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[150px] text-right">Handover Method :</span>
+                    <select className="border border-[#a9c6e2] px-1 py-1 flex-1 outline-none ml-2 shadow-inner text-[11px]">
+                      <option>Verbal</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-[150px] text-right">Handover Time :</span>
+                    <div className="flex items-center ml-2">
+                      <input type="text" value="07/10/2017" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[90px] outline-none text-center shadow-inner text-[11px]" />
+                      <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                        <button className="h-[11px] w-[16px] text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                        <button className="h-[11px] w-[16px] text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                      </div>
+                    </div>
+                    <div className="flex items-center ml-2">
+                      <input type="text" value="1450" readOnly className="border border-[#a9c6e2] px-2 py-1 w-[55px] outline-none text-center shadow-inner text-[11px]" />
+                      <div className="flex flex-col border border-[#a9c6e2] border-l-0 bg-[#eef3f8]">
+                        <button className="h-[11px] w-[16px] text-[7px] border-b border-[#a9c6e2] hover:bg-[#d5e4f2]">▲</button>
+                        <button className="h-[11px] w-[16px] text-[7px] hover:bg-[#d5e4f2]">▼</button>
+                      </div>
+                    </div>
+                    <span className="ml-2">CDT</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Action Bar */}
+          <div className="w-full p-2 bg-[#f4f8fc] flex justify-end gap-3 z-10">
+            <button 
+              onClick={() => setIsFacilityTransferOpen(false)}
+              className="bg-[#337ab7] hover:bg-[#286090] text-white px-8 py-1.5 rounded-[2px] outline-none font-bold text-[12px] border border-[#2e6da4] shadow-sm"
+            >
+              Save
+            </button>
+            <button 
+              onClick={() => setIsFacilityTransferOpen(false)}
+              className="border border-[#ccc] hover:bg-[#e6e6e6] text-[#333333] px-8 py-1.5 rounded-[2px] outline-none bg-white font-bold text-[12px] shadow-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Discharge Encounter Draggable Popup Card */}
+      {isDischargeEncounterOpen && (
+        <div 
+          className="fixed bg-[#f0f0f0] border-[1px] border-[#a2c5eb] shadow-2xl w-[900px] flex flex-col select-none z-[99995] text-[11px] text-[#333333] font-sans"
+          style={{ 
+            left: `${dischargeEncounterPos.x}px`, 
+            top: `${dischargeEncounterPos.y}px`,
+            boxShadow: '0 10px 25px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6)'
+          }}
+        >
+          {/* Windows 8/10 Style Title Bar */}
+          <div 
+            onMouseDown={(e) => {
+              setIsDraggingDischargeEncounter(true);
+              setDragOffsetDischargeEncounter({ x: e.clientX - dischargeEncounterPos.x, y: e.clientY - dischargeEncounterPos.y });
+            }}
+            className="text-black px-2 flex justify-between items-center cursor-move font-normal text-[13px] border-b border-gray-400"
+            style={{ 
+              background: 'linear-gradient(to bottom, #dceefc 0%, #a4d1f4 100%)',
+              height: '30px' 
+            }}
+          >
+            <div className="flex items-center gap-1.5 font-sans">
+              <span className="font-semibold px-1 text-black text-[12px]">Nursing Discharge Checklist - MH-FPHPAT, SEVENTEEN</span>
+            </div>
+            {/* Windows Style Control Box */}
+            <div className="flex">
+              <button className="flex items-center justify-center w-[30px] h-[30px] hover:bg-black/10 transition-colors text-[14px]">_</button>
+              <button className="flex items-center justify-center w-[30px] h-[30px] hover:bg-black/10 transition-colors text-[14px]">□</button>
+              <button 
+                onClick={() => setIsDischargeEncounterOpen(false)} 
+                className="flex items-center justify-center w-[40px] h-[30px] hover:bg-[#e81123] hover:text-white transition-colors text-[14px]"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Toolbar */}
+          <div className="flex items-center border-b border-gray-300 bg-white p-1 gap-1">
+            <button className="p-0.5 border-[2px] border-red-500 bg-white text-blue-600 hover:bg-blue-50 w-6 h-6 flex items-center justify-center font-bold shadow-sm"><span className="text-[14px]">✓</span></button>
+            <button className="p-0.5 border border-transparent hover:border-gray-300 hover:bg-gray-100 w-6 h-6 flex items-center justify-center text-[14px]">💾</button>
+            <button className="p-0.5 border border-transparent hover:border-gray-300 hover:bg-gray-100 text-blue-800 font-bold w-6 h-6 flex items-center justify-center text-[14px]">⃠</button>
+            <button className="p-0.5 border border-transparent hover:border-gray-300 hover:bg-gray-100 w-6 h-6 flex items-center justify-center text-[14px] text-purple-600">✎</button>
+            <button className="p-0.5 border border-transparent hover:border-gray-300 hover:bg-gray-100 text-yellow-500 w-6 h-6 flex items-center justify-center text-[14px]">⚡</button>
+            <button className="p-0.5 border border-transparent hover:border-gray-300 hover:bg-gray-100 w-6 h-6 flex items-center justify-center text-[14px]">⬆</button>
+            <button className="p-0.5 border border-transparent hover:border-gray-300 hover:bg-gray-100 w-6 h-6 flex items-center justify-center text-[14px]">⬇</button>
+            <div className="w-[1px] h-[18px] bg-gray-400 mx-1"></div>
+            <button className="p-0.5 border border-transparent hover:border-gray-300 hover:bg-gray-100 w-6 h-6 flex items-center justify-center text-gray-700 text-[14px]">⌨</button>
+            <button className="p-0.5 border border-transparent hover:border-gray-300 hover:bg-gray-100 text-teal-600 w-6 h-6 flex items-center justify-center text-[10px]">🔢</button>
+            <button className="p-0.5 border border-transparent hover:border-gray-300 hover:bg-gray-100 w-6 h-6 flex items-center justify-center text-gray-600 text-[14px]">📄</button>
+          </div>
+
+          {/* Context Banner */}
+          <div className="flex items-center justify-between p-1 px-2 border-b border-gray-300 bg-white text-[11px]">
+            <div className="flex items-center gap-1">
+              <span className="text-black font-semibold">*Performed on:</span>
+              <input type="text" value="09-Sep-2023" className="border border-gray-400 px-1 py-0.5 w-[90px] outline-none ml-1 shadow-inner" readOnly />
+              <button className="border border-gray-400 px-1 bg-gray-100 flex items-center justify-center h-[22px] w-[20px] shadow-sm text-[10px]">▼</button>
+              <input type="text" value="1047" className="border border-gray-400 px-1 py-0.5 w-[50px] outline-none ml-1 shadow-inner" readOnly />
+              <button className="border border-gray-400 px-1 bg-gray-100 flex items-center justify-center h-[22px] w-[20px] shadow-sm text-[10px]">▼</button>
+              <span className="ml-1 text-black font-semibold">PDT</span>
+            </div>
+            <div className="text-black">
+              By: TestUser, Supervisor-Nurse
+            </div>
+          </div>
+
+          {/* Main Body */}
+          <div className="flex bg-[#f0f0f0] min-h-[450px]">
+            {/* Left Menu */}
+            <div className="w-[160px] bg-white border-r border-gray-300 flex flex-col pt-1">
+              <div className="bg-[#428bca] text-white px-2 py-1 mx-1 border-[2px] border-red-500 cursor-pointer shadow-sm text-[12px] font-semibold">
+                Discharge Checklist
+              </div>
+            </div>
+
+            {/* Right Content */}
+            <div className="flex-1 p-2 bg-white flex flex-col gap-3 overflow-y-auto max-h-[70vh]">
+              <div 
+                className="text-white font-bold text-[18px] px-2 py-1 shadow-sm"
+                style={{ background: 'linear-gradient(to bottom, #459df5, #5eaafa)' }}
+              >
+                Discharge Checklist
+              </div>
+
+              {/* Checklist Table */}
+              <div>
+                <div className="font-bold text-[12px] mb-1 text-black">Discharge Checklist</div>
+                <div className="border border-gray-400 bg-[#f8f8f8]">
+                  <table className="w-full text-left text-[11px] border-collapse">
+                    <thead>
+                      <tr className="bg-[#f0f0f0] border-b border-gray-300">
+                        <th className="font-normal w-[50%] border-r border-gray-300 p-1"></th>
+                        <th className="font-bold text-center w-[10%] border-r border-gray-300 p-1">N/A</th>
+                        <th className="font-bold text-center w-[10%] border-r border-gray-300 p-1">Yes</th>
+                        <th className="font-bold w-[30%] p-1">Other:</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white">
+                      <tr className="border-b border-gray-300 bg-white">
+                        <td className="p-1 border-r border-gray-300 font-semibold text-black">Follow Up Information Provided</td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1 border-r border-gray-300 text-center bg-[#428bca] text-white font-bold">X</td>
+                        <td className="p-1"></td>
+                      </tr>
+                      <tr className="border-b border-gray-300 bg-[#f4f7fc]">
+                        <td className="p-1 border-r border-gray-300 font-semibold text-black">Discharge Education Provided</td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1 border-r border-gray-300 text-center bg-[#428bca] text-white font-bold">X</td>
+                        <td className="p-1"></td>
+                      </tr>
+                      <tr className="border-b border-gray-300 bg-white">
+                        <td className="p-1 border-r border-gray-300 font-semibold text-black">Patient Discharge Summary Provided</td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1 border-r border-gray-300 text-center bg-[#428bca] text-white font-bold">X</td>
+                        <td className="p-1"></td>
+                      </tr>
+                      <tr className="border-b border-gray-300 bg-[#f4f7fc]">
+                        <td className="p-1 border-r border-gray-300 font-semibold text-black">Prescriptions Given</td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1 border-r border-gray-300 text-center bg-[#428bca] text-white font-bold">X</td>
+                        <td className="p-1"></td>
+                      </tr>
+                      <tr className="border-b border-gray-300 bg-white">
+                        <td className="p-1 border-r border-gray-300 font-semibold text-black">Medications Returned Per Inventory List</td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1 border-r border-gray-300 text-center bg-[#428bca] text-white font-bold">X</td>
+                        <td className="p-1"></td>
+                      </tr>
+                      <tr className="border-b border-gray-300 bg-[#f4f7fc]">
+                        <td className="p-1 border-r border-gray-300 font-bold text-black bg-[#f0f4f9]">Valuables Returned Per Inventory List</td>
+                        <td className="p-1 border-r border-gray-300 text-center bg-[#f0f4f9]"></td>
+                        <td className="p-1 text-center bg-[#428bca] text-white font-bold border-[2px] border-orange-800 shadow-inner">X</td>
+                        <td className="p-1 bg-[#f0f4f9]"></td>
+                      </tr>
+                      <tr className="border-b border-gray-300 bg-white">
+                        <td className="p-1 border-r border-gray-300 font-semibold text-black">Home Equipment/Supplies Arranged</td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1"></td>
+                      </tr>
+                      <tr className="border-b border-gray-300 bg-[#f4f7fc]">
+                        <td className="p-1 border-r border-gray-300 font-semibold text-black">Community Services Arranged Post Discharge</td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1"></td>
+                      </tr>
+                      <tr className="border-b border-gray-300 bg-white">
+                        <td className="p-1 border-r border-gray-300 font-semibold text-black">Transportation Arrangements Made</td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1"></td>
+                      </tr>
+                      <tr className="border-b border-gray-300 bg-[#f4f7fc]">
+                        <td className="p-1 border-r border-gray-300 font-semibold text-black">Medication Calendar Completed</td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1"></td>
+                      </tr>
+                      <tr className="border-b border-gray-300 bg-white">
+                        <td className="p-1 border-r border-gray-300 font-semibold text-black">Follow-Up Appointments Reviewed</td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1"></td>
+                      </tr>
+                      <tr className="border-b border-gray-300 bg-[#f4f7fc]">
+                        <td className="p-1 border-r border-gray-300 font-semibold text-black">Car Seat</td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1 border-r border-gray-300 text-center"></td>
+                        <td className="p-1"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  {/* Scrollbar placeholder */}
+                  <div className="w-full bg-[#f0f0f0] border-t border-gray-400 flex justify-between items-center text-[10px] text-gray-500 font-bold px-1 h-[14px]">
+                    <span>&lt;</span>
+                    <span>&gt;</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Section Layout */}
+              <div className="flex gap-4 mt-2">
+                {/* Accompanied By */}
+                <div className="flex-1">
+                  <div className="font-bold text-[12px] mb-1 text-black">Accompanied By</div>
+                  <div className="border border-gray-400 p-2 min-h-[95px]">
+                    <div className="grid grid-cols-3 gap-y-1.5 gap-x-1">
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="checkbox" className="w-[11px] h-[11px] border-gray-500 rounded-none bg-white" /> None</label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="checkbox" className="w-[11px] h-[11px] border-gray-500 rounded-none bg-white" /> Daughter</label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="checkbox" className="w-[11px] h-[11px] border-gray-500 rounded-none bg-white" /> Ministry worker</label>
+                      
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="checkbox" className="w-[11px] h-[11px] border-gray-500 rounded-none bg-white" /> Spouse</label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="checkbox" className="w-[11px] h-[11px] border-gray-500 rounded-none bg-white" /> Son</label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="checkbox" className="w-[11px] h-[11px] border-gray-500 rounded-none bg-white" /> Security</label>
+                      
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="checkbox" className="w-[11px] h-[11px] border-gray-500 rounded-none bg-white" /> Friend</label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="checkbox" className="w-[11px] h-[11px] border-gray-500 rounded-none bg-white" /> Parent/caregiver</label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="checkbox" className="w-[11px] h-[11px] border-gray-500 rounded-none bg-white" /> Other:</label>
+                      
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="checkbox" className="w-[11px] h-[11px] border-gray-500 rounded-none bg-white" /> Significant other</label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="checkbox" className="w-[11px] h-[11px] border-gray-500 rounded-none bg-white" /> Sibling</label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Discharge Transportation */}
+                <div className="flex-1">
+                  <div className="font-bold text-[12px] mb-1 text-black">Discharge Transportation</div>
+                  <div className="border border-gray-400 p-2 min-h-[95px]">
+                    <div className="grid grid-cols-2 gap-y-1.5 gap-x-1">
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="radio" name="trans" className="w-[11px] h-[11px]" /> Ambulance</label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="radio" name="trans" className="w-[11px] h-[11px]" /> Public transportation</label>
+                      
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="radio" name="trans" className="w-[11px] h-[11px]" /> Non-ambulance transport</label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="radio" name="trans" className="w-[11px] h-[11px]" /> Taxi/taxi voucher</label>
+                      
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="radio" name="trans" className="w-[11px] h-[11px]" /> Patient Transfer Network</label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="radio" name="trans" className="w-[11px] h-[11px]" /> Other:</label>
+                      
+                      <label className="flex items-center gap-1.5 cursor-pointer text-black"><input type="radio" name="trans" className="w-[11px] h-[11px]" /> Personal vehicle</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Discharge Comments */}
+              <div className="mt-2">
+                <div className="font-bold text-[12px] mb-1 text-black">Discharge Comments</div>
+                <textarea className="w-full border border-gray-400 h-[100px] outline-none p-1 resize-none bg-white"></textarea>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bed Transfer Draggable Popup Card */}
+      {isBedTransferOpen && (
+        <div 
+          className="fixed bg-[#f0f4f9] border-[1px] border-[#a2c5eb] shadow-2xl rounded-[3px] w-[800px] flex flex-col select-none z-[99995] text-[11px] text-[#333333] font-sans overflow-hidden"
+          style={{ 
+            left: `${bedTransferPos.x}px`, 
+            top: `${bedTransferPos.y}px`,
+            boxShadow: '0 10px 25px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6)'
+          }}
+        >
+          {/* Windows 7 Style Title Bar */}
+          <div 
+            onMouseDown={(e) => {
+              setIsDraggingBedTransfer(true);
+              setDragOffsetBedTransfer({ x: e.clientX - bedTransferPos.x, y: e.clientY - bedTransferPos.y });
+            }}
+            className="text-[#1e395b] px-2 py-1.5 flex justify-between items-center cursor-move font-normal text-[12px] border-b border-[#96b4d3]"
+            style={{
+              background: 'linear-gradient(to bottom, #ebf3fc 0%, #d2e4f9 40%, #c1dbf6 50%, #b1d0f4 100%)',
+              textShadow: '0 1px 0 rgba(255,255,255,0.8)'
+            }}
+          >
+            <div className="flex items-center gap-1.5 font-sans">
+              <span className="font-semibold text-gray-800 text-[12px]">Bed Transfer</span>
+            </div>
+            {/* Custom Windows Vista/7 Glossy Close Button */}
+            <button 
+              onClick={() => setIsBedTransferOpen(false)} 
+              className="flex items-center justify-center font-bold text-[10px] text-white transition-all shadow-sm outline-none"
+              style={{
+                background: 'linear-gradient(to bottom, #f18d7f 0%, #d85040 50%, #c63322 51%, #d74e3c 100%)',
+                border: '1px solid #992c1e',
+                borderRadius: '3px',
+                width: '45px',
+                height: '18px',
+                textShadow: '0 -1px 0 rgba(0,0,0,0.4)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 1px 1px rgba(0,0,0,0.2)'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.filter = 'brightness(1.15)'}
+              onMouseOut={(e) => e.currentTarget.style.filter = 'none'}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Form Body */}
+          <div className="p-4 space-y-4 bg-white overflow-y-auto max-h-[80vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-gray-150 relative">
+            <div className="space-y-4">
+              
+              {/* Top Section */}
+              <div className="flex gap-4 p-2 bg-[#f8fafd] border border-gray-200">
+                <div className="flex items-center gap-2 flex-1">
+                  <div className="w-[120px] text-right"><span className="text-red-500">*</span> Transfer Date / Time :</div>
+                  <input type="text" value="07/10/2017" readOnly className="border border-gray-400 px-2 py-1 w-[100px] outline-none" />
+                  <span>◆</span>
+                  <input type="text" value="1414" readOnly className="border border-gray-400 px-2 py-1 w-[60px] outline-none" />
+                  <span>◆ CDT</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-2 pt-0 pb-3">
+                <div className="w-[120px] text-right"><span className="text-red-500">*</span> Performed By :</div>
+                <div className="flex items-center border border-gray-400 bg-white">
+                  <input type="text" value="TTP , Nurse" readOnly className="px-2 py-1 w-[200px] outline-none border-none" />
+                  <div className="px-2 border-l border-gray-400 bg-gray-100 cursor-pointer">🔍</div>
+                </div>
+              </div>
+
+              {/* Patient Information Section */}
+              <div className="border border-gray-200 p-3 pt-4 relative mt-4">
+                <div className="absolute -top-2.5 left-2 bg-white px-1 font-semibold text-[#164d6e]">Patient Information</div>
+                <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-[100px] text-right"><span className="text-red-500">*</span> Patient ID :</div>
+                    <div className="flex items-center border border-gray-400 bg-white">
+                      <input type="text" value="TTPTEST" readOnly className="px-2 py-1 w-[120px] outline-none border-none" />
+                      <div className="px-2 border-l border-gray-400 bg-gray-100 cursor-pointer">🔍</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[100px] text-right"><span className="text-red-500">*</span> Patient Name :</div>
+                    <input type="text" value="PATIENT02" readOnly className="border border-gray-400 px-2 py-1 w-[200px] outline-none bg-white" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[100px] text-right"><span className="text-red-500">*</span> Gender / Age :</div>
+                    <input type="text" value="Male / 45 Y" readOnly className="border border-gray-400 px-2 py-1 w-[150px] outline-none bg-white" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[100px] text-right"><span className="text-red-500">*</span> Admission No. :</div>
+                    <input type="text" value="ADT00012345" readOnly className="border border-gray-400 px-2 py-1 w-[200px] outline-none bg-white" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Bed Information */}
+              <div className="border border-gray-200 p-3 pt-4 relative mt-4">
+                <div className="absolute -top-2.5 left-2 bg-white px-1 font-semibold text-[#164d6e]">Current Bed Information</div>
+                <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> Current Department :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[200px] outline-none bg-white">
+                      <option>General Medicine</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> Transfer Type :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[200px] outline-none bg-white">
+                      <option>Within Hospital</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> Current Ward :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[200px] outline-none bg-white">
+                      <option>GM Ward - 2</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> Reason for Transfer :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[200px] outline-none bg-white">
+                      <option>Change in Clinical Condition</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> Current Room :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[200px] outline-none bg-white">
+                      <option>201</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right">Priority :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[200px] outline-none bg-white">
+                      <option>Routine</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> Current Bed :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[200px] outline-none bg-white">
+                      <option>Bed - 02</option>
+                    </select>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-[120px] text-right pt-1">Comments :</div>
+                    <textarea className="border border-gray-400 px-2 py-1 w-[200px] h-12 outline-none resize-none"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              {/* New Bed Information */}
+              <div className="border border-gray-200 p-3 pt-4 relative mt-4">
+                <div className="absolute -top-2.5 left-2 bg-white px-1 font-semibold text-[#164d6e]">New Bed Information</div>
+                <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> New Department :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[200px] outline-none bg-white">
+                      <option>Cardiology</option>
+                    </select>
+                  </div>
+                  <div className="col-start-1 flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> New Ward :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[200px] outline-none bg-white">
+                      <option>Cardiac Ward - 1</option>
+                    </select>
+                  </div>
+                  <div className="col-start-1 flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> New Room :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[200px] outline-none bg-white">
+                      <option>101</option>
+                    </select>
+                  </div>
+                  <div className="col-start-1 flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> New Bed :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[200px] outline-none bg-white">
+                      <option>Bed - 01</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transfer Details */}
+              <div className="border border-gray-200 p-3 pt-4 relative mt-4">
+                <div className="absolute -top-2.5 left-2 bg-white px-1 font-semibold text-[#164d6e]">Transfer Details</div>
+                <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> Requested By :</div>
+                    <div className="flex items-center border border-gray-400 bg-white">
+                      <input type="text" value="Dr. Sharma, R." readOnly className="px-2 py-1 w-[150px] outline-none border-none" />
+                      <div className="px-2 border-l border-gray-400 bg-gray-100 cursor-pointer">🔍</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> Transferred By :</div>
+                    <div className="flex items-center border border-gray-400 bg-white">
+                      <input type="text" value="TTP , Nurse" readOnly className="px-2 py-1 w-[150px] outline-none border-none" />
+                      <div className="px-2 border-l border-gray-400 bg-gray-100 cursor-pointer">🔍</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> Requested Date / Time :</div>
+                    <input type="text" value="07/10/2017" readOnly className="border border-gray-400 px-2 py-1 w-[80px] outline-none" />
+                    <span>◆</span>
+                    <input type="text" value="1200" readOnly className="border border-gray-400 px-2 py-1 w-[50px] outline-none" />
+                    <span>◆ CDT</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right"><span className="text-red-500">*</span> Transfer Date / Time :</div>
+                    <input type="text" value="07/10/2017" readOnly className="border border-gray-400 px-2 py-1 w-[80px] outline-none" />
+                    <span>◆</span>
+                    <input type="text" value="1414" readOnly className="border border-gray-400 px-2 py-1 w-[50px] outline-none" />
+                    <span>◆ CDT</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right">Approved By :</div>
+                    <div className="flex items-center border border-gray-400 bg-white">
+                      <input type="text" value="Dr. Mehta, P." readOnly className="px-2 py-1 w-[150px] outline-none border-none" />
+                      <div className="px-2 border-l border-gray-400 bg-gray-100 cursor-pointer">🔍</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right">Transfer Duration (Est.) :</div>
+                    <input type="text" value="2" className="border border-gray-400 px-2 py-1 w-[60px] outline-none text-center" />
+                    <select className="border border-gray-400 px-1 py-1 w-[80px] outline-none bg-white">
+                      <option>Hours</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right">Approved Date / Time :</div>
+                    <input type="text" value="07/10/2017" readOnly className="border border-gray-400 px-2 py-1 w-[80px] outline-none" />
+                    <span>◆</span>
+                    <input type="text" value="1245" readOnly className="border border-gray-400 px-2 py-1 w-[50px] outline-none" />
+                    <span>◆ CDT</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right">Transfer Duration (Actual) :</div>
+                    <input type="text" value="1" className="border border-gray-400 px-2 py-1 w-[60px] outline-none text-center" />
+                    <select className="border border-gray-400 px-1 py-1 w-[80px] outline-none bg-white">
+                      <option>Hours</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              <div className="border border-gray-200 p-3 pt-4 relative mt-4">
+                <div className="absolute -top-2.5 left-2 bg-white px-1 font-semibold text-[#164d6e]">Additional Information</div>
+                <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right">Equipment Accompanied :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[120px] outline-none bg-white">
+                      <option>Yes</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right">Special Requirements :</div>
+                    <input type="text" value="Cardiac Monitoring Required" className="border border-gray-400 px-2 py-1 w-[200px] outline-none bg-white" />
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-[120px] text-right pt-1">Equipment Details :</div>
+                    <textarea className="border border-gray-400 px-2 py-1 w-[200px] h-12 outline-none resize-none" defaultValue="ECG Monitor, Oxygen Cylinder"></textarea>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[120px] text-right">Handover Completed :</div>
+                    <select className="border border-gray-400 px-1 py-1 w-[120px] outline-none bg-white">
+                      <option>Yes</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Action Buttons */}
+            <div className="flex justify-end gap-3 mt-4 pt-2 pb-2">
+              <button 
+                onClick={() => setIsBedTransferOpen(false)}
+                className="bg-[#2c5b96] hover:bg-[#1a4478] text-white px-6 py-1.5 rounded-sm outline-none"
+              >
+                Save
+              </button>
+              <button 
+                onClick={() => setIsBedTransferOpen(false)}
+                className="border border-gray-400 hover:bg-gray-100 text-gray-800 px-6 py-1.5 rounded-sm outline-none bg-white"
+              >
+                Cancel
               </button>
             </div>
           </div>
