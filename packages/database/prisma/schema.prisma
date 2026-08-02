@@ -355,6 +355,27 @@ enum ConsentScope {
   RESEARCH_ONLY
 }
 
+enum EncounterStatus {
+  PRE_ADMISSION
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum EncounterType {
+  INPATIENT
+  OUTPATIENT
+  EMERGENCY
+  DAY_CARE
+  OBSERVATION
+}
+
+enum OutboxEventStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+}
+
 // ============================================
 // TENANT (Multi-Tenancy Foundation)
 // ============================================
@@ -409,6 +430,11 @@ model Tenant {
   notifications Notification[]
   messages    Message[]
   consents    PatientConsent[]
+  departments Department[]
+  wards       Ward[]
+  facilities  Facility[]
+  encounters  Encounter[]
+  mrnSequences MrnSequence[]
 
   @@map("tenants")
 }
@@ -579,26 +605,45 @@ model Patient {
   mrn             String         @map("mrn") @db.VarChar(50)
   nationalId      String?        @map("national_id") @db.VarChar(100)
 
+  // Name fields (expanded to match frontend Admit Patient form)
+  title           String?        @db.VarChar(20)
   firstName       String         @map("first_name") @db.VarChar(100)
+  middleName      String?        @map("middle_name") @db.VarChar(100)
   lastName        String         @map("last_name") @db.VarChar(100)
+
   dateOfBirth     DateTime       @map("date_of_birth")
   gender          Gender
   bloodGroup      BloodGroup     @default(UNKNOWN) @map("blood_group")
   maritalStatus   MaritalStatus  @default(SINGLE) @map("marital_status")
 
+  // Demographics (from frontend admit form)
+  nationality     String?        @db.VarChar(100)
+  religion        String?        @db.VarChar(100)
+  language        String?        @db.VarChar(100)
+
+  // Contact
   email           String?        @db.VarChar(255)
   phone           String         @db.VarChar(50)
-  address         String?        @db.Text
+  alternateMobile String?        @map("alternate_mobile") @db.VarChar(50)
+
+  // Address
+  addressLine1    String?        @map("address_line_1") @db.VarChar(500)
+  addressLine2    String?        @map("address_line_2") @db.VarChar(500)
+  landmark        String?        @db.VarChar(200)
   city            String?        @db.VarChar(100)
   state           String?        @db.VarChar(100)
   country         String         @default("IN") @db.VarChar(10)
   postalCode      String?        @map("postal_code") @db.VarChar(20)
 
+  // Emergency Contact
   emergencyContactName  String?  @map("emergency_contact_name") @db.VarChar(200)
   emergencyContactPhone String?  @map("emergency_contact_phone") @db.VarChar(50)
   emergencyContactRel   String?  @map("emergency_contact_rel") @db.VarChar(100)
 
   primaryDoctorId String?        @map("primary_doctor_id") @db.Uuid
+
+  // Optimistic concurrency
+  version         Int            @default(1)
 
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
@@ -610,6 +655,7 @@ model Patient {
   conditions      PatientCondition[]
   appointments    Appointment[]
   admissions      Admission[]
+  encounters      Encounter[]
   triages         EmergencyTriage[]
   labOrders       LabOrder[]
   imagingOrders   ImagingOrder[]
@@ -623,6 +669,7 @@ model Patient {
   @@unique([tenantId, mrn])
   @@index([tenantId])
   @@index([mrn])
+  @@index([nationalId])
   @@index([firstName, lastName])
   @@index([phone])
   @@map("patients")
@@ -762,20 +809,29 @@ model Appointment {
 model Bed {
   id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenantId    String      @map("tenant_id") @db.Uuid
+  wardId      String?     @map("ward_id") @db.Uuid
   bedNumber   String      @map("bed_number") @db.VarChar(50)
   ward        String      @db.VarChar(100)
+  roomNumber  String?     @map("room_number") @db.VarChar(50)
+  floor       String?     @db.VarChar(20)
   type        BedType     @default(GENERAL_WARD)
   status      BedStatus   @default(AVAILABLE)
   dailyRate   Decimal     @map("daily_rate") @db.Decimal(10, 2)
+
+  // Optimistic concurrency
+  version     Int         @default(1)
 
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
 
   tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  wardEntity  Ward?       @relation(fields: [wardId], references: [id])
   admissions  Admission[]
+  bedAssignments BedAssignment[]
 
   @@unique([tenantId, bedNumber])
   @@index([tenantId])
+  @@index([wardId])
   @@index([status])
   @@index([ward])
   @@map("beds")
@@ -797,6 +853,9 @@ model Admission {
   admittingDiagnosis String            @map("admitting_diagnosis") @db.VarChar(500)
   dischargeSummary   String?           @map("discharge_summary") @db.Text
 
+  // Optimistic concurrency
+  version            Int               @default(1)
+
   createdAt          DateTime          @default(now()) @map("created_at")
   updatedAt          DateTime          @updatedAt @map("updated_at")
 
@@ -804,6 +863,8 @@ model Admission {
   patient            Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
   doctor             Doctor            @relation("AdmittingDoctor", fields: [doctorId], references: [id])
   bed                Bed?              @relation(fields: [bedId], references: [id], onDelete: SetNull)
+  encounter          Encounter?        @relation("AdmissionEncounter")
+  bedAssignments     BedAssignment[]
 
   @@index([tenantId])
   @@index([patientId])
@@ -1307,4 +1368,174 @@ model FileMetadata {
   @@index([linkedResourceType, linkedResourceId])
   @@index([uploadedBy])
   @@map("file_metadata")
+}
+
+// ============================================
+// FACILITY & ORGANIZATIONAL HIERARCHY (Phase 1B)
+// ============================================
+
+model Facility {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  name        String   @db.VarChar(255)
+  code        String   @db.VarChar(50)
+  address     String?  @db.Text
+  city        String?  @db.VarChar(100)
+  state       String?  @db.VarChar(100)
+  country     String   @default("IN") @db.VarChar(10)
+  phone       String?  @db.VarChar(50)
+  isActive    Boolean  @default(true) @map("is_active")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  departments Department[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("facilities")
+}
+
+model Department {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  facilityId  String?   @map("facility_id") @db.Uuid
+  name        String    @db.VarChar(200)
+  code        String    @db.VarChar(50)
+  headOfDept  String?   @map("head_of_dept") @db.VarChar(200)
+  phone       String?   @db.VarChar(50)
+  isActive    Boolean   @default(true) @map("is_active")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  facility    Facility? @relation(fields: [facilityId], references: [id])
+  wards       Ward[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([facilityId])
+  @@map("departments")
+}
+
+model Ward {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String      @map("tenant_id") @db.Uuid
+  departmentId  String?     @map("department_id") @db.Uuid
+  name          String      @db.VarChar(200)
+  code          String      @db.VarChar(50)
+  floor         String?     @db.VarChar(20)
+  totalBeds     Int         @default(0) @map("total_beds")
+  isActive      Boolean     @default(true) @map("is_active")
+
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  department    Department? @relation(fields: [departmentId], references: [id])
+  beds          Bed[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([departmentId])
+  @@map("wards")
+}
+
+// ============================================
+// ENCOUNTER (Visit Tracking)
+// ============================================
+
+model Encounter {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String          @map("tenant_id") @db.Uuid
+  patientId       String          @map("patient_id") @db.Uuid
+  admissionId     String?         @unique @map("admission_id") @db.Uuid
+
+  encounterNumber String          @map("encounter_number") @db.VarChar(50)
+  type            EncounterType   @default(INPATIENT)
+  status          EncounterStatus @default(PRE_ADMISSION)
+
+  startDate       DateTime        @default(now()) @map("start_date")
+  endDate         DateTime?       @map("end_date")
+
+  chiefComplaint  String?         @map("chief_complaint") @db.VarChar(500)
+  referredBy      String?         @map("referred_by") @db.VarChar(200)
+  referringDoctor String?         @map("referring_doctor") @db.VarChar(200)
+
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient         Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  admission       Admission?      @relation("AdmissionEncounter", fields: [admissionId], references: [id])
+
+  @@unique([tenantId, encounterNumber])
+  @@index([tenantId])
+  @@index([patientId])
+  @@index([status])
+  @@index([startDate])
+  @@map("encounters")
+}
+
+// ============================================
+// BED ASSIGNMENT HISTORY
+// ============================================
+
+model BedAssignment {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  admissionId  String     @map("admission_id") @db.Uuid
+  bedId        String     @map("bed_id") @db.Uuid
+  assignedAt   DateTime   @default(now()) @map("assigned_at")
+  releasedAt   DateTime?  @map("released_at")
+  reason       String?    @db.VarChar(200)
+
+  admission    Admission  @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  bed          Bed        @relation(fields: [bedId], references: [id])
+
+  @@index([admissionId])
+  @@index([bedId])
+  @@index([assignedAt])
+  @@map("bed_assignments")
+}
+
+// ============================================
+// MRN SEQUENCE (Collision-safe)
+// ============================================
+
+model MrnSequence {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  prefix      String   @default("MRN") @db.VarChar(20)
+  lastValue   Int      @default(0) @map("last_value")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, prefix])
+  @@map("mrn_sequences")
+}
+
+// ============================================
+// TRANSACTIONAL OUTBOX (Event Delivery)
+// ============================================
+
+model OutboxEvent {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventType       String            @map("event_type") @db.VarChar(200)
+  aggregateType   String            @map("aggregate_type") @db.VarChar(100)
+  aggregateId     String            @map("aggregate_id") @db.VarChar(255)
+  tenantId        String            @map("tenant_id") @db.VarChar(255)
+  payload         Json
+  status          OutboxEventStatus @default(PENDING)
+  retryCount      Int               @default(0) @map("retry_count")
+  lastError       String?           @map("last_error") @db.Text
+  createdAt       DateTime          @default(now()) @map("created_at")
+  publishedAt     DateTime?         @map("published_at")
+
+  @@index([status, createdAt])
+  @@index([aggregateType, aggregateId])
+  @@index([tenantId])
+  @@map("outbox_events")
 }

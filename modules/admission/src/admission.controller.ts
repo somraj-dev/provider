@@ -4,7 +4,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { AdmissionService } from './admission.service';
 import {
-  CreateBedDto, AdmitPatientDto, DischargePatientDto, TransferBedDto,
+  CreateBedDto, AdmitPatientDto, DischargePatientDto, TransferBedDto, AdmitWorkflowDto,
 } from './dto/admission.dto';
 import { TenantId, CurrentUser, Roles, JwtPayload } from '@axiovital/common';
 import { AdmissionStatus, BedStatus } from '@prisma/client';
@@ -37,8 +37,6 @@ export class AdmissionController {
     return this.admissionService.listBeds(tenantId, ward, status);
   }
 
-  // ---- ADMISSION ENDPOINTS ----
-
   @Post()
   @Roles('DOCTOR', 'NURSE', 'TENANT_ADMIN')
   @ApiOperation({ summary: 'Admit a patient to inpatient care' })
@@ -48,6 +46,17 @@ export class AdmissionController {
     @Body() dto: AdmitPatientDto,
   ) {
     return this.admissionService.admitPatient(tenantId, dto, user.sub);
+  }
+
+  @Post('admit-workflow')
+  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN')
+  @ApiOperation({ summary: 'Complete admit patient workflow (creates/fetches patient, assigns bed, creates encounter and admission)' })
+  async admitWorkflow(
+    @TenantId() tenantId: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: AdmitWorkflowDto,
+  ) {
+    return this.admissionService.admitWorkflow(tenantId, dto, user.sub);
   }
 
   @Get()

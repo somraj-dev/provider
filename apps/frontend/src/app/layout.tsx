@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
-
 import { cn } from "@/lib/utils";
+import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
-  title: "Axiovital",
-  description: "Axiovital Provider Operating Environment",
+  title: "AxioVital Provider Operating Environment",
+  description: "Enterprise Healthcare OS",
 };
 
 export default function RootLayout({
@@ -15,7 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={cn("font-sans h-full w-full overflow-hidden")} suppressHydrationWarning>
-      <body className="h-full w-full overflow-hidden" suppressHydrationWarning>{children}</body>
+      <body className="h-full w-full overflow-hidden" suppressHydrationWarning>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
+

@@ -51,7 +51,7 @@ export class FhirService {
       birthDate: patient.dateOfBirth.toISOString().slice(0, 10),
       address: [{
         use: 'home',
-        line: [patient.address || ''],
+        line: [patient.addressLine1 || ''],
         city: patient.city || '',
         state: patient.state || '',
         postalCode: patient.postalCode || '',
