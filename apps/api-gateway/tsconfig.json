@@ -27,7 +27,9 @@
       "@axiovital/auth": ["../../packages/auth/src"],
       "@axiovital/logger": ["../../packages/logger/src"],
       "@axiovital/events": ["../../packages/events/src"],
-      "@axiovital/storage": ["../../packages/storage/src"]
+      "@axiovital/storage": ["../../packages/storage/src"],
+      "@axiovital/module-scheduling": ["../../modules/scheduling/src"],
+      "@axiovital/module-appointment": ["../../modules/appointment/src"]
     }
   },
   "include": [

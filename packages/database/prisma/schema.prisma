@@ -199,6 +199,7 @@ enum DoctorStatus {
 enum AppointmentStatus {
   SCHEDULED
   CONFIRMED
+  CHECKED_IN
   IN_PROGRESS
   COMPLETED
   CANCELLED
@@ -214,6 +215,60 @@ enum AppointmentType {
   TELEHEALTH
   PROCEDURE
   LAB_COLLECTION
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum ScheduleOverrideType {
+  BLOCK
+  AVAILABLE
+  BREAK
+}
+
+enum LeaveType {
+  ANNUAL
+  MEDICAL
+  CONFERENCE
+  TRAINING
+  PERSONAL
+  ADMINISTRATIVE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum HoldStatus {
+  ACTIVE
+  CONSUMED
+  EXPIRED
+  RELEASED
+}
+
+enum AppointmentRequestStatus {
+  PENDING
+  REVIEWING
+  APPROVED
+  DECLINED
+  COMPLETED
+  CANCELLED
+}
+
+enum AppointmentRequestType {
+  RESCHEDULE
+  CANCELLATION
+  NEW_BOOKING
 }
 
 enum AdmissionStatus {
@@ -435,6 +490,14 @@ model Tenant {
   facilities  Facility[]
   encounters  Encounter[]
   mrnSequences MrnSequence[]
+  appointmentTypeConfigs AppointmentTypeConfig[]
+  scheduleTemplates ScheduleTemplate[]
+  scheduleOverrides ScheduleOverride[]
+  practitionerLeaves PractitionerLeave[]
+  appointmentHolds AppointmentHold[]
+  appointmentRequests AppointmentRequest[]
+  calendarExceptions CalendarException[]
+  schedulingPolicies SchedulingPolicy[]
 
   @@map("tenants")
 }
@@ -665,6 +728,7 @@ model Patient {
   aiConsultations AiConsultation[]
   messages        Message[]
   consents        PatientConsent[]
+  appointmentRequests AppointmentRequest[]
 
   @@unique([tenantId, mrn])
   @@index([tenantId])
@@ -759,6 +823,10 @@ model Doctor {
   performedImagingStudies ImagingStudy[] @relation("PerformingRadiologist")
   prescriptions   Prescription[]       @relation("PrescribingDoctor")
   aiConsultations AiConsultation[]
+  scheduleTemplates ScheduleTemplate[]
+  scheduleOverrides ScheduleOverride[]
+  leaves          PractitionerLeave[]
+  holds           AppointmentHold[]
 
   @@index([tenantId])
   @@index([specialization])
@@ -775,17 +843,23 @@ model Appointment {
   tenantId           String            @map("tenant_id") @db.Uuid
   patientId          String            @map("patient_id") @db.Uuid
   doctorId           String            @map("doctor_id") @db.Uuid
+  facilityId         String?           @map("facility_id") @db.Uuid
+  departmentId       String?           @map("department_id") @db.Uuid
+  appointmentTypeId  String?           @map("appointment_type_id") @db.Uuid
 
   status             AppointmentStatus @default(SCHEDULED)
   type               AppointmentType   @default(CONSULTATION)
 
   startTime          DateTime          @map("start_time")
   endTime            DateTime          @map("end_time")
+  durationMinutes    Int               @default(30) @map("duration_minutes")
 
   reason             String            @db.VarChar(500)
   notes              String?           @db.Text
   cancellationReason String?           @map("cancellation_reason") @db.VarChar(500)
   telehealthLink     String?           @map("telehealth_link") @db.VarChar(500)
+
+  version            Int               @default(1)
 
   createdAt          DateTime          @default(now()) @map("created_at")
   updatedAt          DateTime          @updatedAt @map("updated_at")
@@ -793,10 +867,18 @@ model Appointment {
   tenant             Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient            Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
   doctor             Doctor            @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  facility           Facility?         @relation(fields: [facilityId], references: [id])
+  department         Department?       @relation(fields: [departmentId], references: [id])
+  appointmentTypeConfig AppointmentTypeConfig? @relation(fields: [appointmentTypeId], references: [id])
+  statusHistory      AppointmentStatusHistory[]
+  requests           AppointmentRequest[]
 
   @@index([tenantId])
   @@index([patientId])
   @@index([doctorId])
+  @@index([facilityId])
+  @@index([departmentId])
+  @@index([appointmentTypeId])
   @@index([startTime, endTime])
   @@index([status])
   @@map("appointments")
@@ -1391,6 +1473,7 @@ model Facility {
 
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   departments Department[]
+  appointments Appointment[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -1413,6 +1496,7 @@ model Department {
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   facility    Facility? @relation(fields: [facilityId], references: [id])
   wards       Ward[]
+  appointments Appointment[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -1538,4 +1622,223 @@ model OutboxEvent {
   @@index([aggregateType, aggregateId])
   @@index([tenantId])
   @@map("outbox_events")
+}
+
+// ============================================
+// SCHEDULING DOMAIN (Phase 4 Extended)
+// ============================================
+
+model AppointmentTypeConfig {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String        @map("tenant_id") @db.Uuid
+  code            String        @db.VarChar(50)
+  name            String        @db.VarChar(200)
+  durationMinutes Int           @map("duration_minutes")
+  preBufferMin    Int           @default(0) @map("pre_buffer_min")
+  postBufferMin   Int           @default(0) @map("post_buffer_min")
+  color           String?       @db.VarChar(7)
+  isActive        Boolean       @default(true) @map("is_active")
+  sortOrder       Int           @default(0) @map("sort_order")
+
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments    Appointment[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("appointment_type_configs")
+}
+
+model ScheduleTemplate {
+  id                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String                 @map("tenant_id") @db.Uuid
+  doctorId           String                 @map("doctor_id") @db.Uuid
+  facilityId         String?                @map("facility_id") @db.Uuid
+  departmentId       String?                @map("department_id") @db.Uuid
+  name               String                 @db.VarChar(200)
+  effectiveFrom      DateTime               @map("effective_from")
+  effectiveTo        DateTime?              @map("effective_to")
+  slotGranularityMin Int                    @default(15) @map("slot_granularity_min")
+  isActive           Boolean                @default(true) @map("is_active")
+
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+
+  tenant             Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  doctor             Doctor                 @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  rules              ScheduleTemplateRule[]
+
+  @@index([doctorId, effectiveFrom, effectiveTo])
+  @@index([tenantId])
+  @@map("schedule_templates")
+}
+
+model ScheduleTemplateRule {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  templateId String           @map("template_id") @db.Uuid
+  dayOfWeek  DayOfWeek        @map("day_of_week")
+  startTime  String           @map("start_time") @db.VarChar(5)
+  endTime    String           @map("end_time") @db.VarChar(5)
+
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  template   ScheduleTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@map("schedule_template_rules")
+}
+
+model ScheduleOverride {
+  id        String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String               @map("tenant_id") @db.Uuid
+  doctorId  String               @map("doctor_id") @db.Uuid
+  date      DateTime             @db.Date
+  startTime String               @map("start_time") @db.VarChar(5)
+  endTime   String               @map("end_time") @db.VarChar(5)
+  type      ScheduleOverrideType
+  reason    String?              @db.VarChar(500)
+  createdBy String?              @map("created_by") @db.Uuid
+
+  createdAt DateTime             @default(now()) @map("created_at")
+
+  tenant    Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  doctor    Doctor               @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, date])
+  @@index([tenantId])
+  @@map("schedule_overrides")
+}
+
+model PractitionerLeave {
+  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  doctorId   String      @map("doctor_id") @db.Uuid
+  leaveType  LeaveType   @map("leave_type")
+  startDate  DateTime    @map("start_date") @db.Date
+  endDate    DateTime    @map("end_date") @db.Date
+  startTime  String?     @map("start_time") @db.VarChar(5)
+  endTime    String?     @map("end_time") @db.VarChar(5)
+  status     LeaveStatus @default(PENDING)
+  reason     String?     @db.VarChar(500)
+  approvedBy String?     @map("approved_by") @db.Uuid
+  approvedAt DateTime?   @map("approved_at")
+
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  doctor     Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, startDate, endDate])
+  @@index([tenantId])
+  @@map("practitioner_leaves")
+}
+
+model AppointmentHold {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  doctorId  String     @map("doctor_id") @db.Uuid
+  startTime DateTime   @map("start_time")
+  endTime   DateTime   @map("end_time")
+  heldBy    String     @map("held_by") @db.Uuid
+  status    HoldStatus @default(ACTIVE)
+  expiresAt DateTime   @map("expires_at")
+  token     String     @unique @db.VarChar(100)
+
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  doctor    Doctor     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, startTime, endTime])
+  @@index([status, expiresAt])
+  @@index([tenantId])
+  @@map("appointment_holds")
+}
+
+model AppointmentStatusHistory {
+  id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  appointmentId String             @map("appointment_id") @db.Uuid
+  fromStatus    AppointmentStatus? @map("from_status")
+  toStatus      AppointmentStatus  @map("to_status")
+  reason        String?            @db.VarChar(500)
+  changedBy     String             @map("changed_by") @db.Uuid
+  metadata      Json?              @default("{}")
+
+  createdAt     DateTime           @default(now()) @map("created_at")
+
+  appointment   Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId, createdAt])
+  @@map("appointment_status_history")
+}
+
+model AppointmentRequest {
+  id                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId          String                   @map("tenant_id") @db.Uuid
+  appointmentId     String?                  @map("appointment_id") @db.Uuid
+  patientId         String                   @map("patient_id") @db.Uuid
+  requestType       AppointmentRequestType   @map("request_type")
+  status            AppointmentRequestStatus @default(PENDING)
+  priority          String                   @default("NORMAL") @db.VarChar(20)
+  reason            String?                  @db.VarChar(500)
+  notes             String?                  @db.Text
+  requestedBy       String                   @map("requested_by") @db.Uuid
+  reviewedBy        String?                  @map("reviewed_by") @db.Uuid
+  reviewedAt        DateTime?                @map("reviewed_at")
+  requestedNewStart DateTime?                @map("requested_new_start")
+
+  createdAt         DateTime                 @default(now()) @map("created_at")
+  updatedAt         DateTime                 @updatedAt @map("updated_at")
+
+  tenant            Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointment       Appointment?             @relation(fields: [appointmentId], references: [id])
+  patient           Patient                  @relation(fields: [patientId], references: [id])
+
+  @@index([tenantId, status])
+  @@index([appointmentId])
+  @@index([patientId])
+  @@map("appointment_requests")
+}
+
+model CalendarException {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  facilityId   String?  @map("facility_id") @db.Uuid
+  departmentId String?  @map("department_id") @db.Uuid
+  date         DateTime @db.Date
+  name         String   @db.VarChar(200)
+  isFullDay    Boolean  @default(true) @map("is_full_day")
+  startTime    String?  @map("start_time") @db.VarChar(5)
+  endTime      String?  @map("end_time") @db.VarChar(5)
+
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, date])
+  @@map("calendar_exceptions")
+}
+
+model SchedulingPolicy {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId               String   @map("tenant_id") @db.Uuid
+  facilityId             String?  @map("facility_id") @db.Uuid
+  departmentId           String?  @map("department_id") @db.Uuid
+  slotGranularityMin     Int      @default(15) @map("slot_granularity_min")
+  maxAdvanceBookingDays  Int      @default(90) @map("max_advance_booking_days")
+  minAdvanceBookingHours Int      @default(1) @map("min_advance_booking_hours")
+  holdDurationSeconds    Int      @default(300) @map("hold_duration_seconds")
+  allowDoubleBooking     Boolean  @default(false) @map("allow_double_booking")
+  requireConfirmation    Boolean  @default(false) @map("require_confirmation")
+
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  tenant                 Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("scheduling_policies")
 }

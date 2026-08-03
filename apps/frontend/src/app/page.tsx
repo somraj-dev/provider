@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
 import { wsClient } from '@/lib/ws-client';
+import { SchedulingAPI, AppointmentHoldAPI, AppointmentRequestAPI, AppointmentAPI, AvailabilityResponse } from '@/lib/scheduling-api';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -440,8 +441,37 @@ export default function App() {
         console.log('⚡ Real-time PATIENT_ADMITTED event received:', payload);
       };
       wsClient.subscribe('patient_admitted', handleAdmitted);
+
+      const fetchSchedulingInitialData = async () => {
+        try {
+          const [reqs, docs, types] = await Promise.all([
+            AppointmentRequestAPI.list().catch(() => []),
+            apiClient.get('/doctors').catch(() => []),
+            SchedulingAPI.getAppointmentTypes().catch(() => []),
+          ]);
+          if (Array.isArray(reqs) && reqs.length > 0) setDbRescheduleRequests(reqs);
+          if (Array.isArray(docs?.data || docs)) setDoctorsList(docs?.data || docs);
+          if (Array.isArray(types)) setAppointmentTypesList(types);
+        } catch (err) {
+          console.error('Failed to load initial scheduling data:', err);
+        }
+      };
+
+      fetchSchedulingInitialData();
+
+      const handleSlotChanged = () => {
+        fetchSchedulingInitialData();
+      };
+
+      wsClient.subscribe('appointment.slot.changed', handleSlotChanged);
+      wsClient.subscribe('appointment_created', handleSlotChanged);
+      wsClient.subscribe('appointment_rescheduled', handleSlotChanged);
+
       return () => {
         wsClient.unsubscribe('patient_admitted', handleAdmitted);
+        wsClient.unsubscribe('appointment.slot.changed', handleSlotChanged);
+        wsClient.unsubscribe('appointment_created', handleSlotChanged);
+        wsClient.unsubscribe('appointment_rescheduled', handleSlotChanged);
       };
     }
   }, [isLoggedIn, auth?.tenantId]);
@@ -1249,6 +1279,160 @@ ${ioVal}`;
   // Reschedule popup modal state variables
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [selectedRescheduleReq, setSelectedRescheduleReq] = useState<any>(null);
+
+  // Real Scheduling Engine States
+  const [dbRescheduleRequests, setDbRescheduleRequests] = useState<any[]>([]);
+  const [availabilityData, setAvailabilityData] = useState<AvailabilityResponse | null>(null);
+  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
+  const [calendarOffsetDays, setCalendarOffsetDays] = useState(0);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
+  const [selectedApptTypeId, setSelectedApptTypeId] = useState<string>('');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<any | null>(null);
+  const [activeHold, setActiveHold] = useState<any | null>(null);
+  const [rescheduleReasonSelect, setRescheduleReasonSelect] = useState('Patient Request');
+  const [rescheduleReasonText, setRescheduleReasonText] = useState('Patient is not available at current time. Requesting to reschedule.');
+  const [appointmentHistoryList, setAppointmentHistoryList] = useState<any[]>([]);
+  const [doctorsList, setDoctorsList] = useState<any[]>([]);
+  const [appointmentTypesList, setAppointmentTypesList] = useState<any[]>([]);
+  const [isSubmittingReschedule, setIsSubmittingReschedule] = useState(false);
+
+  const loadAvailabilityData = async (docId: string, typeId?: string, offset = 0, excludeId?: string) => {
+    if (!docId) return;
+    setIsLoadingAvailability(true);
+    try {
+      const from = new Date();
+      from.setDate(from.getDate() + offset);
+      const to = new Date(from);
+      to.setDate(to.getDate() + 4);
+
+      const res = await SchedulingAPI.getAvailability({
+        practitionerId: docId,
+        appointmentTypeId: typeId,
+        from: from.toISOString().split('T')[0],
+        to: to.toISOString().split('T')[0],
+        excludeAppointmentId: excludeId,
+      });
+      setAvailabilityData(res);
+    } catch (err) {
+      console.error('Failed to calculate availability:', err);
+    } finally {
+      setIsLoadingAvailability(false);
+    }
+  };
+
+  const handleOpenRescheduleModal = async (row: any) => {
+    setSelectedRescheduleReq(row);
+    setShowRescheduleModal(true);
+    setSelectedTimeSlot(null);
+    setActiveHold(null);
+    setCalendarOffsetDays(0);
+
+    const docId = row.appointment?.doctorId || row.doctorId || (doctorsList[0]?.id);
+    if (docId) {
+      setSelectedDoctorId(docId);
+      const apptTypeId = row.appointment?.appointmentTypeId || (appointmentTypesList[0]?.id);
+      if (apptTypeId) setSelectedApptTypeId(apptTypeId);
+
+      loadAvailabilityData(docId, apptTypeId, 0, row.appointmentId || row.id);
+    }
+
+    if (row.appointmentId) {
+      try {
+        const history = await AppointmentAPI.getHistory(row.appointmentId);
+        setAppointmentHistoryList(history);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleSelectSlot = async (slot: any) => {
+    if (slot.status !== 'AVAILABLE') return;
+    setSelectedTimeSlot(slot);
+
+    try {
+      if (selectedDoctorId) {
+        const hold = await AppointmentHoldAPI.create({
+          doctorId: selectedDoctorId,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        });
+        setActiveHold(hold);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Slot conflict or hold error');
+      if (selectedDoctorId) {
+        loadAvailabilityData(selectedDoctorId, selectedApptTypeId, calendarOffsetDays, selectedRescheduleReq?.appointmentId || selectedRescheduleReq?.id);
+      }
+    }
+  };
+
+  const handleConfirmReschedule = async () => {
+    if (!selectedTimeSlot) {
+      alert('Please select a new appointment slot from the calendar.');
+      return;
+    }
+
+    const apptId = selectedRescheduleReq.appointmentId || selectedRescheduleReq.appointment?.id;
+    if (!apptId) {
+      alert('No active appointment ID found for rescheduling.');
+      return;
+    }
+
+    setIsSubmittingReschedule(true);
+    try {
+      await AppointmentAPI.reschedule(apptId, {
+        newStartTime: selectedTimeSlot.startTime,
+        durationMinutes: selectedTimeSlot.durationMinutes,
+        reason: `${rescheduleReasonSelect}: ${rescheduleReasonText}`,
+      });
+
+      if (selectedRescheduleReq.id && !String(selectedRescheduleReq.id).startsWith('REQ-2025-')) {
+        await AppointmentRequestAPI.complete(selectedRescheduleReq.id, {
+          status: 'APPROVED',
+          notes: 'Reschedule confirmed by staff.',
+        });
+      }
+
+      alert('Appointment successfully rescheduled!');
+      setShowRescheduleModal(false);
+      setSelectedRescheduleReq(null);
+      setSelectedTimeSlot(null);
+      setActiveHold(null);
+
+      const reqs = await AppointmentRequestAPI.list().catch(() => []);
+      if (Array.isArray(reqs)) setDbRescheduleRequests(reqs);
+    } catch (err: any) {
+      alert(`Reschedule failed: ${err.message || 'Slot conflict'}`);
+      if (selectedDoctorId) {
+        loadAvailabilityData(selectedDoctorId, selectedApptTypeId, calendarOffsetDays, apptId);
+      }
+    } finally {
+      setIsSubmittingReschedule(false);
+    }
+  };
+
+  const handleCancelRequest = async () => {
+    if (selectedRescheduleReq?.id && !String(selectedRescheduleReq.id).startsWith('REQ-2025-')) {
+      try {
+        await AppointmentRequestAPI.complete(selectedRescheduleReq.id, {
+          status: 'DECLINED',
+          notes: 'Request cancelled by staff.',
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    if (activeHold?.id) {
+      AppointmentHoldAPI.release(activeHold.id).catch(() => null);
+    }
+
+    setShowRescheduleModal(false);
+    setSelectedRescheduleReq(null);
+    setSelectedTimeSlot(null);
+    setActiveHold(null);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -9316,16 +9500,28 @@ No qualifying data available.`;
                       </tr>
                     </thead>
                     <tbody>
-                      {rescheduleRequests.map((row, idx) => (
+                      {(dbRescheduleRequests.length > 0 ? dbRescheduleRequests.map((req: any) => ({
+                        id: req.id,
+                        appointmentId: req.appointmentId,
+                        doctorId: req.appointment?.doctorId,
+                        name: `${req.patient.firstName} ${req.patient.lastName}`,
+                        mrn: req.patient.mrn,
+                        current: req.appointment ? `${new Date(req.appointment.startTime).toLocaleDateString('en-GB')}, ${new Date(req.appointment.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'N/A',
+                        dept: req.appointment?.doctor ? `Dr. ${req.appointment.doctor.user.lastName} (${req.appointment.department?.name || 'General'})` : 'Cardiology',
+                        requested: req.requestedNewStart ? `${new Date(req.requestedNewStart).toLocaleDateString('en-GB')}, ${new Date(req.requestedNewStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '30/05/2025, 11:00 AM',
+                        reason: req.reason || 'Reschedule Request',
+                        requestedOn: `${new Date(req.createdAt).toLocaleDateString('en-GB')}, ${new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by ${req.patient.firstName} ${req.patient.lastName}`,
+                        priority: req.priority || 'Normal',
+                        status: req.status,
+                        priorityColor: req.priority === 'HIGH' ? 'bg-red-50 text-red-800 border-red-200' : 'bg-blue-50 text-blue-800 border-blue-200',
+                        statusColor: req.status === 'APPROVED' ? 'bg-green-100 text-green-800 border-green-200' : (req.status === 'DECLINED' ? 'bg-red-100 text-red-800 border-red-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'),
+                      })) : rescheduleRequests).map((row, idx) => (
                         <tr 
                           key={idx} 
                           className={`border-b border-[#d0dbe5] text-[10.5px] text-gray-800 font-sans cursor-pointer transition-colors ${
                             idx % 2 === 0 ? 'bg-white hover:bg-[#eef4f9]' : 'bg-[#f0f5fa] hover:bg-[#eef4f9]'
                           }`}
-                          onClick={() => {
-                            setSelectedRescheduleReq(row);
-                            setShowRescheduleModal(true);
-                          }}
+                          onClick={() => handleOpenRescheduleModal(row)}
                         >
                           <td className="py-1 px-2 border-r border-[#d0dbe5] font-mono">{row.mrn}</td>
                           <td className="py-1 px-2 border-r border-[#d0dbe5] font-bold text-gray-700">{row.id}</td>
@@ -11294,27 +11490,67 @@ No qualifying data available.`;
 
               {/* Column 2: New Slot Grid Calendar Selector */}
               <div className="bg-white border border-[#cbd5e1] rounded-md p-3.5 shadow-sm flex flex-col overflow-hidden">
-                <h4 className="font-bold text-[#0f4471] border-b pb-1.5 mb-2.5">2. Select New Appointment Slot</h4>
+                <h4 className="font-bold text-[#0f4471] border-b pb-1.5 mb-2.5 flex justify-between items-center">
+                  <span>2. Select New Appointment Slot</span>
+                  {activeHold && (
+                    <span className="bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded text-[8.5px] font-mono">
+                      ⏳ Slot Held (Expires: {new Date(activeHold.expiresAt).toLocaleTimeString([], { minute: '2-digit', second: '2-digit' })})
+                    </span>
+                  )}
+                </h4>
                 
                 {/* Form Selection Ribbon */}
                 <div className="grid grid-cols-3 gap-2 mb-3">
                   <div className="space-y-0.5">
                     <label className="text-gray-400 text-[9px] uppercase font-bold">Provider</label>
-                    <select className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none font-semibold">
-                      <option>{selectedRescheduleReq.dept}</option>
+                    <select 
+                      value={selectedDoctorId} 
+                      onChange={(e) => {
+                        const newDocId = e.target.value;
+                        setSelectedDoctorId(newDocId);
+                        setSelectedTimeSlot(null);
+                        setActiveHold(null);
+                        loadAvailabilityData(newDocId, selectedApptTypeId, calendarOffsetDays, selectedRescheduleReq?.appointmentId || selectedRescheduleReq?.id);
+                      }}
+                      className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none font-semibold"
+                    >
+                      {doctorsList.length > 0 ? doctorsList.map((d: any) => (
+                        <option key={d.id} value={d.id}>Dr. {d.user?.firstName || ''} {d.user?.lastName || ''} ({d.specialization || d.department || 'General'})</option>
+                      )) : (
+                        <option value={selectedDoctorId}>{selectedRescheduleReq.dept}</option>
+                      )}
                     </select>
                   </div>
+
                   <div className="space-y-0.5">
                     <label className="text-gray-400 text-[9px] uppercase font-bold">Visit Type</label>
-                    <select className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none font-semibold">
-                      <option>Follow-up Visit</option>
-                      <option>Consultation Visit</option>
+                    <select 
+                      value={selectedApptTypeId}
+                      onChange={(e) => {
+                        const newTypeId = e.target.value;
+                        setSelectedApptTypeId(newTypeId);
+                        setSelectedTimeSlot(null);
+                        loadAvailabilityData(selectedDoctorId, newTypeId, calendarOffsetDays, selectedRescheduleReq?.appointmentId || selectedRescheduleReq?.id);
+                      }}
+                      className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none font-semibold"
+                    >
+                      {appointmentTypesList.length > 0 ? appointmentTypesList.map((t: any) => (
+                        <option key={t.id} value={t.id}>{t.name} ({t.durationMinutes} min)</option>
+                      )) : (
+                        <>
+                          <option value="FOLLOW_UP">Follow-up Visit (15 min)</option>
+                          <option value="NEW_CONSULTATION">New Consultation (30 min)</option>
+                        </>
+                      )}
                     </select>
                   </div>
+
                   <div className="space-y-0.5">
                     <label className="text-gray-400 text-[9px] uppercase font-bold">Location / Unit</label>
                     <select className="w-full bg-white border border-[#bdcddc] rounded px-1.5 py-1 text-[10px] focus:outline-none font-semibold">
-                      <option>NEU-02 / Bed 05</option>
+                      <option>Neurology OPD Room 3</option>
+                      <option>Cardiology Suite 1</option>
+                      <option>General Medicine OPD 2</option>
                     </select>
                   </div>
                 </div>
@@ -11323,58 +11559,77 @@ No qualifying data available.`;
                 <div className="flex-1 flex flex-col overflow-hidden border border-gray-200 rounded">
                   {/* Date range header */}
                   <div className="bg-[#cbd8e3]/30 px-3 py-1.5 border-b border-gray-200 flex justify-between items-center select-none">
-                    <button className="hover:bg-gray-150 px-1 py-0.5 rounded text-gray-500">❮</button>
-                    <span className="font-bold text-gray-700">📅 26 May – 01 Jun 2025</span>
-                    <div className="flex border border-gray-300 rounded overflow-hidden text-[9px]">
-                      <button className="bg-[#0f4471] text-white px-2 py-0.5 font-bold">Day View</button>
-                      <button className="bg-white hover:bg-gray-50 px-2 py-0.5 text-gray-600 font-semibold border-l border-gray-300">Week View</button>
-                    </div>
-                    <button className="hover:bg-gray-150 px-1 py-0.5 rounded text-gray-500">❯</button>
+                    <button 
+                      onClick={() => {
+                        const newOffset = calendarOffsetDays - 5;
+                        setCalendarOffsetDays(newOffset);
+                        loadAvailabilityData(selectedDoctorId, selectedApptTypeId, newOffset, selectedRescheduleReq?.appointmentId || selectedRescheduleReq?.id);
+                      }}
+                      className="hover:bg-gray-200 px-2 py-0.5 rounded text-gray-700 font-bold border border-gray-300 bg-white cursor-pointer"
+                    >
+                      ❮
+                    </button>
+                    <span className="font-bold text-gray-700">
+                      📅 {availabilityData?.dates?.[0]?.date || 'Loading dates...'} – {availabilityData?.dates?.[availabilityData?.dates?.length - 1]?.date || ''} ({availabilityData?.timeZone || 'UTC'})
+                    </span>
+                    <button 
+                      onClick={() => {
+                        const newOffset = calendarOffsetDays + 5;
+                        setCalendarOffsetDays(newOffset);
+                        loadAvailabilityData(selectedDoctorId, selectedApptTypeId, newOffset, selectedRescheduleReq?.appointmentId || selectedRescheduleReq?.id);
+                      }}
+                      className="hover:bg-gray-200 px-2 py-0.5 rounded text-gray-700 font-bold border border-gray-300 bg-white cursor-pointer"
+                    >
+                      ❯
+                    </button>
                   </div>
 
                   {/* Calendar columns grid */}
-                  <div className="flex-1 overflow-y-auto grid grid-cols-[60px_repeat(5,1fr)] text-center divide-x divide-gray-100 text-[9.5px]">
-                    
-                    {/* Time labels column */}
-                    <div className="divide-y divide-gray-100 font-bold bg-gray-50/50 text-gray-500 py-1 select-none">
-                      <div className="h-[28px]" />
-                      {['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'].map((t, idx) => (
-                        <div key={idx} className="h-[34px] flex items-center justify-center border-t border-gray-200">{t}</div>
+                  {isLoadingAvailability ? (
+                    <div className="flex-1 flex items-center justify-center p-8 text-gray-500 font-semibold text-[11px]">
+                      ⚡ Calculating real doctor availability...
+                    </div>
+                  ) : (
+                    <div className="flex-1 overflow-y-auto grid grid-cols-5 text-center divide-x divide-gray-100 text-[9.5px]">
+                      {availabilityData?.dates?.map((col, idx) => (
+                        <div key={idx} className="flex flex-col border-r border-gray-100">
+                          <div className="h-[28px] font-bold text-gray-700 bg-gray-50 flex items-center justify-center border-b border-gray-200 select-none">
+                            {col.dayOfWeek.substring(0, 3)} {col.date}
+                          </div>
+                          <div className="flex-1 py-1 space-y-1 px-1 overflow-y-auto max-h-[340px]">
+                            {col.slots && col.slots.length > 0 ? col.slots.map((slot, slotIdx) => {
+                              const isSelected = selectedTimeSlot?.startTime === slot.startTime;
+                              let style = 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 cursor-pointer';
+                              if (slot.status === 'BOOKED') style = 'bg-gray-150 border-gray-200 text-gray-400 cursor-not-allowed select-none';
+                              if (slot.status === 'HELD') style = 'bg-amber-100 border-amber-300 text-amber-800 cursor-not-allowed';
+                              if (slot.status === 'UNAVAILABLE') style = 'bg-white border-gray-100 text-gray-300 cursor-not-allowed';
+                              if (isSelected) style = 'bg-blue-600 border-blue-700 text-white font-bold cursor-pointer ring-2 ring-blue-400';
+
+                              return (
+                                <button 
+                                  key={slotIdx} 
+                                  disabled={slot.status !== 'AVAILABLE'}
+                                  onClick={() => handleSelectSlot(slot)}
+                                  className={`w-full py-1 border text-[9px] rounded-sm font-semibold transition-all ${style}`}
+                                >
+                                  {slot.time}
+                                </button>
+                              );
+                            }) : (
+                              <div className="text-gray-400 py-4 text-[9px]">OFF</div>
+                            )}
+                          </div>
+                        </div>
                       ))}
                     </div>
-
-                    {/* Date Slot Columns */}
-                    {[
-                      { day: 'Wed 28 May', slots: { '9:00 AM': 'green', '10:00 AM': 'green', '11:00 AM': 'green', '2:00 PM': 'green', '3:00 PM': 'green', '4:00 PM': 'green' } },
-                      { day: 'Thu 29 May', slots: { '8:30 AM': 'green', '9:30 AM': 'green', '10:30 AM': 'blue', '11:30 AM': 'green', '12:30 PM': 'gray', '1:30 PM': 'gray', '2:30 PM': 'green', '3:30 PM': 'green', '4:30 PM': 'green' } },
-                      { day: 'Fri 30 May', slots: { '9:00 AM': 'green', '10:00 AM': 'green', '11:00 AM': 'gray', '12:00 PM': 'gray', '1:00 PM': 'green', '2:00 PM': 'green', '3:00 PM': 'green', '4:00 PM': 'green' } },
-                      { day: 'Sat 31 May', slots: { '9:30 AM': 'green', '10:30 AM': 'green', '11:30 AM': 'green', '12:30 PM': 'green', '1:30 PM': 'green', '2:30 PM': 'green', '3:30 PM': 'green', '4:30 PM': 'green' } },
-                      { day: 'Sun 01 Jun', slots: { '10:00 AM': 'green', '11:00 AM': 'green', '12:00 PM': 'gray' } }
-                    ].map((col, idx) => (
-                      <div key={idx} className="flex flex-col">
-                        <div className="h-[28px] font-bold text-gray-700 bg-gray-50 flex items-center justify-center border-b border-gray-200 select-none">{col.day}</div>
-                        
-                        <div className="flex-1 py-1 space-y-1 px-1">
-                          {Object.entries(col.slots).map(([time, type], slotIdx) => {
-                            let style = 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 cursor-pointer';
-                            if (type === 'blue') style = 'bg-blue-600 border-blue-700 text-white font-bold cursor-pointer';
-                            if (type === 'gray') style = 'bg-gray-150 border-gray-200 text-gray-400 select-none cursor-not-allowed';
-                            return (
-                              <button key={slotIdx} className={`w-full py-0.8 border text-[8.5px] rounded-sm font-semibold transition-all ${style}`}>
-                                {time}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  )}
 
                   {/* Slot selection legend footer */}
                   <div className="bg-gray-50 border-t border-gray-200 px-3 py-1 flex gap-4 text-[9px] text-gray-500 font-bold select-none">
                     <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-green-100 border border-green-300 rounded-sm"></span> Available</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-blue-600 border border-blue-700 rounded-sm"></span> Selected</span>
                     <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-gray-200 border border-gray-300 rounded-sm"></span> Booked</span>
-                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-white border border-gray-300 rounded-sm"></span> Unavailable</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-amber-100 border border-amber-300 rounded-sm"></span> Held</span>
                   </div>
                 </div>
               </div>
@@ -11394,12 +11649,12 @@ No qualifying data available.`;
 
                     <div className="flex justify-between border-b pb-0.5">
                       <span className="text-gray-400">Requested On</span>
-                      <span className="font-semibold">{selectedRescheduleReq.requestedOn.split(' by ')[0]}</span>
+                      <span className="font-semibold">{selectedRescheduleReq.requestedOn?.split(' by ')[0] || 'Today'}</span>
                     </div>
 
                     <div className="flex justify-between border-b pb-0.5 flex-col">
                       <span className="text-gray-400">Requested By</span>
-                      <span className="font-semibold text-gray-900">{selectedRescheduleReq.requestedOn.split(' by ')[1] || 'Patient'}</span>
+                      <span className="font-semibold text-gray-900">{selectedRescheduleReq.requestedOn?.split(' by ')[1] || 'Patient'}</span>
                     </div>
 
                     <div className="flex justify-between border-b pb-0.5">
@@ -11419,7 +11674,7 @@ No qualifying data available.`;
 
                     <div className="flex flex-col pt-1">
                       <span className="text-gray-400 block font-semibold text-[9px]">Notes</span>
-                      <p className="text-gray-700 italic text-[9.5px] leading-tight">Patient requested to change the appointment time.</p>
+                      <p className="text-gray-700 italic text-[9.5px] leading-tight">{selectedRescheduleReq.reason || 'Patient requested to change appointment time.'}</p>
                     </div>
                   </div>
                 </div>
@@ -11432,17 +11687,26 @@ No qualifying data available.`;
                     </div>
                     
                     <div className="space-y-3 mt-1.5">
-                      <div className="relative pl-3 border-l-2 border-green-500">
-                        <div className="font-bold text-gray-800 text-[9.5px]">Scheduled</div>
-                        <div className="text-gray-400 text-[9px]">20/05/2025, 11:20 AM</div>
-                        <p className="text-gray-500 text-[8.5px] mt-0.5">Original appointment scheduled.</p>
-                      </div>
-
-                      <div className="relative pl-3 border-l-2 border-amber-500">
-                        <div className="font-bold text-gray-800 text-[9.5px]">Reschedule Requested</div>
-                        <div className="text-gray-400 text-[9px]">{selectedRescheduleReq.requestedOn.split(' by ')[0]}</div>
-                        <p className="text-gray-500 text-[8.5px] mt-0.5">Patient requested to reschedule.</p>
-                      </div>
+                      {appointmentHistoryList.length > 0 ? appointmentHistoryList.map((hist: any, idx: number) => (
+                        <div key={idx} className={`relative pl-3 border-l-2 ${hist.toStatus === 'SCHEDULED' ? 'border-green-500' : 'border-amber-500'}`}>
+                          <div className="font-bold text-gray-800 text-[9.5px]">{hist.toStatus}</div>
+                          <div className="text-gray-400 text-[9px]">{new Date(hist.createdAt).toLocaleString()}</div>
+                          <p className="text-gray-500 text-[8.5px] mt-0.5">{hist.reason || 'Status updated'}</p>
+                        </div>
+                      )) : (
+                        <>
+                          <div className="relative pl-3 border-l-2 border-green-500">
+                            <div className="font-bold text-gray-800 text-[9.5px]">Scheduled</div>
+                            <div className="text-gray-400 text-[9px]">20/05/2025, 11:20 AM</div>
+                            <p className="text-gray-500 text-[8.5px] mt-0.5">Original appointment scheduled.</p>
+                          </div>
+                          <div className="relative pl-3 border-l-2 border-amber-500">
+                            <div className="font-bold text-gray-800 text-[9.5px]">Reschedule Requested</div>
+                            <div className="text-gray-400 text-[9px]">{selectedRescheduleReq.requestedOn?.split(' by ')[0]}</div>
+                            <p className="text-gray-500 text-[8.5px] mt-0.5">Patient requested to reschedule.</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -11452,22 +11716,17 @@ No qualifying data available.`;
             {/* Modal Controls Ribbon */}
             <div className="bg-white border-t border-[#cbd5e1] p-3 flex justify-end gap-2 select-none">
               <button 
-                onClick={() => {
-                  setShowRescheduleModal(false);
-                  setSelectedRescheduleReq(null);
-                }} 
-                className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold px-4 py-1.5 rounded transition-all"
+                onClick={handleCancelRequest}
+                className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold px-4 py-1.5 rounded transition-all cursor-pointer"
               >
                 Cancel Request
               </button>
               <button 
-                onClick={() => {
-                  setShowRescheduleModal(false);
-                  setSelectedRescheduleReq(null);
-                }} 
-                className="bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-4 py-1.5 rounded shadow-sm transition-all"
+                disabled={!selectedTimeSlot || isSubmittingReschedule}
+                onClick={handleConfirmReschedule}
+                className="bg-[#0f4471] hover:bg-[#0b3355] disabled:bg-gray-400 text-white font-bold px-4 py-1.5 rounded shadow-sm transition-all cursor-pointer"
               >
-                Review & Confirm →
+                {isSubmittingReschedule ? 'Rescheduling...' : 'Review & Confirm →'}
               </button>
             </div>
 

@@ -25,7 +25,7 @@ export class DoctorController {
   }
 
   @Get()
-  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN')
+  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'List and filter doctors' })
   @ApiQuery({ name: 'specialization', required: false, enum: DoctorSpecialization })
   @ApiQuery({ name: 'department', required: false })
