@@ -948,6 +948,12 @@ ${ioVal}`;
   const [cancelWarningPos, setCancelWarningPos] = useState({ x: 400, y: 250 });
   const [isDraggingCancelWarning, setIsDraggingCancelWarning] = useState(false);
   const [dragOffsetCancelWarning, setDragOffsetCancelWarning] = useState({ x: 0, y: 0 });
+
+  // Cancel Discharge Form Popup State
+  const [isCancelDischargeFormOpen, setIsCancelDischargeFormOpen] = useState(false);
+  const [cancelDischargeFormPos, setCancelDischargeFormPos] = useState({ x: 100, y: 50 });
+  const [isDraggingCancelDischargeForm, setIsDraggingCancelDischargeForm] = useState(false);
+  const [dragOffsetCancelDischargeForm, setDragOffsetCancelDischargeForm] = useState({ x: 0, y: 0 });
   const [bedTransferPos, setBedTransferPos] = useState({ x: 150, y: 50 });
   const [isDraggingBedTransfer, setIsDraggingBedTransfer] = useState(false);
   const [dragOffsetBedTransfer, setDragOffsetBedTransfer] = useState({ x: 0, y: 0 });
@@ -1019,6 +1025,12 @@ ${ioVal}`;
           y: Math.max(0, e.clientY - dragOffsetCancelWarning.y),
         });
       }
+      if (isDraggingCancelDischargeForm) {
+        setCancelDischargeFormPos({
+          x: Math.max(0, e.clientX - dragOffsetCancelDischargeForm.x),
+          y: Math.max(0, e.clientY - dragOffsetCancelDischargeForm.y),
+        });
+      }
     };
 
     const handleMouseUp = () => {
@@ -1029,9 +1041,10 @@ ${ioVal}`;
       if (isDraggingBedTransfer) setIsDraggingBedTransfer(false);
       if (isDraggingDischargeEncounter) setIsDraggingDischargeEncounter(false);
       if (isDraggingCancelWarning) setIsDraggingCancelWarning(false);
+      if (isDraggingCancelDischargeForm) setIsDraggingCancelDischargeForm(false);
     };
 
-    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam || isDraggingPrintLabels || isDraggingBedTransfer || isDraggingDischargeEncounter || isDraggingCancelWarning) {
+    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam || isDraggingPrintLabels || isDraggingBedTransfer || isDraggingDischargeEncounter || isDraggingCancelWarning || isDraggingCancelDischargeForm) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
@@ -1039,7 +1052,7 @@ ${ioVal}`;
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam, isDraggingPrintLabels, dragOffsetPrintLabels, isDraggingBedTransfer, dragOffsetBedTransfer, isDraggingDischargeEncounter, dragOffsetDischargeEncounter, isDraggingCancelWarning, dragOffsetCancelWarning]);
+  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam, isDraggingPrintLabels, dragOffsetPrintLabels, isDraggingBedTransfer, dragOffsetBedTransfer, isDraggingDischargeEncounter, dragOffsetDischargeEncounter, isDraggingCancelWarning, dragOffsetCancelWarning, isDraggingCancelDischargeForm, dragOffsetCancelDischargeForm]);
 
   const [showConversationLauncher, setShowConversationLauncher] = React.useState(false);
 
@@ -6531,11 +6544,7 @@ ${ioVal}`;
                               } else if (item === 'Facility Transfer') {
                                 setIsFacilityTransferOpen(true);
                               } else if (item === 'Cancel Discharge' || item === 'Cancel Pending Discharge') {
-                                setCancelWarningData({
-                                  title: 'Cancel Discharge',
-                                  message: 'This patient currently has a pending discharge.\nWould you like to cancel the pending discharge?'
-                                });
-                                setIsCancelWarningOpen(true);
+                                setIsCancelDischargeFormOpen(true);
                               } else if (item === 'Cancel Transfer' || item === 'Cancel Pending Transfer') {
                                 setCancelWarningData({
                                   title: 'Facility Transfer',
@@ -13855,6 +13864,228 @@ No qualifying data available.`;
       )}
 
       {/* Cancel Warning Popup */}
+      {/* Cancel Discharge Form Popup */}
+      {isCancelDischargeFormOpen && (
+        <div 
+          className="fixed bg-[#ece9d8] border-[2px] border-[#a0a0a0] shadow-2xl flex flex-col select-none z-[99995] text-[11px] text-black font-sans w-[800px]"
+          style={{ 
+            left: `${cancelDischargeFormPos.x}px`, 
+            top: `${cancelDischargeFormPos.y}px`,
+            borderRightColor: '#404040',
+            borderBottomColor: '#404040',
+            borderTopColor: '#ffffff',
+            borderLeftColor: '#ffffff'
+          }}
+        >
+          {/* Title Bar */}
+          <div 
+            onMouseDown={(e) => {
+              setIsDraggingCancelDischargeForm(true);
+              setDragOffsetCancelDischargeForm({ x: e.clientX - cancelDischargeFormPos.x, y: e.clientY - cancelDischargeFormPos.y });
+            }}
+            className="px-2 py-1 flex justify-between items-center cursor-move text-white"
+            style={{
+              background: 'linear-gradient(to right, #0A246A 0%, #A6CAF0 100%)',
+            }}
+          >
+            <div className="flex items-center gap-1">
+              <span className="text-red-500 font-bold text-[14px]">X</span>
+              <span className="font-normal text-[12px]">Cancel Discharge</span>
+            </div>
+            <div className="flex gap-1">
+              <button className="bg-[#ece9d8] text-black border-2 border-white border-b-gray-500 border-r-gray-500 w-4 h-4 flex items-center justify-center font-bold text-[8px] leading-none">-</button>
+              <button className="bg-[#ece9d8] text-black border-2 border-white border-b-gray-500 border-r-gray-500 w-4 h-4 flex items-center justify-center font-bold text-[8px] leading-none">□</button>
+              <button onClick={() => setIsCancelDischargeFormOpen(false)} className="bg-[#ece9d8] text-black border-2 border-white border-b-gray-500 border-r-gray-500 w-4 h-4 flex items-center justify-center font-bold text-[10px] leading-none">✕</button>
+            </div>
+          </div>
+
+          {/* Main Body */}
+          <div className="p-3 bg-[#ece9d8] overflow-y-auto max-h-[70vh]">
+            <div className="bg-white border-2 border-t-gray-500 border-l-gray-500 border-b-white border-r-white p-3 space-y-4">
+              
+              {/* Top Section */}
+              <div className="grid grid-cols-4 gap-4">
+                <div className="flex flex-col gap-0.5">
+                  <label>Complete Reg?:</label>
+                  <select className="border border-gray-400 p-0.5 bg-[#a3fba3] w-full"><option>Yes</option></select>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Medical Record Number:</label>
+                  <input type="text" value="760010021" readOnly className="border border-gray-400 p-0.5 bg-[#f0f0f0] w-full" />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Encounter Number:</label>
+                  <input type="text" value="7600000010104" readOnly className="border border-gray-400 p-0.5 bg-[#f0f0f0] w-full" />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Full Name:</label>
+                  <input type="text" value="REG-FOUNDATION, SU!" readOnly className="border border-gray-400 p-0.5 bg-[#f0f0f0] w-full text-black font-bold" />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Date of Birth:</label>
+                  <div className="flex">
+                    <input type="text" value="02-Feb-1982" readOnly className="border border-gray-400 p-0.5 bg-[#f0f0f0] w-full" />
+                    <div className="flex flex-col w-4 ml-0.5">
+                      <button className="border h-1/2 bg-gray-200 flex items-center justify-center text-[6px]">▲</button>
+                      <button className="border h-1/2 bg-gray-200 flex items-center justify-center text-[6px]">▼</button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Age:</label>
+                  <input type="text" value="36Y" readOnly className="border border-gray-400 p-0.5 bg-[#f0f0f0] w-full" />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Gender:</label>
+                  <input type="text" value="Female" readOnly className="border border-gray-400 p-0.5 bg-[#f0f0f0] w-full" />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>BC PHN:</label>
+                  <input type="text" value="9876391304" readOnly className="border border-gray-400 p-0.5 bg-[#f0f0f0] w-full" />
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-300 relative mt-2">
+                <span className="absolute -top-2 left-4 bg-white px-1 text-gray-600">Discharge Information</span>
+              </div>
+
+              {/* Discharge Information Section */}
+              <div className="grid grid-cols-4 gap-4 pt-2">
+                <div className="flex flex-col gap-0.5">
+                  <label>Discharge Disposition:</label>
+                  <select className="border border-gray-400 p-0.5 w-full font-bold text-gray-700 bg-white"><option>Discharged Home wit...</option></select>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Discharge to Location:</label>
+                  <select className="border border-gray-400 p-0.5 w-full bg-[#f0f0f0]"><option></option></select>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Discharge Date:</label>
+                  <div className="flex">
+                    <input type="text" value="14-Feb-2018" readOnly className="border border-gray-400 p-0.5 bg-[#f0f0f0] w-full" />
+                    <div className="flex flex-col w-4 ml-0.5">
+                      <button className="border h-1/2 bg-gray-200 flex items-center justify-center text-[6px]">▲</button>
+                      <button className="border h-1/2 bg-gray-200 flex items-center justify-center text-[6px]">▼</button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Discharge Time:</label>
+                  <div className="flex">
+                    <input type="text" value="10:48" readOnly className="border border-gray-400 p-0.5 bg-[#f0f0f0] w-full" />
+                    <div className="flex flex-col w-4 ml-0.5">
+                      <button className="border h-1/2 bg-gray-200 flex items-center justify-center text-[6px]">▲</button>
+                      <button className="border h-1/2 bg-gray-200 flex items-center justify-center text-[6px]">▼</button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Deceased Date:</label>
+                  <div className="flex">
+                    <input type="text" value="xx-xxx-xxxx" readOnly className="border border-gray-400 p-0.5 bg-[#f0f0f0] w-full text-gray-500" />
+                    <div className="flex flex-col w-4 ml-0.5">
+                      <button className="border h-1/2 bg-gray-200 flex items-center justify-center text-[6px]">▲</button>
+                      <button className="border h-1/2 bg-gray-200 flex items-center justify-center text-[6px]">▼</button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Deceased Time:</label>
+                  <div className="flex">
+                    <input type="text" className="border border-gray-400 p-0.5 bg-[#f0f0f0] w-full" />
+                    <div className="flex flex-col w-4 ml-0.5">
+                      <button className="border h-1/2 bg-gray-200 flex items-center justify-center text-[6px]">▲</button>
+                      <button className="border h-1/2 bg-gray-200 flex items-center justify-center text-[6px]">▼</button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Discharge Personnel ID:</label>
+                  <input type="text" value="TEST.REGCLERK" readOnly className="border border-gray-400 p-0.5 bg-white w-[140px] font-bold text-gray-700" />
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-300 relative mt-2">
+                <span className="absolute -top-2 left-4 bg-white px-1 text-gray-600">Location</span>
+              </div>
+
+              {/* Location Section */}
+              <div className="grid grid-cols-5 gap-4 pt-2 items-end">
+                <div className="flex flex-col gap-0.5">
+                  <label>Building:</label>
+                  <select className="border border-gray-400 p-0.5 w-full bg-[#ffffcc]"><option>LGH Lions Gate</option></select>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Unit/Clinic:</label>
+                  <select className="border border-gray-400 p-0.5 w-full bg-[#ffffcc]"><option>LGH Endoscopy</option></select>
+                </div>
+                <div className="flex items-center justify-center pb-0.5">
+                  <button className="bg-[#ece9d8] border-2 border-white border-b-gray-500 border-r-gray-500 px-3 py-0.5 shadow-sm active:border-t-gray-500 active:border-l-gray-500 active:border-b-white active:border-r-white w-full">Bed Availability</button>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Room:</label>
+                  <select className="border border-gray-400 p-0.5 w-full bg-[#ffffcc]"><option>Endoscopy Wait</option></select>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <label>Bed:</label>
+                  <select className="border border-gray-400 p-0.5 w-[60px] bg-[#ffffcc]"><option>02</option></select>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-300 mt-4 mb-2"></div>
+
+              {/* Providers Section */}
+              <div className="grid grid-cols-2 gap-4 pb-2">
+                <div className="flex flex-col gap-0.5 w-[200px]">
+                  <label>Attending Provider:</label>
+                  <div className="flex">
+                    <input type="text" value="Train, Gastroenterologis" readOnly className="border border-gray-400 p-0.5 bg-white w-full text-gray-500" />
+                    <button className="bg-[#ece9d8] border border-gray-400 w-5 h-[22px] flex items-center justify-center ml-1">
+                      <span className="text-[14px]">🔍</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-0.5 w-[200px]">
+                  <label>Admitting Provider:</label>
+                  <div className="flex">
+                    <input type="text" value="Train, Gastroenterologis" readOnly className="border border-gray-400 p-0.5 bg-white w-full text-gray-500" />
+                    <button className="bg-[#ece9d8] border border-gray-400 w-5 h-[22px] flex items-center justify-center ml-1">
+                      <span className="text-[14px]">🔍</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-300 relative mt-2 mb-2">
+                <span className="absolute -top-2 left-4 bg-white px-1 text-gray-600">Cancel Discharge Information</span>
+              </div>
+              <div className="h-6"></div>
+
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-end gap-2 p-2 bg-[#ece9d8]">
+            <button 
+              onClick={() => setIsCancelDischargeFormOpen(false)}
+              className="bg-[#ece9d8] border-2 border-white border-b-gray-500 border-r-gray-500 px-6 py-0.5 shadow-sm min-w-[80px]"
+            >
+              Complete
+            </button>
+            <button 
+              onClick={() => setIsCancelDischargeFormOpen(false)}
+              className="bg-[#ece9d8] border-2 border-white border-b-gray-500 border-r-gray-500 px-6 py-0.5 shadow-sm min-w-[80px]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {isCancelWarningOpen && (
         <div 
           className="fixed bg-[#f0f0f0] border-[1px] border-[#a0a0a0] shadow-xl w-[450px] flex flex-col select-none z-[99995] text-[12px] text-gray-800 font-sans"
@@ -14247,11 +14478,7 @@ No qualifying data available.`;
               className="px-3.5 py-1 hover:bg-[#e8f2fe] hover:text-black cursor-pointer text-gray-800 transition-colors" 
               onClick={() => {
                 if (item === 'Cancel Discharge' || item === 'Cancel Pending Discharge') {
-                  setCancelWarningData({
-                    title: 'Cancel Discharge',
-                    message: 'This patient currently has a pending discharge.\nWould you like to cancel the pending discharge?'
-                  });
-                  setIsCancelWarningOpen(true);
+                  setIsCancelDischargeFormOpen(true);
                   setPatientContextMenu(null);
                 } else if (item === 'Cancel Transfer' || item === 'Cancel Pending Transfer') {
                   setCancelWarningData({

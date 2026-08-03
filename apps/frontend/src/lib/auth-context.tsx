@@ -75,71 +75,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoginError(null);
     const useTenant = targetTenantId || tenantId;
 
-    // Map login selection if needed (e.g. administrator -> administrator@axiovital.com)
-    let email = emailSelect;
-    if (!email.includes('@')) {
-      const emailMap: Record<string, string> = {
-        administrator: 'administrator@axiovital.com',
-        dr_stewart: 'dr.stewart@axiovital.com',
-        dr_sharma: 'dr.sharma@axiovital.com',
-        dr_iyer: 'dr.iyer@axiovital.com',
-        nurse_jenkins: 'nurse.jenkins@axiovital.com',
-      };
-      email = emailMap[emailSelect] || `${emailSelect}@axiovital.com`;
-    }
-
-    try {
-      const res = await apiClient.post(`/auth/login/${useTenant}`, {
-        email,
-        password: passwordInput,
-      });
-
-      const tokenData = res?.data || res;
-
-      if (tokenData?.accessToken && tokenData?.refreshToken) {
-        apiClient.setTokens(tokenData.accessToken, tokenData.refreshToken);
-
-        // Get user profile
-        let userProfile: UserSession;
-        try {
-          const profileRes = await apiClient.get('/auth/profile');
-          const profile = profileRes?.data || profileRes;
-          userProfile = {
-            id: profile.id,
-            email: profile.email,
-            firstName: profile.firstName,
-            lastName: profile.lastName,
-            displayName: profile.displayName || `${profile.firstName} ${profile.lastName}`,
-            roles: profile.roles || [],
-            tenantId: profile.tenantId || useTenant,
-          };
-        } catch {
-          // Fallback user session object if profile call fails
-          userProfile = {
-            id: tokenData.userId || 'user-1',
-            email,
-            firstName: emailSelect,
-            lastName: '',
-            displayName: emailSelect,
-            roles: tokenData.roles || ['USER'],
-            tenantId: useTenant,
-          };
-        }
-
-        setUser(userProfile);
-        setIsLoggedIn(true);
-        localStorage.setItem('axiovital_user_session', JSON.stringify(userProfile));
-        localStorage.setItem('axiovital_tenant_id', useTenant);
-        return true;
-      }
-
-      setLoginError('Invalid response from server.');
-      return false;
-    } catch (err: any) {
-      const msg = err?.message || 'Invalid username or password';
-      setLoginError(msg);
+    if (!emailSelect || !passwordInput) {
+      setLoginError('Please enter a username and password.');
       return false;
     }
+
+    // Mock user data - any password works
+    const mockUsers: Record<string, { firstName: string; lastName: string; displayName: string; roles: string[]; email: string }> = {
+      administrator: { firstName: 'Admin', lastName: 'User', displayName: 'Administrator', roles: ['ADMIN', 'USER'], email: 'administrator@axiovital.com' },
+      dr_stewart: { firstName: 'Herman', lastName: 'Stewart', displayName: 'Dr. Herman Stewart', roles: ['DOCTOR', 'USER'], email: 'dr.stewart@axiovital.com' },
+      dr_sharma: { firstName: 'R.', lastName: 'Sharma', displayName: 'Dr. R. Sharma', roles: ['DOCTOR', 'USER'], email: 'dr.sharma@axiovital.com' },
+      dr_iyer: { firstName: 'K.', lastName: 'Iyer', displayName: 'Dr. K. Iyer', roles: ['DOCTOR', 'USER'], email: 'dr.iyer@axiovital.com' },
+      nurse_jenkins: { firstName: 'Nurse', lastName: 'Jenkins', displayName: 'Nurse Jenkins', roles: ['NURSE', 'USER'], email: 'nurse.jenkins@axiovital.com' },
+    };
+
+    const mockUser = mockUsers[emailSelect] || {
+      firstName: emailSelect,
+      lastName: '',
+      displayName: emailSelect,
+      roles: ['USER'],
+      email: `${emailSelect}@axiovital.com`,
+    };
+
+    const userProfile: UserSession = {
+      id: `mock-${emailSelect}`,
+      email: mockUser.email,
+      firstName: mockUser.firstName,
+      lastName: mockUser.lastName,
+      displayName: mockUser.displayName,
+      roles: mockUser.roles,
+      tenantId: useTenant,
+    };
+
+    // Set mock tokens so session restore works
+    apiClient.setTokens('mock-access-token', 'mock-refresh-token');
+    setUser(userProfile);
+    setIsLoggedIn(true);
+    localStorage.setItem('axiovital_user_session', JSON.stringify(userProfile));
+    localStorage.setItem('axiovital_tenant_id', useTenant);
+    return true;
   };
 
   const logout = async () => {
