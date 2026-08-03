@@ -433,6 +433,10 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [apiPatients, setApiPatients] = useState<any[]>([]);
   const [isSubmittingAdmit, setIsSubmittingAdmit] = useState(false);
+  const [dbRescheduleRequests, setDbRescheduleRequests] = useState<any[]>([]);
+  const [doctorsList, setDoctorsList] = useState<any[]>([]);
+  const [appointmentTypesList, setAppointmentTypesList] = useState<any[]>([]);
+  const popupIdCounterRef = React.useRef(0);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -533,7 +537,8 @@ export default function App() {
   };
 
   const openMessagePopupCard = (row: any) => {
-    const id = Math.random().toString();
+    popupIdCounterRef.current += 1;
+    const id = `popup-${popupIdCounterRef.current}`;
     const offset = (openMessagePopups.length % 8) * 28;
     const newZ = maxZIndex + 1;
     setMaxZIndex(newZ);
@@ -771,7 +776,6 @@ ${ioVal}`;
   const [reportsContextMenuPosition, setReportsContextMenuPosition] = useState({ x: 0, y: 0 });
 
   // Status Bar States & Effects
-  const [statusBarPatient, setStatusBarPatient] = useState({ name: 'JOHN DOE', mrn: '1000245678' });
   const [statusBarDateTime, setStatusBarDateTime] = useState('');
 
   const getUserDisplayName = () => {
@@ -810,7 +814,7 @@ ${ioVal}`;
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
+  const statusBarPatient = (() => {
     const currentTab = openTabs.find(t => t.id === activeTabId) || openTabs[0];
     if (currentTab && (currentTab.type === 'PatientProfile' || currentTab.type === 'EditPatientProfile' || currentTab.type === 'PatientNotes')) {
       const title = currentTab.title;
@@ -826,27 +830,28 @@ ${ioVal}`;
       const upperName = name.toUpperCase();
       const matchingDemo = Object.keys(patientDemographics).find(k => k.toUpperCase() === upperName);
       if (matchingDemo) {
-        setStatusBarPatient({
+        return {
           name: matchingDemo,
           mrn: patientDemographics[matchingDemo].mrn
-        });
+        };
       } else {
         const demoVal = Object.values(patientDemographics).find(d => upperName.includes(d.mrn));
         if (demoVal) {
           const keyName = Object.keys(patientDemographics).find(k => patientDemographics[k] === demoVal);
-          setStatusBarPatient({
+          return {
             name: keyName || name.toUpperCase(),
             mrn: demoVal.mrn
-          });
+          };
         } else {
-          setStatusBarPatient({ name: name.toUpperCase(), mrn: '1000245678' });
+          return { name: name.toUpperCase(), mrn: '1000245678' };
         }
       }
     }
-  }, [activeTabId, openTabs]);
+    return { name: 'JOHN DOE', mrn: '1000245678' };
+  })();
 
   // Refresh functionality states
-  const [lastRefreshedAt, setLastRefreshedAt] = useState<number>(Date.now());
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<number>(() => Date.now());
   const [minutesAgo, setMinutesAgo] = useState<number>(0);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
@@ -1006,6 +1011,12 @@ ${ioVal}`;
   const [isDraggingDischargeEncounter, setIsDraggingDischargeEncounter] = useState(false);
   const [dragOffsetDischargeEncounter, setDragOffsetDischargeEncounter] = useState({ x: 0, y: 0 });
 
+  // YouTube Popup State
+  const [isYoutubePopupOpen, setIsYoutubePopupOpen] = useState(false);
+  const [youtubePopupPos, setYoutubePopupPos] = useState({ x: 300, y: 100 });
+  const [isDraggingYoutube, setIsDraggingYoutube] = useState(false);
+  const [dragOffsetYoutube, setDragOffsetYoutube] = useState({ x: 0, y: 0 });
+
   // Facility Transfer State
   const [isFacilityTransferOpen, setIsFacilityTransferOpen] = useState(false);
   const [isRecipientTransferOpen, setIsRecipientTransferOpen] = useState(false);
@@ -1021,6 +1032,7 @@ ${ioVal}`;
     
     // Default initial sizes for all popups
     const initialWidth = popupSizes[popupId]?.width || (
+      popupId === 'youtube-popup' ? 640 :
       popupId === 'careTeam' ? 420 :
       popupId === 'dischargeEncounter' ? 900 :
       popupId === 'bedTransfer' ? 800 :
@@ -1034,6 +1046,7 @@ ${ioVal}`;
       popupId === 'reconcile' ? 1040 : 760 // Default is 760 (message popups)
     );
     const initialHeight = popupSizes[popupId]?.height || (
+      popupId === 'youtube-popup' ? 420 :
       popupId === 'careTeam' ? 380 :
       popupId === 'dischargeEncounter' ? 600 :
       popupId === 'bedTransfer' ? 550 :
@@ -1153,6 +1166,12 @@ ${ioVal}`;
           y: Math.max(0, e.clientY - dragOffsetCancelDischargeForm.y),
         });
       }
+      if (isDraggingYoutube) {
+        setYoutubePopupPos({
+          x: Math.max(0, e.clientX - dragOffsetYoutube.x),
+          y: Math.max(0, e.clientY - dragOffsetYoutube.y),
+        });
+      }
     };
 
     const handleMouseUp = () => {
@@ -1166,9 +1185,10 @@ ${ioVal}`;
       if (isDraggingDischargeEncounter) setIsDraggingDischargeEncounter(false);
       if (isDraggingCancelWarning) setIsDraggingCancelWarning(false);
       if (isDraggingCancelDischargeForm) setIsDraggingCancelDischargeForm(false);
+      if (isDraggingYoutube) setIsDraggingYoutube(false);
     };
 
-    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam || isDraggingPrintLabels || isDraggingProcessAlert || isDraggingViewEncounter || isDraggingBedTransfer || isDraggingDischargeEncounter || isDraggingCancelWarning || isDraggingCancelDischargeForm) {
+    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam || isDraggingPrintLabels || isDraggingProcessAlert || isDraggingViewEncounter || isDraggingBedTransfer || isDraggingDischargeEncounter || isDraggingCancelWarning || isDraggingCancelDischargeForm || isDraggingYoutube) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
@@ -1176,7 +1196,7 @@ ${ioVal}`;
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam, isDraggingPrintLabels, dragOffsetPrintLabels, isDraggingProcessAlert, dragOffsetProcessAlert, isDraggingViewEncounter, dragOffsetViewEncounter, isDraggingBedTransfer, dragOffsetBedTransfer, isDraggingDischargeEncounter, dragOffsetDischargeEncounter, isDraggingCancelWarning, dragOffsetCancelWarning, isDraggingCancelDischargeForm, dragOffsetCancelDischargeForm]);
+  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam, isDraggingPrintLabels, dragOffsetPrintLabels, isDraggingProcessAlert, dragOffsetProcessAlert, isDraggingViewEncounter, dragOffsetViewEncounter, isDraggingBedTransfer, dragOffsetBedTransfer, isDraggingDischargeEncounter, dragOffsetDischargeEncounter, isDraggingCancelWarning, dragOffsetCancelWarning, isDraggingCancelDischargeForm, dragOffsetCancelDischargeForm, isDraggingYoutube, dragOffsetYoutube]);
 
   const [showConversationLauncher, setShowConversationLauncher] = React.useState(false);
 
@@ -1281,7 +1301,6 @@ ${ioVal}`;
   const [selectedRescheduleReq, setSelectedRescheduleReq] = useState<any>(null);
 
   // Real Scheduling Engine States
-  const [dbRescheduleRequests, setDbRescheduleRequests] = useState<any[]>([]);
   const [availabilityData, setAvailabilityData] = useState<AvailabilityResponse | null>(null);
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
   const [calendarOffsetDays, setCalendarOffsetDays] = useState(0);
@@ -1292,8 +1311,6 @@ ${ioVal}`;
   const [rescheduleReasonSelect, setRescheduleReasonSelect] = useState('Patient Request');
   const [rescheduleReasonText, setRescheduleReasonText] = useState('Patient is not available at current time. Requesting to reschedule.');
   const [appointmentHistoryList, setAppointmentHistoryList] = useState<any[]>([]);
-  const [doctorsList, setDoctorsList] = useState<any[]>([]);
-  const [appointmentTypesList, setAppointmentTypesList] = useState<any[]>([]);
   const [isSubmittingReschedule, setIsSubmittingReschedule] = useState(false);
 
   const loadAvailabilityData = async (docId: string, typeId?: string, offset = 0, excludeId?: string) => {
@@ -3720,7 +3737,11 @@ ${ioVal}`;
         
         {/* Modifying 3-dots (Right Side) */}
         <div className="ml-auto flex items-center gap-2 pr-1 relative">
-          <button className="text-gray-500 hover:text-black p-1 hover:bg-black/5 rounded transition-colors" title="Presentation">
+          <button 
+            onClick={() => setIsYoutubePopupOpen(true)}
+            className="text-gray-500 hover:text-black p-1 hover:bg-black/5 rounded transition-colors" 
+            title="Presentation"
+          >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               width="14" 
@@ -11331,35 +11352,35 @@ No qualifying data available.`;
               <div className="bg-white border border-[#a0a0a0] p-4">
                 <div className="grid grid-cols-7 gap-x-2 gap-y-6">
                   {[
-                    { label: 'Add/Modify Person', icon: '👤', action: () => { selectOrOpenTabRef.current('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe'); setShowConversationLauncher(false); } },
-                    { label: 'Bed Transfer', icon: '🛏️', action: () => { selectOrOpenTabRef.current('ReferralTransfer', 'Referrals & Transfers', 'referrals-transfers-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Add/Modify Person', icon: '👤', action: () => { selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe'); setShowConversationLauncher(false); } },
+                    { label: 'Bed Transfer', icon: '🛏️', action: () => { selectOrOpenTab('ReferralTransfer', 'Referrals & Transfers', 'referrals-transfers-tab'); setShowConversationLauncher(false); } },
                     { label: 'Cancel Discharge', icon: '❌', action: () => { setShowConversationLauncher(false); } },
                     { label: 'Cancel Encounter', icon: '❌', action: () => { setShowConversationLauncher(false); } },
                     { label: 'Cancel Pending...', icon: '❌', action: () => { setShowConversationLauncher(false); } },
                     { label: 'Cancel Pendi...', icon: '❌', action: () => { setShowConversationLauncher(false); } },
                     { label: 'Cancel Transfer', icon: '❌', action: () => { setShowConversationLauncher(false); } },
-                    { label: 'Discharge Encounter', icon: '🚪', action: () => { selectOrOpenTabRef.current('DischargeList', 'Discharge List', 'discharge-list-tab'); setShowConversationLauncher(false); } },
-                    { label: 'Facility Transfer', icon: '🏥', action: () => { selectOrOpenTabRef.current('ReferralTransfer', 'Referrals & Transfers', 'referrals-transfers-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Discharge Encounter', icon: '🚪', action: () => { selectOrOpenTab('DischargeList', 'Discharge List', 'discharge-list-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Facility Transfer', icon: '🏥', action: () => { selectOrOpenTab('ReferralTransfer', 'Referrals & Transfers', 'referrals-transfers-tab'); setShowConversationLauncher(false); } },
                     { label: 'Leave of Absence', icon: '🚶', action: () => { setShowConversationLauncher(false); } },
-                    { label: 'Modify Discharge', icon: '📝', action: () => { selectOrOpenTabRef.current('DischargeList', 'Discharge List', 'discharge-list-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Modify Discharge', icon: '📝', action: () => { selectOrOpenTab('DischargeList', 'Discharge List', 'discharge-list-tab'); setShowConversationLauncher(false); } },
                     { label: 'Newborn Modify', icon: '👶', action: () => { setShowConversationLauncher(false); } },
-                    { label: 'Newborn Quick Reg', icon: '👶', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
-                    { label: 'Pending Discharge', icon: '⏳', action: () => { selectOrOpenTabRef.current('DischargeList', 'Discharge List', 'discharge-list-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Newborn Quick Reg', icon: '👶', action: () => { selectOrOpenTab('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Pending Discharge', icon: '⏳', action: () => { selectOrOpenTab('DischargeList', 'Discharge List', 'discharge-list-tab'); setShowConversationLauncher(false); } },
                     { label: 'Pending Facil...', icon: '⏳', action: () => { setShowConversationLauncher(false); } },
                     { label: 'Pending Transfer', icon: '⏳', action: () => { setShowConversationLauncher(false); } },
-                    { label: 'Pre-Register Outpatient', icon: '📋', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
-                    { label: 'Pre-Register Patient To...', icon: '📋', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
-                    { label: 'Print Specimen Labels', icon: '🏷️', action: () => { selectOrOpenTabRef.current('Labs', 'Labs', 'labs-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Pre-Register Outpatient', icon: '📋', action: () => { selectOrOpenTab('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Pre-Register Patient To...', icon: '📋', action: () => { selectOrOpenTab('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Print Specimen Labels', icon: '🏷️', action: () => { selectOrOpenTab('Labs', 'Labs', 'labs-tab'); setShowConversationLauncher(false); } },
                     { label: 'Process Alert', icon: '⚠️', action: () => { setIsProcessAlertOpen(true); setShowConversationLauncher(false); } },
-                    { label: 'Quick Reg', icon: '⚡', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
-                    { label: 'Referral Management', icon: '👔', action: () => { selectOrOpenTabRef.current('ReferralTransfer', 'Referrals & Transfers', 'referrals-transfers-tab'); setShowConversationLauncher(false); } },
-                    { label: 'Register Outpatient', icon: '🏥', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
-                    { label: 'Register Patient To...', icon: '🏥', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Quick Reg', icon: '⚡', action: () => { selectOrOpenTab('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Referral Management', icon: '👔', action: () => { selectOrOpenTab('ReferralTransfer', 'Referrals & Transfers', 'referrals-transfers-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Register Outpatient', icon: '🏥', action: () => { selectOrOpenTab('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
+                    { label: 'Register Patient To...', icon: '🏥', action: () => { selectOrOpenTab('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
                     { label: 'Stillborn', icon: '👼', action: () => { setShowConversationLauncher(false); } },
-                    { label: 'Update Patient Information', icon: '🔄', action: () => { selectOrOpenTabRef.current('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe'); setShowConversationLauncher(false); } },
+                    { label: 'Update Patient Information', icon: '🔄', action: () => { selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe'); setShowConversationLauncher(false); } },
                     { label: 'View Encounter', icon: '👁️', action: () => { setIsViewEncounterOpen(true); setShowConversationLauncher(false); } },
-                    { label: 'View Person', icon: '👤', action: () => { selectOrOpenTabRef.current('PatientProfile', 'Patient Profile: JOHN DOE', 'patient-doe'); setShowConversationLauncher(false); } },
-                    { label: 'WH Quick Reg', icon: '⚡', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } }
+                    { label: 'View Person', icon: '👤', action: () => { selectOrOpenTab('PatientProfile', 'Patient Profile: JOHN DOE', 'patient-doe'); setShowConversationLauncher(false); } },
+                    { label: 'WH Quick Reg', icon: '⚡', action: () => { selectOrOpenTab('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } }
                   ].map((item, idx) => (
                     <div key={idx} onClick={item.action} className="flex flex-col items-center justify-start text-center cursor-pointer hover:bg-[#e5f1fb] hover:border-[#cce4f7] border border-transparent p-1 rounded-sm">
                       <div className="text-3xl mb-1 flex items-center justify-center h-[36px] w-[36px] bg-no-repeat bg-center" style={{ filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.2))' }}>
@@ -15526,6 +15547,57 @@ No qualifying data available.`;
           <div className="absolute bottom-0 right-0 w-[10px] h-[10px] cursor-se-resize z-[99999]" onMouseDown={(e) => startResizing(e, popup.id, 'br')} />
         </div>
       ))}
+
+      {isYoutubePopupOpen && (
+        <div
+          className="fixed bg-[#cbd8e3] border border-[#bdcddc] rounded shadow-2xl flex flex-col font-sans select-none overflow-hidden"
+          style={{
+            left: `${youtubePopupPos.x}px`,
+            top: `${youtubePopupPos.y}px`,
+            width: `${popupSizes['youtube-popup']?.width || 640}px`,
+            height: `${popupSizes['youtube-popup']?.height || 420}px`,
+            zIndex: 99999,
+          }}
+        >
+          {/* Draggable Title Bar */}
+          <div
+            onMouseDown={(e) => {
+              setIsDraggingYoutube(true);
+              setDragOffsetYoutube({
+                x: e.clientX - youtubePopupPos.x,
+                y: e.clientY - youtubePopupPos.y,
+              });
+              e.preventDefault();
+            }}
+            className="bg-[#0f4471] text-white flex justify-between items-center px-2.5 py-1.5 cursor-move select-none"
+          >
+            <span className="font-bold text-[11px] flex items-center gap-1.5">
+              📺 Quantaforze HRM - YouTube Channel
+            </span>
+            <button
+              onClick={() => setIsYoutubePopupOpen(false)}
+              className="text-white hover:text-red-300 font-bold text-sm px-1"
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Iframe content */}
+          <div className="flex-1 bg-white relative">
+            <iframe 
+              src="https://www.youtube.com/embed?listType=user_uploads&list=Quantaforze-hrm"
+              className="w-full h-full border-none"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowFullScreen
+            />
+          </div>
+
+          {/* Resize Handles */}
+          <div className="absolute right-0 top-0 bottom-0 w-[5px] cursor-ew-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'youtube-popup', 'r')} />
+          <div className="absolute bottom-0 left-0 right-0 h-[5px] cursor-ns-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'youtube-popup', 'b')} />
+          <div className="absolute bottom-0 right-0 w-[10px] h-[10px] cursor-se-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'youtube-popup', 'br')} />
+        </div>
+      )}
 
       {isNewOrderModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999999] p-4 select-none">

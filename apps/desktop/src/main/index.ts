@@ -4,7 +4,7 @@
  * Creates the main application window and sets up IPC handlers.
  */
 import { app, BrowserWindow, Menu } from 'electron';
-import squirrelStartup from 'electron-squirrel-startup';
+const squirrelStartup = require('electron-squirrel-startup');
 import { createMainWindow } from './window';
 import { registerIpcHandlers } from './ipc';
 
@@ -13,7 +13,7 @@ if (squirrelStartup) {
   app.quit();
 }
 
-let mainWindow: BrowserWindow | null = null;
+export let mainWindow: BrowserWindow | null = null;
 
 app.on('ready', async () => {
   Menu.setApplicationMenu(null);
