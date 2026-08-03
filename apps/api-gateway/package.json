@@ -27,6 +27,7 @@
     "@axiovital/module-patient": "*",
     "@axiovital/module-doctor": "*",
     "@axiovital/module-appointment": "*",
+    "@axiovital/module-scheduling": "*",
     "@axiovital/module-admission": "*",
     "@axiovital/module-emergency": "*",
     "@axiovital/module-laboratory": "*",

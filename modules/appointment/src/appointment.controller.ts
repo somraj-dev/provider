@@ -16,7 +16,7 @@ export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
   @Post()
-  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN')
+  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Schedule a new appointment' })
   async createAppointment(
     @TenantId() tenantId: string,
@@ -27,7 +27,7 @@ export class AppointmentController {
   }
 
   @Get()
-  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN')
+  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'List and filter appointments' })
   @ApiQuery({ name: 'doctorId', required: false })
   @ApiQuery({ name: 'patientId', required: false })
@@ -50,7 +50,7 @@ export class AppointmentController {
   }
 
   @Get(':id')
-  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN')
+  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Get appointment details by ID' })
   @ApiParam({ name: 'id', description: 'Appointment UUID' })
   async getAppointmentById(
@@ -60,8 +60,19 @@ export class AppointmentController {
     return this.appointmentService.getAppointmentById(tenantId, id);
   }
 
+  @Get(':id/history')
+  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Get status change and reschedule audit history of an appointment' })
+  @ApiParam({ name: 'id', description: 'Appointment UUID' })
+  async getHistory(
+    @TenantId() tenantId: string,
+    @Param('id') id: string,
+  ) {
+    return this.appointmentService.getHistory(tenantId, id);
+  }
+
   @Patch(':id/status')
-  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN')
+  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Update appointment status (Confirm, Cancel, In-Progress, Complete, No-Show)' })
   @ApiParam({ name: 'id', description: 'Appointment UUID' })
   async updateStatus(
@@ -74,7 +85,7 @@ export class AppointmentController {
   }
 
   @Put(':id/reschedule')
-  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN')
+  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Reschedule appointment to a new date/time' })
   @ApiParam({ name: 'id', description: 'Appointment UUID' })
   async reschedule(
@@ -84,5 +95,43 @@ export class AppointmentController {
     @Body() dto: RescheduleAppointmentDto,
   ) {
     return this.appointmentService.reschedule(tenantId, id, dto, user.sub);
+  }
+
+  @Post(':id/reschedule')
+  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Reschedule appointment (POST route alias)' })
+  @ApiParam({ name: 'id', description: 'Appointment UUID' })
+  async reschedulePost(
+    @TenantId() tenantId: string,
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: RescheduleAppointmentDto,
+  ) {
+    return this.appointmentService.reschedule(tenantId, id, dto, user.sub);
+  }
+
+  @Post(':id/cancel')
+  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN')
+  @ApiOperation({ summary: 'Cancel an appointment' })
+  @ApiParam({ name: 'id', description: 'Appointment UUID' })
+  async cancelAppointment(
+    @TenantId() tenantId: string,
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+  ) {
+    return this.appointmentService.cancelAppointment(tenantId, id, reason || 'Cancelled by staff', user.sub);
+  }
+
+  @Post(':id/check-in')
+  @Roles('DOCTOR', 'NURSE', 'RECEPTIONIST', 'TENANT_ADMIN')
+  @ApiOperation({ summary: 'Check in patient for scheduled appointment' })
+  @ApiParam({ name: 'id', description: 'Appointment UUID' })
+  async checkInAppointment(
+    @TenantId() tenantId: string,
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+  ) {
+    return this.appointmentService.checkInAppointment(tenantId, id, user.sub);
   }
 }

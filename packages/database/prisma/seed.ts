@@ -341,6 +341,207 @@ async function main() {
   }
   console.log(`✅ Inventory: ${medications.length} medications created`);
 
+  // ============================================
+  // 11. CREATE APPOINTMENT TYPES
+  // ============================================
+  const apptTypes = [
+    { code: 'NEW_CONSULTATION', name: 'New Consultation', durationMinutes: 30, preBufferMin: 0, postBufferMin: 5, color: '#3b82f6', sortOrder: 1 },
+    { code: 'FOLLOW_UP', name: 'Follow-up Visit', durationMinutes: 15, preBufferMin: 0, postBufferMin: 5, color: '#10b981', sortOrder: 2 },
+    { code: 'POST_OP_REVIEW', name: 'Post-operative Review', durationMinutes: 20, preBufferMin: 0, postBufferMin: 5, color: '#8b5cf6', sortOrder: 3 },
+    { code: 'TELECONSULTATION', name: 'Teleconsultation', durationMinutes: 20, preBufferMin: 0, postBufferMin: 0, color: '#ec4899', sortOrder: 4 },
+    { code: 'PROCEDURE_CONSULTATION', name: 'Procedure Consultation', durationMinutes: 45, preBufferMin: 10, postBufferMin: 10, color: '#f59e0b', sortOrder: 5 },
+  ];
+
+  const createdApptTypes: Record<string, string> = {};
+  for (const t of apptTypes) {
+    const config = await prisma.appointmentTypeConfig.upsert({
+      where: { tenantId_code: { tenantId: tenant.id, code: t.code } },
+      update: {},
+      create: {
+        tenantId: tenant.id,
+        code: t.code,
+        name: t.name,
+        durationMinutes: t.durationMinutes,
+        preBufferMin: t.preBufferMin,
+        postBufferMin: t.postBufferMin,
+        color: t.color,
+        sortOrder: t.sortOrder,
+      },
+    });
+    createdApptTypes[t.code] = config.id;
+  }
+  console.log(`✅ Appointment Types: ${apptTypes.length} configured`);
+
+  // ============================================
+  // 12. CREATE SCHEDULING POLICY
+  // ============================================
+  await prisma.schedulingPolicy.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000001' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000001',
+      tenantId: tenant.id,
+      facilityId: facility.id,
+      slotGranularityMin: 15,
+      maxAdvanceBookingDays: 90,
+      minAdvanceBookingHours: 1,
+      holdDurationSeconds: 300,
+      allowDoubleBooking: false,
+    },
+  });
+  console.log(`✅ Scheduling Policy configured`);
+
+  // ============================================
+  // 13. SEED DOCTOR SCHEDULE TEMPLATES
+  // ============================================
+  const doctors = await prisma.doctor.findMany({ where: { tenantId: tenant.id } });
+  for (const doc of doctors) {
+    const template = await prisma.scheduleTemplate.create({
+      data: {
+        tenantId: tenant.id,
+        doctorId: doc.id,
+        facilityId: facility.id,
+        name: `Weekly Schedule for Dr. ${doc.id.substring(0, 6)}`,
+        effectiveFrom: new Date('2025-01-01T00:00:00Z'),
+        slotGranularityMin: 15,
+        isActive: true,
+        rules: {
+          create: [
+            { dayOfWeek: 'MONDAY', startTime: '09:00', endTime: '13:00' },
+            { dayOfWeek: 'MONDAY', startTime: '14:00', endTime: '17:00' },
+            { dayOfWeek: 'TUESDAY', startTime: '09:00', endTime: '13:00' },
+            { dayOfWeek: 'TUESDAY', startTime: '14:00', endTime: '17:00' },
+            { dayOfWeek: 'WEDNESDAY', startTime: '09:00', endTime: '13:00' },
+            { dayOfWeek: 'WEDNESDAY', startTime: '14:00', endTime: '17:00' },
+            { dayOfWeek: 'THURSDAY', startTime: '09:00', endTime: '13:00' },
+            { dayOfWeek: 'FRIDAY', startTime: '10:00', endTime: '16:00' },
+            { dayOfWeek: 'SATURDAY', startTime: '09:00', endTime: '12:00' },
+          ],
+        },
+      },
+    });
+
+    // Add Lunch break override
+    await prisma.scheduleOverride.create({
+      data: {
+        tenantId: tenant.id,
+        doctorId: doc.id,
+        date: new Date('2026-08-05T00:00:00Z'),
+        startTime: '13:00',
+        endTime: '14:00',
+        type: 'BREAK',
+        reason: 'Lunch Break',
+      },
+    });
+  }
+  console.log(`✅ Schedule Templates & Rules created for ${doctors.length} doctors`);
+
+  // ============================================
+  // 14. SEED SAMPLE PATIENTS FOR SCHEDULING
+  // ============================================
+  const samplePatients = [
+    { firstName: 'Rahul', lastName: 'Patel', mrn: '1000245679', phone: '9876543211', dob: '1986-07-22' },
+    { firstName: 'Maria', lastName: 'Johnson', mrn: '1000245680', phone: '9876543212', dob: '1990-03-15' },
+    { firstName: 'David', lastName: 'Lee', mrn: '1000245681', phone: '9876543213', dob: '1982-11-05' },
+    { firstName: 'Lucia', lastName: 'Garcia', mrn: '1000245682', phone: '9876543214', dob: '1995-01-20' },
+    { firstName: 'Michael', lastName: 'Thomas', mrn: '1000245683', phone: '9876543215', dob: '1978-08-30' },
+    { firstName: 'James', lastName: 'Kim', mrn: '1000245684', phone: '9876543216', dob: '1988-12-12' },
+    { firstName: 'Elizabeth', lastName: 'Brown', mrn: '1000245685', phone: '9876543217', dob: '1992-04-18' },
+    { firstName: 'Charles', lastName: 'White', mrn: '1000245686', phone: '9876543218', dob: '1970-06-25' },
+  ];
+
+  const createdPatients: Record<string, any> = {};
+  for (const p of samplePatients) {
+    const patient = await prisma.patient.upsert({
+      where: { tenantId_mrn: { tenantId: tenant.id, mrn: p.mrn } },
+      update: {},
+      create: {
+        tenantId: tenant.id,
+        mrn: p.mrn,
+        firstName: p.firstName,
+        lastName: p.lastName,
+        dateOfBirth: new Date(p.dob),
+        gender: 'MALE',
+        phone: p.phone,
+        email: `${p.firstName.toLowerCase()}.${p.lastName.toLowerCase()}@email.com`,
+      },
+    });
+    createdPatients[p.mrn] = patient;
+  }
+  console.log(`✅ ${samplePatients.length} Patients created for scheduling`);
+
+  // ============================================
+  // 15. SEED APPOINTMENTS & RESCHEDULE REQUESTS
+  // ============================================
+  const docList = await prisma.doctor.findMany({ include: { user: true } });
+  const docMap: Record<string, string> = {};
+  docList.forEach(d => { docMap[d.user.lastName] = d.id; });
+
+  const primaryDocId = docList[0]?.id || doctors[0].id;
+  const adminUser = await prisma.user.findFirst({ where: { email: 'administrator@axiovital.com' } });
+
+  const rescheduleData = [
+    { mrn: '1000245679', docName: 'Sharma', currentStart: '2026-08-05T10:30:00Z', priority: 'NORMAL', reqStatus: 'PENDING', notes: 'Patient requested to change the appointment time.' },
+    { mrn: '1000245680', docName: 'Stewart', currentStart: '2026-08-05T11:00:00Z', priority: 'NORMAL', reqStatus: 'PENDING', notes: 'Work conflict.' },
+    { mrn: '1000245681', docName: 'Iyer', currentStart: '2026-08-05T15:00:00Z', priority: 'HIGH', reqStatus: 'REVIEWING', notes: 'Personal Emergency' },
+    { mrn: '1000245682', docName: 'Stewart', currentStart: '2026-08-06T09:00:00Z', priority: 'NORMAL', reqStatus: 'APPROVED', notes: 'Travel conflict.' },
+    { mrn: '1000245683', docName: 'Sharma', currentStart: '2026-08-06T11:30:00Z', priority: 'NORMAL', reqStatus: 'DECLINED', notes: 'Schedule conflict.' },
+    { mrn: '1000245684', docName: 'Iyer', currentStart: '2026-08-07T14:00:00Z', priority: 'LOW', reqStatus: 'PENDING', notes: 'Not available.' },
+    { mrn: '1000245685', docName: 'Sharma', currentStart: '2026-08-07T16:00:00Z', priority: 'NORMAL', reqStatus: 'PENDING', notes: 'Family function.' },
+    { mrn: '1000245686', docName: 'Stewart', currentStart: '2026-08-08T10:00:00Z', priority: 'NORMAL', reqStatus: 'PENDING', notes: 'Patient request.' },
+  ];
+
+  for (const r of rescheduleData) {
+    const patient = createdPatients[r.mrn];
+    const docId = docMap[r.docName] || primaryDocId;
+    if (!patient) continue;
+
+    const start = new Date(r.currentStart);
+    const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+    const appt = await prisma.appointment.create({
+      data: {
+        tenantId: tenant.id,
+        patientId: patient.id,
+        doctorId: docId,
+        facilityId: facility.id,
+        departmentId: departments['GEN'] || null,
+        appointmentTypeId: createdApptTypes['FOLLOW_UP'] || null,
+        startTime: start,
+        endTime: end,
+        durationMinutes: 30,
+        reason: 'Regular Follow-up Visit',
+        status: 'SCHEDULED',
+      },
+    });
+
+    await prisma.appointmentRequest.create({
+      data: {
+        tenantId: tenant.id,
+        appointmentId: appt.id,
+        patientId: patient.id,
+        requestType: 'RESCHEDULE',
+        status: r.reqStatus as any,
+        priority: r.priority,
+        reason: r.notes,
+        notes: r.notes,
+        requestedBy: patient.id,
+        requestedNewStart: new Date(start.getTime() + 48 * 3600 * 1000), // +2 days
+      },
+    });
+
+    await prisma.appointmentStatusHistory.create({
+      data: {
+        appointmentId: appt.id,
+        fromStatus: null,
+        toStatus: 'SCHEDULED',
+        reason: 'Original appointment scheduled',
+        changedBy: adminUser?.id || patient.id,
+      },
+    });
+  }
+  console.log(`✅ ${rescheduleData.length} Appointments & Reschedule Requests seeded!`);
+
   console.log('\n🏥 AxioVital seed complete!');
   console.log(`\n📋 Login credentials:`);
   console.log(`   Tenant ID: ${tenant.id}`);

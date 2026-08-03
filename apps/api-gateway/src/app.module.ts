@@ -20,6 +20,7 @@ import { AuthModule, JwtAuthGuard } from '@axiovital/auth';
 import { PatientModule } from '@axiovital/module-patient';
 import { DoctorModule } from '@axiovital/module-doctor';
 import { AppointmentModule } from '@axiovital/module-appointment';
+import { SchedulingModule } from '@axiovital/module-scheduling';
 import { AdmissionModule } from '@axiovital/module-admission';
 import { EmergencyModule } from '@axiovital/module-emergency';
 import { LaboratoryModule } from '@axiovital/module-laboratory';
@@ -59,6 +60,7 @@ import { WsModule } from './ws/ws.module';
     PatientModule,
     DoctorModule,
     AppointmentModule,
+    SchedulingModule,
     AdmissionModule,
     EmergencyModule,
     LaboratoryModule,
