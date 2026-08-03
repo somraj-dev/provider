@@ -939,6 +939,18 @@ ${ioVal}`;
   const [isDraggingPrintLabels, setIsDraggingPrintLabels] = useState(false);
   const [dragOffsetPrintLabels, setDragOffsetPrintLabels] = useState({ x: 0, y: 0 });
 
+  // Process Alert Popup State
+  const [isProcessAlertOpen, setIsProcessAlertOpen] = useState(false);
+  const [processAlertPos, setProcessAlertPos] = useState({ x: 280, y: 110 });
+  const [isDraggingProcessAlert, setIsDraggingProcessAlert] = useState(false);
+  const [dragOffsetProcessAlert, setDragOffsetProcessAlert] = useState({ x: 0, y: 0 });
+
+  // View Encounter Popup State (Medical Record Request 1:1 Replica)
+  const [isViewEncounterOpen, setIsViewEncounterOpen] = useState(false);
+  const [viewEncounterPos, setViewEncounterPos] = useState({ x: 200, y: 80 });
+  const [isDraggingViewEncounter, setIsDraggingViewEncounter] = useState(false);
+  const [dragOffsetViewEncounter, setDragOffsetViewEncounter] = useState({ x: 0, y: 0 });
+
   // Bed Transfer Popup State
   const [isBedTransferOpen, setIsBedTransferOpen] = useState(false);
 
@@ -967,6 +979,74 @@ ${ioVal}`;
   // Facility Transfer State
   const [isFacilityTransferOpen, setIsFacilityTransferOpen] = useState(false);
   const [isRecipientTransferOpen, setIsRecipientTransferOpen] = useState(false);
+
+  // Resize handler for all popups
+  const [popupSizes, setPopupSizes] = useState<Record<string, {width: number, height: number}>>({});
+
+  const startResizing = (e: React.MouseEvent, popupId: string, direction: 'r' | 'b' | 'br') => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    
+    // Default initial sizes for all popups
+    const initialWidth = popupSizes[popupId]?.width || (
+      popupId === 'careTeam' ? 420 :
+      popupId === 'dischargeEncounter' ? 900 :
+      popupId === 'bedTransfer' ? 800 :
+      popupId.startsWith('facilityTransfer') ? 520 :
+      popupId === 'printLabels' ? 500 :
+      popupId === 'processAlert' ? 720 :
+      popupId === 'viewEncounter' ? 870 :
+      popupId === 'subPopup' ? 540 :
+      popupId === 'cancelWarning' ? 450 :
+      popupId === 'cancelDischarge' ? 800 :
+      popupId === 'reconcile' ? 1040 : 760 // Default is 760 (message popups)
+    );
+    const initialHeight = popupSizes[popupId]?.height || (
+      popupId === 'careTeam' ? 380 :
+      popupId === 'dischargeEncounter' ? 600 :
+      popupId === 'bedTransfer' ? 550 :
+      popupId.startsWith('facilityTransfer') ? 425 :
+      popupId === 'printLabels' ? 380 :
+      popupId === 'processAlert' ? 500 :
+      popupId === 'viewEncounter' ? 450 :
+      popupId === 'subPopup' ? 380 :
+      popupId === 'cancelWarning' ? 200 :
+      popupId === 'cancelDischarge' ? 500 :
+      popupId === 'reconcile' ? 650 : 400
+    );
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      
+      const newSize = {
+        width: initialWidth,
+        height: initialHeight
+      };
+
+      if (direction === 'r' || direction === 'br') {
+        newSize.width = Math.max(300, initialWidth + dx);
+      }
+      if (direction === 'b' || direction === 'br') {
+        newSize.height = Math.max(150, initialHeight + dy);
+      }
+
+      setPopupSizes(prev => ({
+        ...prev,
+        [popupId]: newSize
+      }));
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1007,6 +1087,18 @@ ${ioVal}`;
           y: Math.max(0, e.clientY - dragOffsetPrintLabels.y),
         });
       }
+      if (isDraggingProcessAlert) {
+        setProcessAlertPos({
+          x: Math.max(0, e.clientX - dragOffsetProcessAlert.x),
+          y: Math.max(0, e.clientY - dragOffsetProcessAlert.y),
+        });
+      }
+      if (isDraggingViewEncounter) {
+        setViewEncounterPos({
+          x: Math.max(0, e.clientX - dragOffsetViewEncounter.x),
+          y: Math.max(0, e.clientY - dragOffsetViewEncounter.y),
+        });
+      }
       if (isDraggingBedTransfer) {
         setBedTransferPos({
           x: Math.max(0, e.clientX - dragOffsetBedTransfer.x),
@@ -1038,13 +1130,15 @@ ${ioVal}`;
       if (isDraggingSub) setIsDraggingSub(false);
       if (isDraggingCareTeam) setIsDraggingCareTeam(false);
       if (isDraggingPrintLabels) setIsDraggingPrintLabels(false);
+      if (isDraggingProcessAlert) setIsDraggingProcessAlert(false);
+      if (isDraggingViewEncounter) setIsDraggingViewEncounter(false);
       if (isDraggingBedTransfer) setIsDraggingBedTransfer(false);
       if (isDraggingDischargeEncounter) setIsDraggingDischargeEncounter(false);
       if (isDraggingCancelWarning) setIsDraggingCancelWarning(false);
       if (isDraggingCancelDischargeForm) setIsDraggingCancelDischargeForm(false);
     };
 
-    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam || isDraggingPrintLabels || isDraggingBedTransfer || isDraggingDischargeEncounter || isDraggingCancelWarning || isDraggingCancelDischargeForm) {
+    if (isDraggingReconcile || isDraggingSub || isDraggingCareTeam || isDraggingPrintLabels || isDraggingProcessAlert || isDraggingViewEncounter || isDraggingBedTransfer || isDraggingDischargeEncounter || isDraggingCancelWarning || isDraggingCancelDischargeForm) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
@@ -1052,7 +1146,7 @@ ${ioVal}`;
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam, isDraggingPrintLabels, dragOffsetPrintLabels, isDraggingBedTransfer, dragOffsetBedTransfer, isDraggingDischargeEncounter, dragOffsetDischargeEncounter, isDraggingCancelWarning, dragOffsetCancelWarning, isDraggingCancelDischargeForm, dragOffsetCancelDischargeForm]);
+  }, [isDraggingReconcile, dragOffset, isDraggingSub, dragOffsetSub, isDraggingCareTeam, dragOffsetCareTeam, isDraggingPrintLabels, dragOffsetPrintLabels, isDraggingProcessAlert, dragOffsetProcessAlert, isDraggingViewEncounter, dragOffsetViewEncounter, isDraggingBedTransfer, dragOffsetBedTransfer, isDraggingDischargeEncounter, dragOffsetDischargeEncounter, isDraggingCancelWarning, dragOffsetCancelWarning, isDraggingCancelDischargeForm, dragOffsetCancelDischargeForm]);
 
   const [showConversationLauncher, setShowConversationLauncher] = React.useState(false);
 
@@ -2099,7 +2193,7 @@ ${ioVal}`;
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-white/80">
-            <span className="cursor-pointer hover:underline">Logout</span>
+            <span onClick={handleLogout} className="cursor-pointer hover:underline">Logout</span>
             <span>|</span>
             <span 
               onClick={() => window.open('https://support.trackcodex.com/', '_blank')} 
@@ -2981,52 +3075,26 @@ ${ioVal}`;
       
       {!isFullscreen && (
         <>
-          {/* Title Bar */}
-          <div className="bg-[#002a46] text-white px-3 py-1.5 flex justify-between items-center border-b border-[#001729]">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-xs tracking-wide">AxioVital Operating Environment</span>
+          {/* Top Header styled as a single bright bar */}
+          <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-1 flex gap-3 text-[#2c3e50] text-[11px] items-center relative z-50">
+            <div className="flex items-center gap-2 select-none pr-3">
+              <span className="font-bold text-xs tracking-wide text-[#0f4471]">Axiovital HRM</span>
             </div>
-            <div className="flex items-center">
-              <button className="text-gray-300 hover:text-white p-1 hover:bg-white/10 rounded transition-colors" title="Presentation">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 3h18" />
-                  <rect x="4" y="3" width="16" height="12" rx="1" />
-                  <rect x="9" y="6" width="6" height="6" rx="1" />
-                  <polygon points="11.5,7.5 13.5,9 11.5,10.5" fill="currentColor" />
-                  <path d="M12 15v4" />
-                  <path d="M9 19h6" />
-                </svg>
+            {isHomeDropdownOpen && (
+              <div 
+                className="fixed inset-0 z-40 bg-transparent" 
+                onClick={() => setIsHomeDropdownOpen(false)}
+              />
+            )}
+            <div className="relative z-50">
+              <button 
+                onClick={() => {
+                  setIsHomeDropdownOpen(!isHomeDropdownOpen);
+                }}
+                className="hover:bg-[#dbe6ef] hover:text-[#002a46] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#2c3e50]"
+              >
+                Home
               </button>
-            </div>
-          </div>
-
-      {/* Classic Menu Bar */}
-      <div className="bg-[#f0f4f8] border-b border-[#bdcddc] px-3 py-0.5 flex gap-3 text-[#2c3e50] text-[10.5px] items-center relative z-50">
-        {isHomeDropdownOpen && (
-          <div 
-            className="fixed inset-0 z-40 bg-transparent" 
-            onClick={() => setIsHomeDropdownOpen(false)}
-          />
-        )}
-        <div className="relative z-50">
-          <button 
-            onClick={() => {
-              setIsHomeDropdownOpen(!isHomeDropdownOpen);
-            }}
-            className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold"
-          >
-            Home
-          </button>
           
           {isHomeDropdownOpen && (
             <div className="absolute left-0 top-full mt-0.5 bg-white border border-[#b0b0b0] text-[#333333] text-[11px] p-0 w-[180px] shadow-lg rounded-none z-50 py-1 font-sans">
@@ -3075,13 +3143,13 @@ ${ioVal}`;
             </div>
           )}
         </div>
-        <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors">
+        <button className="hover:bg-[#dbe6ef] hover:text-[#002a46] px-1.5 py-0.5 rounded-sm transition-colors text-[#2c3e50] font-semibold">
           Ledger
         </button>
 
         {/* Patient Dropdown Trigger */}
         <div className="relative group">
-          <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#002a46]">
+          <button className="hover:bg-[#dbe6ef] hover:text-[#002a46] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#2c3e50]">
             ambulatory
           </button>
           <div className="absolute left-0 top-full -mt-0.5 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none z-50">
@@ -3119,7 +3187,7 @@ ${ioVal}`;
 
         {/* Simple clinical menu trigger */}
         <div className="relative group">
-          <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#002a46]">
+          <button className="hover:bg-[#dbe6ef] hover:text-[#002a46] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#2c3e50]">
             Clinical
           </button>
           <div className="absolute left-0 top-full -mt-0.5 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none overflow-y-auto max-h-[85vh] scrollbar-none z-50">
@@ -3182,14 +3250,14 @@ ${ioVal}`;
         {/* Top Notifications Trigger */}
         <button 
           onClick={() => selectOrOpenTab('Notifications', 'Notifications', 'notifications-tab')}
-          className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors"
+          className="hover:bg-[#dbe6ef] hover:text-[#002a46] px-1.5 py-0.5 rounded-sm transition-colors text-[#2c3e50] font-semibold"
         >
           Notifications
         </button>
 
         {/* Admin Dropdown Trigger */}
         <div className="relative group">
-          <button className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#002a46]">
+          <button className="hover:bg-[#dbe6ef] hover:text-[#002a46] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#2c3e50]">
             Admin
           </button>
           <div className="absolute left-0 top-full -mt-0.5 hidden group-hover:block bg-white border border-[#b0b0b0] text-[#333333] text-[12px] p-0 w-[180px] shadow-md rounded-none select-none z-50">
@@ -3217,7 +3285,7 @@ ${ioVal}`;
         <div className="relative z-50">
           <button 
             onClick={() => setIsHelpDropdownOpen(!isHelpDropdownOpen)}
-            className="hover:bg-[#dbe6ef] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#002a46]"
+            className="hover:bg-[#dbe6ef] hover:text-[#002a46] px-1.5 py-0.5 rounded-sm transition-colors font-semibold text-[#2c3e50]"
           >
             Help
           </button>
@@ -3467,10 +3535,30 @@ ${ioVal}`;
         </div>
         
         {/* Modifying 3-dots (Right Side) */}
-        <div className="ml-auto flex items-center pr-1 relative">
+        <div className="ml-auto flex items-center gap-2 pr-1 relative">
+          <button className="text-gray-500 hover:text-black p-1 hover:bg-black/5 rounded transition-colors" title="Presentation">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="14" 
+              height="14" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M3 3h18" />
+              <rect x="4" y="3" width="16" height="12" rx="1" />
+              <rect x="9" y="6" width="6" height="6" rx="1" />
+              <polygon points="11.5,7.5 13.5,9 11.5,10.5" fill="currentColor" />
+              <path d="M12 15v4" />
+              <path d="M9 19h6" />
+            </svg>
+          </button>
           <div 
             onClick={() => setIsRibbon0DropdownOpen(!isRibbon0DropdownOpen)} 
-            className="flex flex-col gap-[2px] cursor-pointer hover:bg-[#dbe6ef] p-1.5 rounded transition-colors" 
+            className="flex flex-col gap-[2px] cursor-pointer hover:bg-black/5 p-1.5 rounded transition-colors" 
             title="Customize Menu Bar"
           >
             <div className="w-[3px] h-[3px] bg-[#5c4b4a] rounded-full"></div>
@@ -6532,7 +6620,9 @@ ${ioVal}`;
                             key={item}
                             onClick={() => {
                               if (item === 'Process Alert') {
-                                setTimeout(() => alert('Process Alert initiated for ' + displayName), 10);
+                                setIsProcessAlertOpen(true);
+                              } else if (item === 'View Encounter') {
+                                setIsViewEncounterOpen(true);
                               } else if (item === 'Update Patient Information') {
                                 selectOrOpenTab('EditPatientProfile', 'Edit Patient Profile: ' + displayName, 'edit-patient-doe');
                               } else if (item === 'Print Labels') {
@@ -11064,14 +11154,14 @@ No qualifying data available.`;
                     { label: 'Pre-Register Outpatient', icon: '📋', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
                     { label: 'Pre-Register Patient To...', icon: '📋', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
                     { label: 'Print Specimen Labels', icon: '🏷️', action: () => { selectOrOpenTabRef.current('Labs', 'Labs', 'labs-tab'); setShowConversationLauncher(false); } },
-                    { label: 'Process Alert', icon: '⚠️', action: () => { setShowConversationLauncher(false); } },
+                    { label: 'Process Alert', icon: '⚠️', action: () => { setIsProcessAlertOpen(true); setShowConversationLauncher(false); } },
                     { label: 'Quick Reg', icon: '⚡', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
                     { label: 'Referral Management', icon: '👔', action: () => { selectOrOpenTabRef.current('ReferralTransfer', 'Referrals & Transfers', 'referrals-transfers-tab'); setShowConversationLauncher(false); } },
                     { label: 'Register Outpatient', icon: '🏥', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
                     { label: 'Register Patient To...', icon: '🏥', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } },
                     { label: 'Stillborn', icon: '👼', action: () => { setShowConversationLauncher(false); } },
                     { label: 'Update Patient Information', icon: '🔄', action: () => { selectOrOpenTabRef.current('EditPatientProfile', 'Edit Patient Profile: JOHN DOE', 'edit-patient-doe'); setShowConversationLauncher(false); } },
-                    { label: 'View Encounter', icon: '👁️', action: () => { selectOrOpenTabRef.current('PatientProfile', 'Patient Profile: JOHN DOE', 'patient-doe'); setShowConversationLauncher(false); } },
+                    { label: 'View Encounter', icon: '👁️', action: () => { setIsViewEncounterOpen(true); setShowConversationLauncher(false); } },
                     { label: 'View Person', icon: '👤', action: () => { selectOrOpenTabRef.current('PatientProfile', 'Patient Profile: JOHN DOE', 'patient-doe'); setShowConversationLauncher(false); } },
                     { label: 'WH Quick Reg', icon: '⚡', action: () => { selectOrOpenTabRef.current('AdmitPatient', 'Admit Patient', 'admit-patient-tab'); setShowConversationLauncher(false); } }
                   ].map((item, idx) => (
@@ -12499,8 +12589,13 @@ No qualifying data available.`;
       {/* Draggable Outpatient Order Reconciliation Popup (Exact 1:1 Replica of Cerner PowerChart) */}
       {isReconcileOpen && (
         <div 
-          className="fixed bg-white border-2 border-[#194d7b] shadow-2xl rounded-none w-[1040px] max-h-[92vh] flex flex-col select-none z-[99990] overflow-hidden text-[10.5px] text-gray-800 font-sans"
-          style={{ left: `${reconcilePos.x}px`, top: `${reconcilePos.y}px` }}
+          className="fixed bg-white border-2 border-[#194d7b] shadow-2xl rounded-none max-h-[92vh] flex flex-col select-none z-[99990] overflow-hidden text-[10.5px] text-gray-800 font-sans"
+          style={{ 
+            left: `${reconcilePos.x}px`, 
+            top: `${reconcilePos.y}px`,
+            width: `${popupSizes['reconcile']?.width || 1040}px`,
+            height: `${popupSizes['reconcile']?.height || 650}px`
+          }}
         >
           {/* Window Title Bar */}
           <div 
@@ -12612,7 +12707,7 @@ No qualifying data available.`;
           </div>
 
           {/* Scrollable Table Body */}
-          <div className="flex-1 overflow-y-auto bg-white min-h-[370px] max-h-[460px] divide-y divide-gray-200 font-sans">
+          <div className="flex-1 overflow-y-auto bg-white min-h-[150px] divide-y divide-gray-200 font-sans">
             
             {/* Group Bar 1: Home Medications */}
             <div className="grid grid-cols-2 divide-x divide-gray-300 bg-[#d3e3f3] border-b border-gray-300 font-bold text-[#0f4471] items-center text-[11px] sticky top-0 z-10">
@@ -12784,8 +12879,13 @@ No qualifying data available.`;
       {/* Care Team Draggable Popup Card */}
       {isCareTeamOpen && (
         <div 
-          className="fixed bg-white border-2 border-[#194d7b] shadow-2xl rounded-none w-[420px] flex flex-col select-none z-[99990] overflow-hidden text-[11px] text-gray-800 font-sans"
-          style={{ left: `${careTeamPos.x}px`, top: `${careTeamPos.y}px` }}
+          className="fixed bg-white border-2 border-[#194d7b] shadow-2xl rounded-none flex flex-col select-none z-[99990] overflow-hidden text-[11px] text-gray-800 font-sans"
+          style={{ 
+            left: `${careTeamPos.x}px`, 
+            top: `${careTeamPos.y}px`,
+            width: `${popupSizes['careTeam']?.width || 420}px`,
+            height: `${popupSizes['careTeam']?.height || 380}px`
+          }}
         >
           {/* Window Title Bar */}
           <div 
@@ -12805,7 +12905,7 @@ No qualifying data available.`;
           </div>
 
           {/* Details Body */}
-          <div className="p-4 space-y-3 bg-[#fafbfc] select-text">
+          <div className="p-4 space-y-3 bg-[#fafbfc] select-text flex-1 overflow-y-auto">
             <div className="space-y-2 border border-gray-300 p-3 bg-white shadow-xs">
               <div className="grid grid-cols-[110px_1fr] gap-x-2 gap-y-2.5 text-[11px] text-gray-700 font-sans">
                 <span className="text-gray-500 font-semibold text-right">Primary Physician:</span>
@@ -12842,6 +12942,10 @@ No qualifying data available.`;
               </button>
             </div>
           </div>
+          {/* Resize Handles */}
+          <div className="absolute right-0 top-0 bottom-0 w-[5px] cursor-ew-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'careTeam', 'r')} />
+          <div className="absolute bottom-0 left-0 right-0 h-[5px] cursor-ns-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'careTeam', 'b')} />
+          <div className="absolute bottom-0 right-0 w-[10px] h-[10px] cursor-se-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'careTeam', 'br')} />
         </div>
       )}
 
@@ -13341,10 +13445,12 @@ No qualifying data available.`;
       {/* Discharge Encounter Draggable Popup Card */}
       {isDischargeEncounterOpen && (
         <div 
-          className="fixed bg-[#f0f0f0] border-[1px] border-[#a2c5eb] shadow-2xl w-[900px] flex flex-col select-none z-[99995] text-[11px] text-[#333333] font-sans"
+          className="fixed bg-[#f0f0f0] border-[1px] border-[#a2c5eb] shadow-2xl flex flex-col select-none z-[99995] text-[11px] text-[#333333] font-sans"
           style={{ 
             left: `${dischargeEncounterPos.x}px`, 
             top: `${dischargeEncounterPos.y}px`,
+            width: `${popupSizes['dischargeEncounter']?.width || 900}px`,
+            height: `${popupSizes['dischargeEncounter']?.height || 600}px`,
             boxShadow: '0 10px 25px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6)'
           }}
         >
@@ -13407,7 +13513,7 @@ No qualifying data available.`;
           </div>
 
           {/* Main Body */}
-          <div className="flex bg-[#f0f0f0] min-h-[450px]">
+          <div className="flex bg-[#f0f0f0] flex-1 min-h-[150px]">
             {/* Left Menu */}
             <div className="w-[160px] bg-white border-r border-gray-300 flex flex-col pt-1">
               <div className="bg-[#428bca] text-white px-2 py-1 mx-1 border-[2px] border-red-500 cursor-pointer shadow-sm text-[12px] font-semibold">
@@ -13416,7 +13522,7 @@ No qualifying data available.`;
             </div>
 
             {/* Right Content */}
-            <div className="flex-1 p-2 bg-white flex flex-col gap-3 overflow-y-auto max-h-[70vh]">
+            <div className="flex-1 p-2 bg-white flex flex-col gap-3 overflow-y-auto">
               <div 
                 className="text-white font-bold text-[18px] px-2 py-1 shadow-sm"
                 style={{ background: 'linear-gradient(to bottom, #459df5, #5eaafa)' }}
@@ -13579,10 +13685,12 @@ No qualifying data available.`;
       {/* Bed Transfer Draggable Popup Card */}
       {isBedTransferOpen && (
         <div 
-          className="fixed bg-[#f0f4f9] border-[1px] border-[#a2c5eb] shadow-2xl rounded-[3px] w-[800px] flex flex-col select-none z-[99995] text-[11px] text-[#333333] font-sans overflow-hidden"
+          className="fixed bg-[#f0f4f9] border-[1px] border-[#a2c5eb] shadow-2xl rounded-[3px] flex flex-col select-none z-[99995] text-[11px] text-[#333333] font-sans overflow-hidden"
           style={{ 
             left: `${bedTransferPos.x}px`, 
             top: `${bedTransferPos.y}px`,
+            width: `${popupSizes['bedTransfer']?.width || 800}px`,
+            height: `${popupSizes['bedTransfer']?.height || 550}px`,
             boxShadow: '0 10px 25px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6)'
           }}
         >
@@ -13622,7 +13730,7 @@ No qualifying data available.`;
           </div>
 
           {/* Form Body */}
-          <div className="p-4 space-y-4 bg-white overflow-y-auto max-h-[80vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-gray-150 relative">
+          <div className="p-4 space-y-4 bg-white flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-gray-150 relative">
             <div className="space-y-4">
               
               {/* Top Section */}
@@ -13860,6 +13968,10 @@ No qualifying data available.`;
               </button>
             </div>
           </div>
+          {/* Resize Handles */}
+          <div className="absolute right-0 top-0 bottom-0 w-[5px] cursor-ew-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'bedTransfer', 'r')} />
+          <div className="absolute bottom-0 left-0 right-0 h-[5px] cursor-ns-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'bedTransfer', 'b')} />
+          <div className="absolute bottom-0 right-0 w-[10px] h-[10px] cursor-se-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'bedTransfer', 'br')} />
         </div>
       )}
 
@@ -13867,10 +13979,12 @@ No qualifying data available.`;
       {/* Cancel Discharge Form Popup */}
       {isCancelDischargeFormOpen && (
         <div 
-          className="fixed bg-[#ece9d8] border-[2px] border-[#a0a0a0] shadow-2xl flex flex-col select-none z-[99995] text-[11px] text-black font-sans w-[800px]"
+          className="fixed bg-[#ece9d8] border-[2px] border-[#a0a0a0] shadow-2xl flex flex-col select-none z-[99995] text-[11px] text-black font-sans"
           style={{ 
             left: `${cancelDischargeFormPos.x}px`, 
             top: `${cancelDischargeFormPos.y}px`,
+            width: `${popupSizes['cancelDischarge']?.width || 800}px`,
+            height: `${popupSizes['cancelDischarge']?.height || 500}px`,
             borderRightColor: '#404040',
             borderBottomColor: '#404040',
             borderTopColor: '#ffffff',
@@ -13900,7 +14014,7 @@ No qualifying data available.`;
           </div>
 
           {/* Main Body */}
-          <div className="p-3 bg-[#ece9d8] overflow-y-auto max-h-[70vh]">
+          <div className="p-3 bg-[#ece9d8] flex-1 overflow-y-auto">
             <div className="bg-white border-2 border-t-gray-500 border-l-gray-500 border-b-white border-r-white p-3 space-y-4">
               
               {/* Top Section */}
@@ -14083,15 +14197,21 @@ No qualifying data available.`;
               Cancel
             </button>
           </div>
+          {/* Resize Handles */}
+          <div className="absolute right-0 top-0 bottom-0 w-[5px] cursor-ew-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'cancelDischarge', 'r')} />
+          <div className="absolute bottom-0 left-0 right-0 h-[5px] cursor-ns-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'cancelDischarge', 'b')} />
+          <div className="absolute bottom-0 right-0 w-[10px] h-[10px] cursor-se-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'cancelDischarge', 'br')} />
         </div>
       )}
 
       {isCancelWarningOpen && (
         <div 
-          className="fixed bg-[#f0f0f0] border-[1px] border-[#a0a0a0] shadow-xl w-[450px] flex flex-col select-none z-[99995] text-[12px] text-gray-800 font-sans"
+          className="fixed bg-[#f0f0f0] border-[1px] border-[#a0a0a0] shadow-xl flex flex-col select-none z-[99995] text-[12px] text-gray-800 font-sans"
           style={{ 
             left: `${cancelWarningPos.x}px`, 
-            top: `${cancelWarningPos.y}px`
+            top: `${cancelWarningPos.y}px`,
+            width: `${popupSizes['cancelWarning']?.width || 450}px`,
+            height: `${popupSizes['cancelWarning']?.height || 200}px`
           }}
         >
           {/* Title Bar */}
@@ -14116,7 +14236,7 @@ No qualifying data available.`;
           </div>
 
           {/* Body */}
-          <div className="flex p-4 gap-4 bg-white">
+          <div className="flex p-4 gap-4 bg-white flex-1 overflow-y-auto">
             <div className="shrink-0 pt-1">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="11" fill="url(#blue-grad)" stroke="#1c4779" strokeWidth="1" />
@@ -14155,16 +14275,23 @@ No qualifying data available.`;
               Cancel
             </button>
           </div>
+          {/* Resize Handles */}
+          <div className="absolute right-0 top-0 bottom-0 w-[5px] cursor-ew-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'cancelWarning', 'r')} />
+          <div className="absolute bottom-0 left-0 right-0 h-[5px] cursor-ns-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'cancelWarning', 'b')} />
+          <div className="absolute bottom-0 right-0 w-[10px] h-[10px] cursor-se-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'cancelWarning', 'br')} />
         </div>
       )}
 
       {/* Print Labels Draggable Popup Card */}
       {isPrintLabelsOpen && (
         <div 
-          className="fixed bg-white border-[4px] border-[#a2c5eb] shadow-2xl rounded-[3px] w-[500px] flex flex-col select-none z-[99995] text-[11px] text-gray-800 font-sans"
+          className="fixed bg-white border-[4px] border-[#a2c5eb] shadow-2xl rounded-[3px] flex flex-col select-none z-[99995] text-[11px] text-gray-800 font-sans"
           style={{ 
             left: `${printLabelsPos.x}px`, 
             top: `${printLabelsPos.y}px`,
+            width: `${popupSizes['printLabels']?.width || 500}px`,
+            height: popupSizes['printLabels']?.height ? `${popupSizes['printLabels']?.height}px` : undefined,
+            minHeight: '200px',
             boxShadow: '0 10px 25px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6)'
           }}
         >
@@ -14346,14 +14473,520 @@ No qualifying data available.`;
 
             </div>
           </div>
+          
+          {/* Resize handles */}
+          <div className="absolute right-0 top-0 bottom-0 w-[5px] cursor-ew-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'printLabels', 'r')} />
+          <div className="absolute bottom-0 left-0 right-0 h-[5px] cursor-ns-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'printLabels', 'b')} />
+          <div className="absolute bottom-0 right-0 w-[10px] h-[10px] cursor-se-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'printLabels', 'br')} />
+        </div>
+      )}
+
+      {/* Process Alert Draggable Popup Card */}
+      {isProcessAlertOpen && (
+        <div 
+          className="fixed bg-white border-[4px] border-[#a2c5eb] shadow-2xl rounded-[3px] flex flex-col select-none z-[99995] text-[12px] text-black font-sans"
+          style={{ 
+            left: `${processAlertPos.x}px`, 
+            top: `${processAlertPos.y}px`,
+            width: `${popupSizes['processAlert']?.width || 720}px`,
+            height: popupSizes['processAlert']?.height ? `${popupSizes['processAlert']?.height}px` : undefined,
+            minHeight: '200px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6)'
+          }}
+        >
+          {/* Windows Style Title Bar */}
+          <div 
+            onMouseDown={(e) => {
+              setIsDraggingProcessAlert(true);
+              setDragOffsetProcessAlert({ x: e.clientX - processAlertPos.x, y: e.clientY - processAlertPos.y });
+            }}
+            className="text-[#1e395b] px-2 py-1 flex justify-between items-center cursor-move font-normal text-[11.5px] border-b border-[#96b4d3]"
+            style={{
+              background: 'linear-gradient(to bottom, #ebf3fc 0%, #d2e4f9 40%, #c1dbf6 50%, #b1d0f4 100%)',
+              textShadow: '0 1px 0 rgba(255,255,255,0.8)'
+            }}
+          >
+            <div className="flex items-center gap-1.5 font-sans">
+              <span className="font-semibold text-gray-800 text-[11.5px]">Process Alert: Clozapine Hematological Monitoring Report</span>
+            </div>
+            {/* Custom Windows Close Button */}
+            <button 
+              onClick={() => setIsProcessAlertOpen(false)} 
+              className="flex items-center justify-center font-bold text-[10px] text-white transition-all shadow-sm outline-none"
+              style={{
+                background: 'linear-gradient(to bottom, #f18d7f 0%, #d85040 50%, #c63322 51%, #d74e3c 100%)',
+                border: '1px solid #992c1e',
+                borderRadius: '3px',
+                width: '45px',
+                height: '18px',
+                textShadow: '0 -1px 0 rgba(0,0,0,0.4)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 1px 1px rgba(0,0,0,0.2)'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.filter = 'brightness(1.15)'}
+              onMouseOut={(e) => e.currentTarget.style.filter = 'none'}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* 1:1 Replica Content Body */}
+          <div className="p-5 bg-white text-[12.5px] font-sans text-black overflow-y-auto max-h-[72vh] space-y-4">
+            {/* Email Header Info */}
+            <div className="space-y-1 text-[12.5px] border-b border-gray-200 pb-3">
+              <div>
+                <strong>From:</strong> <a href="mailto:do.not.reply@phsacdapp3.cerncd.com" className="text-[#0066cc] hover:underline">do.not.reply@phsacdapp3.cerncd.com</a> &lt;<a href="mailto:do.not.reply@phsacdapp3.cerncd.com" className="text-[#0066cc] hover:underline">do.not.reply@phsacdapp3.cerncd.com</a>&gt;
+              </div>
+              <div>
+                <strong>Sent:</strong> Wednesday, September 27, 2023 9:15 AM
+              </div>
+              <div>
+                <strong>To:</strong> <a href="mailto:vapharmacymhsu@vch.ca" className="text-[#0066cc] hover:underline">VA Pharmacy MHSU</a> &lt;<a href="mailto:vapharmacymhsu@vch.ca" className="text-[#0066cc] hover:underline">vapharmacymhsu@vch.ca</a>&gt;
+              </div>
+              <div>
+                <strong>Cc:</strong> <a href="mailto:CernerCSTOps@phsa.ca" className="text-[#0066cc] hover:underline">Cerner CST Ops</a> &lt;<a href="mailto:CernerCSTOps@phsa.ca" className="text-[#0066cc] hover:underline">CernerCSTOps@phsa.ca</a>&gt;
+              </div>
+              <div>
+                <strong>Subject:</strong> P0783 -- PROBLEM -- RRD Fax Monitor -- Clozapine Hematological Monitoring Report
+              </div>
+              <div>
+                <strong>Importance:</strong> High
+              </div>
+            </div>
+
+            {/* Warning Text */}
+            <div className="space-y-3 pt-1">
+              <p className="font-bold">
+                WARNING: 1 RRD Fax with "Error" status was found based on the following qualifying criteria:
+              </p>
+              
+              <ul className="list-disc pl-8 space-y-1">
+                <li>
+                  <strong>RRD Station Name:</strong> "Pharmacy Ops"
+                </li>
+                <li>
+                  <strong>Freetext report title match:</strong> "*VGH/VGH Willow Pavillion/VGH S4*"
+                </li>
+              </ul>
+
+              <p className="font-bold pt-2">
+                As configured, there will be no further alerts for the job(s) listed below and they have been cancelled.
+              </p>
+
+              <p className="pt-2">
+                Qualifying job(s) requiring investigation/remediation:
+              </p>
+            </div>
+
+            {/* 1:1 Replica Table */}
+            <div className="pt-1">
+              <table className="w-full border-collapse border border-black text-[12px]">
+                <thead>
+                  <tr className="bg-white">
+                    <th className="border border-black p-1 text-left font-bold w-[45%]">Report Title</th>
+                    <th className="border border-black p-1 text-left font-bold w-[18%]">Submit Date/Time</th>
+                    <th className="border border-black p-1 text-left font-bold w-[15%]">Destination Phone Number</th>
+                    <th className="border border-black p-1 text-left font-bold text-center w-[8%]">No Connect Retries</th>
+                    <th className="border border-black p-1 text-left font-bold text-center w-[8%]">Disconnect Retries</th>
+                    <th className="border border-black p-1 text-left font-bold text-center w-[6%]">Busy Retries</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border border-black p-1.5 align-top leading-tight">
+                      CHM - AA/APO-Clozapine (VGH/VGH Willow Pavillion/VGH S4). Date range: 26-SEP-2023 00:00:00 - 26-SEP-2023 23:59:59
+                    </td>
+                    <td className="border border-black p-1.5 align-top">
+                      27-SEP-2023 08:01:43.00
+                    </td>
+                    <td className="border border-black p-1.5 align-top">
+                      18668366778
+                    </td>
+                    <td className="border border-black p-1.5 align-top text-center">
+                      2
+                    </td>
+                    <td className="border border-black p-1.5 align-top text-center">
+                      0
+                    </td>
+                    <td className="border border-black p-1.5 align-top text-center">
+                      0
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer Text */}
+            <div className="space-y-4 pt-3 text-[12.5px]">
+              <p>
+                Rule name: Clozapine Hematological Monitoring Report
+              </p>
+              <p className="text-gray-800 text-[11.5px] pt-2">
+                This alert was generated by CCL program: PHSA_RRD_MON
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons Footer */}
+          <div className="bg-[#f0f0f0] border-t border-[#dfdfdf] px-3 py-2 flex justify-end gap-2 rounded-b-[3px]">
+            <button 
+              onClick={() => {
+                alert('Alert Acknowledged. Retrying fax...');
+                setIsProcessAlertOpen(false);
+              }}
+              className="px-4 py-1 bg-white hover:bg-gray-150 border border-[#acacac] rounded-[3px] text-gray-800 font-semibold shadow-xs transition-all active:scale-[0.98] text-[11px]"
+            >
+              Retry Fax
+            </button>
+            <button 
+              onClick={() => setIsProcessAlertOpen(false)}
+              className="px-4 py-1 bg-white hover:bg-gray-150 border border-[#bcbcbc] rounded-[3px] text-gray-600 shadow-xs transition-all active:scale-[0.98] text-[11px]"
+            >
+              Close
+            </button>
+          </div>
+          
+          {/* Resize handles */}
+          <div className="absolute right-0 top-0 bottom-0 w-[5px] cursor-ew-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'processAlert', 'r')} />
+          <div className="absolute bottom-0 left-0 right-0 h-[5px] cursor-ns-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'processAlert', 'b')} />
+          <div className="absolute bottom-0 right-0 w-[10px] h-[10px] cursor-se-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'processAlert', 'br')} />
+        </div>
+      )}
+
+      {/* View Encounter (Medical Record Request) Draggable Popup Card */}
+      {isViewEncounterOpen && (
+        <div 
+          className="fixed bg-[#ece9d8] border-[3px] border-[#3b80e8] shadow-2xl flex flex-col select-none z-[99995] text-[11px] text-black"
+          style={{ 
+            left: `${viewEncounterPos.x}px`, 
+            top: `${viewEncounterPos.y}px`,
+            width: `${popupSizes['viewEncounter']?.width || 870}px`,
+            height: popupSizes['viewEncounter']?.height ? `${popupSizes['viewEncounter']?.height}px` : undefined,
+            minHeight: '250px',
+            fontFamily: 'Tahoma, sans-serif',
+            boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
+            borderRadius: '4px 4px 0 0'
+          }}
+        >
+          {/* Windows Classic/XP Style Title Bar */}
+          <div 
+            onMouseDown={(e) => {
+              setIsDraggingViewEncounter(true);
+              setDragOffsetViewEncounter({ x: e.clientX - viewEncounterPos.x, y: e.clientY - viewEncounterPos.y });
+            }}
+            className="text-white px-2 py-1 flex justify-between items-center cursor-move font-semibold text-[11.5px] rounded-t-[1px]"
+            style={{
+              background: 'linear-gradient(to bottom, #76a5ee 0%, #4c87e3 10%, #1e5ac8 50%, #1852c1 70%, #205fd0 90%, #5c93e6 100%)',
+              borderBottom: '1px solid #1a3c75'
+            }}
+          >
+            <div className="flex items-center gap-1.5">
+              {/* Document Icon */}
+              <span className="text-[10px] bg-white border border-gray-400 text-blue-700 px-0.5 font-bold scale-90">📄</span>
+              <span>Medical Record Request - CSTHIM, BUILDSALLY - 700004549</span>
+            </div>
+            {/* Windows XP Style Close Button */}
+            <button 
+              onClick={() => setIsViewEncounterOpen(false)} 
+              className="flex items-center justify-center font-bold text-[10px] text-white hover:bg-[#e43c16] active:bg-[#b02b0c] transition-all outline-none"
+              style={{
+                background: 'linear-gradient(to bottom, #f37d5f 0%, #e64522 45%, #c52906 50%, #b82300 100%)',
+                border: '1px solid #7d1802',
+                borderRadius: '3px',
+                width: '21px',
+                height: '17px',
+                textShadow: '0 -1px 0 rgba(0,0,0,0.4)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Form Content Area */}
+          <div className="p-3 bg-[#f0f0f0] border-t border-white space-y-3.5">
+            {/* Top Three Columns Dropdowns */}
+            <div className="grid grid-cols-3 gap-x-5 gap-y-3 text-[11px]">
+              {/* Column 1: Event Status */}
+              <div className="flex flex-col space-y-1">
+                <span>Event Status</span>
+                <select className="border border-[#7f9db9] bg-white px-1 py-0.5 outline-none h-[20px] rounded-none">
+                  <option>Verified and Pending</option>
+                </select>
+              </div>
+
+              {/* Column 2: Template */}
+              <div className="flex flex-col space-y-1">
+                <span>Template</span>
+                <select className="border border-[#7f9db9] bg-white px-1 py-0.5 outline-none h-[20px] rounded-none">
+                  <option>Inpatient/General Transfer Template</option>
+                </select>
+              </div>
+
+              {/* Column 3: Purpose */}
+              <div className="flex flex-col space-y-1">
+                <span>Purpose</span>
+                <select className="border border-[#7f9db9] bg-white px-1 py-0.5 outline-none h-[20px] rounded-none">
+                  <option>Patient Transfer</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Middle Controls Block (Split Left/Right) */}
+            <div className="flex gap-4">
+              {/* Left Column: Date Range & Related Providers */}
+              <div className="flex-1 flex flex-col space-y-3">
+                {/* Date Range Fieldset */}
+                <fieldset className="border border-gray-300 rounded px-2.5 pb-2 pt-1.5 space-y-2 relative">
+                  <legend className="text-[11px] px-1 text-gray-800">Date Range</legend>
+                  
+                  {/* From Field */}
+                  <div className="flex items-center space-x-1.5">
+                    <span className="w-[35px] text-right">From:</span>
+                    <div className="flex items-center">
+                      <input 
+                        type="text" 
+                        defaultValue="xx-xxx-xxxx" 
+                        className="border border-[#7f9db9] bg-white px-1.5 py-0.5 w-[110px] h-[20px] outline-none text-center rounded-none"
+                      />
+                      <div className="flex flex-col -space-y-0.5">
+                        <button className="text-[5px] border border-gray-300 w-[14px] h-[10px] bg-gray-100 flex items-center justify-center leading-none">▲</button>
+                        <button className="text-[5px] border-x border-b border-gray-300 w-[14px] h-[10px] bg-gray-100 flex items-center justify-center leading-none">▼</button>
+                      </div>
+                      <button className="border-y border-r border-[#7f9db9] bg-white px-1.5 h-[20px] flex items-center justify-center text-[7px]">▼</button>
+                    </div>
+
+                    <div className="flex items-center ml-2">
+                      <input 
+                        type="text" 
+                        className="border border-[#7f9db9] bg-white px-1 py-0.5 w-[55px] h-[20px] outline-none rounded-none"
+                      />
+                      <div className="flex flex-col -space-y-0.5">
+                        <button className="text-[5px] border border-gray-300 w-[14px] h-[10px] bg-gray-100 flex items-center justify-center leading-none">▲</button>
+                        <button className="text-[5px] border-x border-b border-gray-300 w-[14px] h-[10px] bg-gray-100 flex items-center justify-center leading-none">▼</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* To Field */}
+                  <div className="flex items-center space-x-1.5">
+                    <span className="w-[35px] text-right">To:</span>
+                    <div className="flex items-center">
+                      <input 
+                        type="text" 
+                        defaultValue="xx-xxx-xxxx" 
+                        className="border border-[#7f9db9] bg-white px-1.5 py-0.5 w-[110px] h-[20px] outline-none text-center rounded-none"
+                      />
+                      <div className="flex flex-col -space-y-0.5">
+                        <button className="text-[5px] border border-gray-300 w-[14px] h-[10px] bg-gray-100 flex items-center justify-center leading-none">▲</button>
+                        <button className="text-[5px] border-x border-b border-gray-300 w-[14px] h-[10px] bg-gray-100 flex items-center justify-center leading-none">▼</button>
+                      </div>
+                      <button className="border-y border-r border-[#7f9db9] bg-white px-1.5 h-[20px] flex items-center justify-center text-[7px]">▼</button>
+                    </div>
+
+                    <div className="flex items-center ml-2">
+                      <input 
+                        type="text" 
+                        className="border border-[#7f9db9] bg-white px-1 py-0.5 w-[55px] h-[20px] outline-none rounded-none"
+                      />
+                      <div className="flex flex-col -space-y-0.5">
+                        <button className="text-[5px] border border-gray-300 w-[14px] h-[10px] bg-gray-100 flex items-center justify-center leading-none">▲</button>
+                        <button className="text-[5px] border-x border-b border-gray-300 w-[14px] h-[10px] bg-gray-100 flex items-center justify-center leading-none">▼</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Clinical / Posting radio buttons */}
+                  <div className="flex items-center space-x-6 pt-1 text-[11px]">
+                    <label className="flex items-center space-x-1.5 cursor-pointer">
+                      <input type="radio" name="rangeType" defaultChecked className="outline-none" />
+                      <span>Clinical Range</span>
+                    </label>
+                    <label className="flex items-center space-x-1.5 cursor-pointer">
+                      <input type="radio" name="rangeType" className="outline-none" />
+                      <span>Posting Range</span>
+                    </label>
+                  </div>
+                </fieldset>
+
+                {/* Tab Container */}
+                <div className="flex flex-col flex-1">
+                  {/* Tabs */}
+                  <div className="flex items-end text-[11px] -space-x-[1px] relative z-10">
+                    <div className="px-3.5 py-1 bg-[#f0f0f0] border-t border-x border-gray-300 rounded-t-[3px] font-semibold border-b-[#f0f0f0]">
+                      Related Providers
+                    </div>
+                    <div className="px-3.5 py-1 bg-[#e0e0e0] border border-gray-300 rounded-t-[3px] text-gray-600 cursor-pointer">
+                      Sections
+                    </div>
+                  </div>
+
+                  {/* Tab Body Box */}
+                  <div className="border border-gray-300 p-2 bg-white flex flex-col space-y-2 relative -mt-[1px]">
+                    {/* Providers Table */}
+                    <div className="border border-[#7f9db9] overflow-y-auto max-h-[120px] min-h-[110px] bg-white">
+                      <table className="w-full text-left text-[10.5px] border-collapse">
+                        <thead>
+                          <tr className="bg-gray-100 text-gray-700 font-semibold border-b border-gray-300">
+                            <th className="px-2 py-1 border-r border-gray-300 w-[45%]">Name</th>
+                            <th className="px-2 py-1 border-r border-gray-300 w-[33%]">Relationship</th>
+                            <th className="px-2 py-1 w-[22%]">Destination</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {[
+                            { name: 'PLISBVCB, STUART, MD', rel: 'Primary Care Physician', dest: 'lgh_6w_l1' },
+                            { name: 'Test, Alex', rel: 'BC Cancer External Referring', dest: 'lgh_6w_l1' },
+                            { name: 'TestMI, Radiologist-RadNet5', rel: 'Radiologist', dest: 'lgh_6w_l1' },
+                            { name: 'TestUser, ManagerSupervisor-HIM', rel: 'HIM Manager Supervisor', dest: 'lgh_6w_l1' }
+                          ].map((p, index) => (
+                            <tr key={index} className="hover:bg-blue-50">
+                              <td className="px-2 py-0.5 border-r border-gray-200 flex items-center gap-1.5">
+                                <input type="checkbox" className="outline-none" />
+                                <span className="truncate">{p.name}</span>
+                              </td>
+                              <td className="px-2 py-0.5 border-r border-gray-200 truncate">{p.rel}</td>
+                              <td className="px-2 py-0.5 truncate">{p.dest}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Radio Button Options below table */}
+                    <div className="flex items-center space-x-6 text-[10.5px] pt-1">
+                      <label className="flex items-center space-x-1.5 cursor-pointer">
+                        <input type="radio" name="devOpt" defaultChecked className="outline-none" />
+                        <span>Device selected</span>
+                      </label>
+                      <label className="flex items-center space-x-1.5 cursor-pointer">
+                        <input type="radio" name="devOpt" className="outline-none" />
+                        <span>Associated Destination</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Other fields & details */}
+              <div className="w-[340px] flex flex-col space-y-3.5 text-[11px]">
+                {/* Authorization check */}
+                <label className="flex items-center space-x-1.5 pt-1.5 cursor-pointer">
+                  <input type="checkbox" className="outline-none border-gray-300" />
+                  <span>Proper authorization received?</span>
+                </label>
+
+                {/* Destination */}
+                <div className="flex flex-col space-y-1">
+                  <span>Destination</span>
+                  <div className="flex">
+                    <input 
+                      type="text" 
+                      defaultValue="VGH Transplant Clinic, Vancouver - Laurel" 
+                      className="border border-[#7f9db9] bg-white px-1.5 py-0.5 flex-1 h-[20px] outline-none rounded-none text-ellipsis overflow-hidden whitespace-nowrap"
+                    />
+                    <button className="border border-l-0 border-[#7f9db9] bg-gradient-to-bottom from-[#ffffff] to-[#eaeaea] hover:bg-gray-100 px-1.5 h-[20px] text-[10px] rounded-none">...</button>
+                  </div>
+                </div>
+
+                {/* Requester */}
+                <div className="flex flex-col space-y-1">
+                  <span>Requester</span>
+                  <div className="flex">
+                    <input 
+                      type="text" 
+                      className="border border-[#7f9db9] bg-white px-1.5 py-0.5 flex-1 h-[20px] outline-none rounded-none"
+                    />
+                    <button className="border border-l-0 border-[#7f9db9] bg-gradient-to-bottom from-[#ffffff] to-[#eaeaea] hover:bg-gray-100 px-1.5 h-[20px] text-[10px] rounded-none">...</button>
+                  </div>
+                </div>
+
+                {/* Comment textarea */}
+                <div className="flex flex-col space-y-1">
+                  <span>Comment</span>
+                  <textarea 
+                    className="border border-[#7f9db9] bg-white px-1.5 py-1 w-full h-[65px] outline-none resize-none rounded-none overflow-y-scroll"
+                  />
+                </div>
+
+                {/* Device & Copies selection */}
+                <div className="flex items-end gap-3 text-[11px]">
+                  {/* Device Dropdown */}
+                  <div className="flex-1 flex flex-col space-y-1">
+                    <span>Device</span>
+                    <div className="flex">
+                      <select className="border border-[#7f9db9] bg-white px-1 py-0.5 flex-1 h-[20px] outline-none rounded-none">
+                        <option>lgh_6w_l1</option>
+                      </select>
+                      <button className="border border-l-0 border-[#7f9db9] bg-gradient-to-bottom from-[#ffffff] to-[#eaeaea] px-1.5 h-[20px] text-[10px] rounded-none">...</button>
+                    </div>
+                  </div>
+
+                  {/* Copies count */}
+                  <div className="w-[55px] flex flex-col space-y-1">
+                    <span>Copies</span>
+                    <div className="flex items-center">
+                      <input 
+                        type="text" 
+                        defaultValue="1" 
+                        className="border border-[#7f9db9] bg-white px-1.5 py-0.5 w-[38px] h-[20px] outline-none text-center rounded-none"
+                      />
+                      <div className="flex flex-col -space-y-0.5">
+                        <button className="text-[5px] border border-gray-300 w-[14px] h-[10px] bg-gray-100 flex items-center justify-center leading-none">▲</button>
+                        <button className="text-[5px] border-x border-b border-gray-300 w-[14px] h-[10px] bg-gray-100 flex items-center justify-center leading-none">▼</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Actions Row */}
+            <div className="flex justify-between items-center pt-2">
+              {/* Preview Button */}
+              <div className="w-1/2 flex justify-center">
+                <button 
+                  onClick={() => alert('Opening Medical Record Request Preview...')}
+                  className="px-8 py-1 bg-gradient-to-bottom from-[#ffffff] to-[#eaeaea] hover:to-[#dfdfdf] border border-[#7f9db9] active:scale-[0.98] text-[11px] font-medium"
+                  style={{ width: '130px', boxShadow: 'inset 0 1px 0 #fff' }}
+                >
+                  Preview
+                </button>
+              </div>
+
+              {/* Send Button */}
+              <div className="w-1/2 flex justify-center">
+                <button 
+                  onClick={() => {
+                    alert('Medical Record Request Sent Successfully.');
+                    setIsViewEncounterOpen(false);
+                  }}
+                  className="px-8 py-1 bg-gradient-to-bottom from-[#ffffff] to-[#eaeaea] hover:to-[#dfdfdf] border border-[#7f9db9] active:scale-[0.98] text-[11px] font-semibold"
+                  style={{ width: '130px', boxShadow: 'inset 0 1px 0 #fff' }}
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Resize handles */}
+          <div className="absolute right-0 top-0 bottom-0 w-[5px] cursor-ew-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'viewEncounter', 'r')} />
+          <div className="absolute bottom-0 left-0 right-0 h-[5px] cursor-ns-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'viewEncounter', 'b')} />
+          <div className="absolute bottom-0 right-0 w-[10px] h-[10px] cursor-se-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'viewEncounter', 'br')} />
         </div>
       )}
 
       {/* Sub-detail Draggable Popup Card */}
       {isSubPopupOpen && (
         <div 
-          className="fixed bg-white border-2 border-[#194d7b] shadow-2xl rounded-none w-[540px] flex flex-col select-none z-[100000] overflow-hidden text-[11px] text-gray-800 font-sans"
-          style={{ left: `${subPopupPos.x}px`, top: `${subPopupPos.y}px` }}
+          className="fixed bg-white border-2 border-[#194d7b] shadow-2xl rounded-none flex flex-col select-none z-[100000] text-[11px] text-gray-800 font-sans"
+          style={{ 
+            left: `${subPopupPos.x}px`, 
+            top: `${subPopupPos.y}px`,
+            width: `${popupSizes['subPopup']?.width || 540}px`,
+            height: `${popupSizes['subPopup']?.height || 380}px`,
+            minHeight: '200px',
+          }}
         >
           {/* Sub Popup Title Bar */}
           <div 
@@ -14371,7 +15004,7 @@ No qualifying data available.`;
           </div>
 
           {/* Sub Popup Content */}
-          <div className="p-3 space-y-3 bg-[#f8fafc] max-h-[72vh] overflow-y-auto">
+          <div className="p-3 space-y-3 bg-[#f8fafc] flex-1 overflow-y-auto">
             <div className="bg-white border border-[#cbd5e1] p-2.5 rounded shadow-sm space-y-2">
               <div className="flex justify-between items-start border-b border-gray-150 pb-1.5">
                 <div>
@@ -14444,6 +15077,10 @@ No qualifying data available.`;
               Apply Decision & Close
             </button>
           </div>
+          {/* Resize Handles */}
+          <div className="absolute right-0 top-0 bottom-0 w-[5px] cursor-ew-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'subPopup', 'r')} />
+          <div className="absolute bottom-0 left-0 right-0 h-[5px] cursor-ns-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'subPopup', 'b')} />
+          <div className="absolute bottom-0 right-0 w-[10px] h-[10px] cursor-se-resize z-[99999]" onMouseDown={(e) => startResizing(e, 'subPopup', 'br')} />
         </div>
       )}
 
@@ -14487,6 +15124,12 @@ No qualifying data available.`;
                   });
                   setIsCancelWarningOpen(true);
                   setPatientContextMenu(null);
+                } else if (item === 'Process Alert') {
+                  setIsProcessAlertOpen(true);
+                  setPatientContextMenu(null);
+                } else if (item === 'View Encounter') {
+                  setIsViewEncounterOpen(true);
+                  setPatientContextMenu(null);
                 } else {
                   alert(`${item} clicked for ${patientContextMenu.patientName}`); 
                   setPatientContextMenu(null); 
@@ -14518,7 +15161,8 @@ No qualifying data available.`;
           style={{
             left: `${popup.x}px`,
             top: `${popup.y}px`,
-            width: '760px',
+            width: `${popupSizes[popup.id]?.width || 760}px`,
+            height: popupSizes[popup.id]?.height ? `${popupSizes[popup.id].height}px` : undefined,
             zIndex: popup.zIndex,
           }}
           onClick={() => {
@@ -14592,7 +15236,7 @@ No qualifying data available.`;
           </div>
 
           {/* Body Content */}
-          <div className="bg-white p-4 flex flex-col space-y-4 overflow-auto max-h-[300px] border-b border-[#bdcddc]">
+          <div className="bg-white p-4 flex flex-col space-y-4 overflow-auto flex-1 border-b border-[#bdcddc]">
             <div className="border-b border-[#bdcddc] pb-3 space-y-1">
               <h3 className="font-bold text-xs text-gray-800">Message Details</h3>
               <div className="grid grid-cols-[80px_1fr] gap-y-1 text-[11px]">
@@ -14617,6 +15261,10 @@ No qualifying data available.`;
               <p className="text-gray-500 text-[10px]">Thank you,<br />AxioVital Clinical System</p>
             </div>
           </div>
+          {/* Resize Handles */}
+          <div className="absolute right-0 top-0 bottom-0 w-[5px] cursor-ew-resize z-[99999]" onMouseDown={(e) => startResizing(e, popup.id, 'r')} />
+          <div className="absolute bottom-0 left-0 right-0 h-[5px] cursor-ns-resize z-[99999]" onMouseDown={(e) => startResizing(e, popup.id, 'b')} />
+          <div className="absolute bottom-0 right-0 w-[10px] h-[10px] cursor-se-resize z-[99999]" onMouseDown={(e) => startResizing(e, popup.id, 'br')} />
         </div>
       ))}
 
