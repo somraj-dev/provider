@@ -1,1 +1,0 @@
-// @axiovital/worker — future microservice

@@ -5,17 +5,15 @@
   "description": "AxioVital Provider Operating Environment — Enterprise-grade healthcare desktop platform",
   "license": "UNLICENSED",
   "workspaces": [
-    "apps/*",
-    "packages/*",
-    "modules/*"
+    "axiovital-frontend",
+    "axiovital-backend",
+    "packages/*"
   ],
   "scripts": {
-    "dev:frontend": "npm run dev --workspace=apps/frontend",
-    "dev:gateway": "npm run start:dev --workspace=apps/api-gateway",
-    "dev:desktop": "npm run start --workspace=apps/desktop",
-    "build:frontend": "npm run build --workspace=apps/frontend",
-    "build:gateway": "npm run build --workspace=apps/api-gateway",
-    "build:desktop": "npm run make --workspace=apps/desktop",
+    "dev:frontend": "npm run dev --workspace=axiovital-frontend",
+    "dev:gateway": "npm run start:dev --workspace=axiovital-backend",
+    "build:frontend": "npm run build --workspace=axiovital-frontend",
+    "build:gateway": "npm run build --workspace=axiovital-backend",
     "build:packages": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
