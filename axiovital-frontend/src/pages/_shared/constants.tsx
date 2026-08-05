@@ -87,6 +87,18 @@ export const getChartDataForSelection = (baseData: any[], selection: string, cha
 };
 
 export const patientDemographics: Record<string, PatientDemographic> = {
+  'TEST, PATIENT ONE': {
+    mrn: '1000245699',
+    axioId: 'AVX-000123',
+    gender: 'Male',
+    age: '45Y 2M',
+    allergies: 'No Known Allergies',
+    dob: '05/12/1981 (45Y)',
+    weight: '75.2 kg (05/20/2026)',
+    height: '178 cm',
+    bloodType: 'O+',
+    healthLife: 'Yes'
+  },
   'JAMES, WILLIAM': {
     mrn: '1000245601',
     axioId: 'AXSL06-WJ281',

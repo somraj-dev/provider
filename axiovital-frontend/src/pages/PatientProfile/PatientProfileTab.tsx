@@ -82,55 +82,67 @@ export const PatientProfileTab: React.FC<PatientProfileTabProps> = ({
               ? activeTab.title.replace('Patient Profile:', '').trim() 
               : 'JOHN DOE';
 
-            return (
-              <div className="flex-1 flex flex-col overflow-hidden text-[11px] font-sans bg-white select-none">
-                {/* Classic Demographic Bar Header */}
-                <div 
-                  className="bg-[#005a94] text-white px-3 py-1 flex items-center select-none border-b border-[#003c63]"
-                  style={{ minHeight: '52px' }}
-                >
-                  {/* Blue avatar icon container */}
-                  <div className="flex items-center gap-2 border-r border-white/20 pr-4">
-                    <div className="w-[32px] h-[32px] bg-white rounded-full flex items-center justify-center border border-gray-400 overflow-hidden">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="#80a0c0">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="font-extrabold text-[12px] uppercase text-white tracking-wide">{displayName}</div>
-                      <div className="text-[9.5px] text-gray-300">Allergies: shellfish</div>
-                      <div 
-                        onClick={() => setIsCareTeamOpen(true)}
-                        className="text-[9.5px] text-[#80c0ff] hover:underline cursor-pointer"
-                      >
-                        Care Team: View Details
-                      </div>
-                    </div>
-                  </div>
+  const upperName = displayName.toUpperCase();
+  const matchingDemoKey = Object.keys(patientDemographics).find(k => k.toUpperCase() === upperName);
+  const demo = matchingDemoKey ? patientDemographics[matchingDemoKey] : null;
 
-                  {/* Demographic columns */}
-                  <div className="flex-1 grid grid-cols-4 gap-4 px-4 text-[9.5px] leading-tight text-white/90">
-                    <div className="space-y-0.5">
-                      <div><span className="text-gray-300">DOB:</span> 3/22/1984</div>
-                      <div><span className="text-gray-300">Dose Wt:</span> 80.000 kg (04/25/2021)</div>
-                      <div><span className="text-gray-300">HealtheLife:</span> No</div>
-                    </div>
-                    <div className="space-y-0.5">
-                      <div><span className="text-gray-300">Age:</span> 39 years</div>
-                      <div><span className="text-gray-300">LTD:</span></div>
-                      <div><span className="text-gray-300">Clinic:</span> O1XTQ</div>
-                    </div>
-                    <div className="space-y-0.5">
-                      <div><span className="text-gray-300">Sex:</span> Female</div>
-                      <div><span className="text-gray-300">Code Status:</span> Active</div>
-                      <div><span className="text-gray-300">Loc:</span> GLW-01</div>
-                    </div>
-                    <div className="space-y-0.5">
-                      <div><span className="text-gray-300">MRN:</span> AVX-SL-A1H4XE</div>
-                      <div><span className="text-gray-300">Nominee:</span> Mr. Ajan singh</div>
-                      <div className="truncate"><span className="text-gray-300">Inpatient FIN:</span> 00096526415 [Admit Dt: 10/6/2020 3:14:12 PM CDT]</div>
-                    </div>
-                  </div>
+  const allergies = demo ? demo.allergies : 'shellfish';
+  const dob = demo ? demo.dob.split(' ')[0] : '3/22/1984';
+  const wt = demo ? demo.weight : '80.000 kg (04/25/2021)';
+  const age = demo ? demo.age : '39 years';
+  const sex = demo ? demo.gender : 'Female';
+  const mrn = demo ? demo.mrn : 'AVX-SL-A1H4XE';
+  const healtheLife = demo ? demo.healthLife : 'No';
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden text-[11px] font-sans bg-white select-none">
+      {/* Classic Demographic Bar Header */}
+      <div 
+        className="bg-[#005a94] text-white px-3 py-1 flex items-center select-none border-b border-[#003c63]"
+        style={{ minHeight: '52px' }}
+      >
+        {/* Blue avatar icon container */}
+        <div className="flex items-center gap-2 border-r border-white/20 pr-4">
+          <div className="w-[32px] h-[32px] bg-white rounded-full flex items-center justify-center border border-gray-400 overflow-hidden">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#80a0c0">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </div>
+          <div>
+            <div className="font-extrabold text-[12px] uppercase text-white tracking-wide">{displayName}</div>
+            <div className="text-[9.5px] text-gray-300">Allergies: {allergies}</div>
+            <div 
+              onClick={() => setIsCareTeamOpen(true)}
+              className="text-[9.5px] text-[#80c0ff] hover:underline cursor-pointer"
+            >
+              Care Team: View Details
+            </div>
+          </div>
+        </div>
+
+        {/* Demographic columns */}
+        <div className="flex-1 grid grid-cols-4 gap-4 px-4 text-[9.5px] leading-tight text-white/90">
+          <div className="space-y-0.5">
+            <div><span className="text-gray-300">DOB:</span> {dob}</div>
+            <div><span className="text-gray-300">Dose Wt:</span> {wt}</div>
+            <div><span className="text-gray-300">HealtheLife:</span> {healtheLife}</div>
+          </div>
+          <div className="space-y-0.5">
+            <div><span className="text-gray-300">Age:</span> {age}</div>
+            <div><span className="text-gray-300">LTD:</span></div>
+            <div><span className="text-gray-300">Clinic:</span> O1XTQ</div>
+          </div>
+          <div className="space-y-0.5">
+            <div><span className="text-gray-300">Sex:</span> {sex}</div>
+            <div><span className="text-gray-300">Code Status:</span> Active</div>
+            <div><span className="text-gray-300">Loc:</span> GLW-01</div>
+          </div>
+          <div className="space-y-0.5">
+            <div><span className="text-gray-300">MRN:</span> {mrn}</div>
+            <div><span className="text-gray-300">Nominee:</span> Mr. Ajan singh</div>
+            <div className="truncate"><span className="text-gray-300">Inpatient FIN:</span> 00096526415 [Admit Dt: 10/6/2020 3:14:12 PM CDT]</div>
+          </div>
+        </div>
 
                   {/* Hamburger Actions Menu Area */}
                   <div className="flex items-center pl-4 border-l border-white/20">
