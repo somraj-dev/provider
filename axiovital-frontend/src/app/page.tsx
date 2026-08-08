@@ -55,7 +55,7 @@ import { PhysicianHandoffTab } from '@/pages/Clinical/PhysicianHandoffTab';
 import { ReferralTransferTab } from '@/pages/Clinical/ReferralTransferTab';
 import { DischargeListTab } from '@/pages/Clinical/DischargeListTab';
 import { ClinicalDecisionSupportTab } from '@/pages/Clinical/ClinicalDecisionSupportTab';
-import { PatientListTab } from '@/pages/PatientList/PatientListTab';
+import { PatientListTab } from '@/pages/PatientProfile/PatientListTab';
 import { ReportsTab } from '@/pages/Reports/ReportsTab';
 import { MedicalReportTab } from '@/pages/Reports/MedicalReportTab';
 import { PatientProfileTab } from '@/pages/PatientProfile/PatientProfileTab';

@@ -2,6 +2,25 @@ import React from 'react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { patientDemographics } from '../_shared/constants';
 
+import { BedTransfer } from './BedTransfer';
+import { CancelDischarge } from './CancelDischarge';
+import { CancelPendingDischarge } from './CancelPendingDischarge';
+import { CancelPendingTransfer } from './CancelPendingTransfer';
+import { CancelTransfer } from './CancelTransfer';
+import { ClozapineRegistry } from './ClozapineRegistry';
+import { DischargeEncounter } from './DischargeEncounter';
+import { FacilityTransfer } from './FacilityTransfer';
+import { LeaveOfAbsence } from './LeaveOfAbsence';
+import { ModifyDischarge } from './ModifyDischarge';
+import { PendingDischarge } from './PendingDischarge';
+import { PendingFacilityTransfer } from './PendingFacilityTransfer';
+import { PendingTransfer } from './PendingTransfer';
+import { PrintLabels } from './PrintLabels';
+import { ProcessAlert } from './ProcessAlert';
+import { UpdatePatientInformation } from './UpdatePatientInformation';
+import { ViewEncounter } from './ViewEncounter';
+import { ViewPerson } from './ViewPerson';
+
 interface PatientProfileTabProps {
   activeTab: any;
   isSidebarCollapsed: boolean;
@@ -55,6 +74,17 @@ export const PatientProfileTab: React.FC<PatientProfileTabProps> = ({
   const [isCancelDischargeFormOpen, setIsCancelDischargeFormOpen] = React.useState(false);
   const [isDischargeEncounterOpen, setIsDischargeEncounterOpen] = React.useState(false);
   const [isFacilityTransferOpen, setIsFacilityTransferOpen] = React.useState(false);
+  const [isCancelPendingDischargeOpen, setIsCancelPendingDischargeOpen] = React.useState(false);
+  const [isCancelPendingTransferOpen, setIsCancelPendingTransferOpen] = React.useState(false);
+  const [isCancelTransferOpen, setIsCancelTransferOpen] = React.useState(false);
+  const [isClozapineRegistryOpen, setIsClozapineRegistryOpen] = React.useState(false);
+  const [isLeaveOfAbsenceOpen, setIsLeaveOfAbsenceOpen] = React.useState(false);
+  const [isModifyDischargeOpen, setIsModifyDischargeOpen] = React.useState(false);
+  const [isPendingDischargeOpen, setIsPendingDischargeOpen] = React.useState(false);
+  const [isPendingFacilityTransferOpen, setIsPendingFacilityTransferOpen] = React.useState(false);
+  const [isPendingTransferOpen, setIsPendingTransferOpen] = React.useState(false);
+  const [isUpdatePatientInformationOpen, setIsUpdatePatientInformationOpen] = React.useState(false);
+  const [isViewPersonOpen, setIsViewPersonOpen] = React.useState(false);
     const [editLastName, setEditLastName] = React.useState('Doe');
   const [editFirstName, setEditFirstName] = React.useState('John');
   const [editMiddleInitial, setEditMiddleInitial] = React.useState('A');
@@ -181,7 +211,7 @@ export const PatientProfileTab: React.FC<PatientProfileTabProps> = ({
                               } else if (item === 'View Encounter') {
                                 setIsViewEncounterOpen(true);
                               } else if (item === 'Update Patient Information') {
-                                selectOrOpenTab?.('EditPatientProfile', 'Edit Patient Profile: ' + displayName, 'edit-patient-doe');
+                                setIsUpdatePatientInformationOpen(true);
                               } else if (item === 'Print Labels') {
                                 setIsPrintLabelsOpen(true);
                               } else if (item === 'Bed Transfer') {
@@ -190,14 +220,28 @@ export const PatientProfileTab: React.FC<PatientProfileTabProps> = ({
                                 setIsDischargeEncounterOpen(true);
                               } else if (item === 'Facility Transfer') {
                                 setIsFacilityTransferOpen(true);
-                              } else if (item === 'Cancel Discharge' || item === 'Cancel Pending Discharge') {
+                              } else if (item === 'Cancel Discharge') {
                                 setIsCancelDischargeFormOpen(true);
-                              } else if (item === 'Cancel Transfer' || item === 'Cancel Pending Transfer') {
-                                setCancelWarningData({
-                                  title: 'Facility Transfer',
-                                  message: 'This patient currently has a pending transfer to LGH HOPE Centre/LGH HOPE Centre/LGH MIU//\nwith an estimated complete date and time of .\nWould you like to complete the pending transfer?'
-                                });
-                                setIsCancelWarningOpen(true);
+                              } else if (item === 'Cancel Pending Discharge') {
+                                setIsCancelPendingDischargeOpen(true);
+                              } else if (item === 'Cancel Transfer') {
+                                setIsCancelTransferOpen(true);
+                              } else if (item === 'Cancel Pending Transfer') {
+                                setIsCancelPendingTransferOpen(true);
+                              } else if (item === 'Clozapine Registry') {
+                                setIsClozapineRegistryOpen(true);
+                              } else if (item === 'Leave of Absence') {
+                                setIsLeaveOfAbsenceOpen(true);
+                              } else if (item === 'Modify Discharge') {
+                                setIsModifyDischargeOpen(true);
+                              } else if (item === 'Pending Discharge') {
+                                setIsPendingDischargeOpen(true);
+                              } else if (item === 'Pending Facility Transfer') {
+                                setIsPendingFacilityTransferOpen(true);
+                              } else if (item === 'Pending Transfer') {
+                                setIsPendingTransferOpen(true);
+                              } else if (item === 'View Person') {
+                                setIsViewPersonOpen(true);
                               } else {
                                 setTimeout(() => alert(`${item} selected`), 10);
                               }
@@ -1388,12 +1432,31 @@ export const PatientProfileTab: React.FC<PatientProfileTabProps> = ({
                             />
                           </div>
                         </div>
-
                       </div>
                     </div>
                   )}
 
                 </div>
+
+                {/* Hamburger Action Dialogs */}
+                <BedTransfer isOpen={isBedTransferOpen} onClose={() => setIsBedTransferOpen(false)} />
+                <CancelDischarge isOpen={isCancelDischargeFormOpen} onClose={() => setIsCancelDischargeFormOpen(false)} />
+                <CancelPendingDischarge isOpen={isCancelPendingDischargeOpen} onClose={() => setIsCancelPendingDischargeOpen(false)} />
+                <CancelPendingTransfer isOpen={isCancelPendingTransferOpen} onClose={() => setIsCancelPendingTransferOpen(false)} />
+                <CancelTransfer isOpen={isCancelTransferOpen} onClose={() => setIsCancelTransferOpen(false)} />
+                <ClozapineRegistry isOpen={isClozapineRegistryOpen} onClose={() => setIsClozapineRegistryOpen(false)} />
+                <DischargeEncounter isOpen={isDischargeEncounterOpen} onClose={() => setIsDischargeEncounterOpen(false)} />
+                <FacilityTransfer isOpen={isFacilityTransferOpen} onClose={() => setIsFacilityTransferOpen(false)} />
+                <LeaveOfAbsence isOpen={isLeaveOfAbsenceOpen} onClose={() => setIsLeaveOfAbsenceOpen(false)} />
+                <ModifyDischarge isOpen={isModifyDischargeOpen} onClose={() => setIsModifyDischargeOpen(false)} />
+                <PendingDischarge isOpen={isPendingDischargeOpen} onClose={() => setIsPendingDischargeOpen(false)} />
+                <PendingFacilityTransfer isOpen={isPendingFacilityTransferOpen} onClose={() => setIsPendingFacilityTransferOpen(false)} />
+                <PendingTransfer isOpen={isPendingTransferOpen} onClose={() => setIsPendingTransferOpen(false)} />
+                <PrintLabels isOpen={isPrintLabelsOpen} onClose={() => setIsPrintLabelsOpen(false)} />
+                <ProcessAlert isOpen={isProcessAlertOpen} onClose={() => setIsProcessAlertOpen(false)} />
+                <UpdatePatientInformation isOpen={isUpdatePatientInformationOpen} onClose={() => setIsUpdatePatientInformationOpen(false)} />
+                <ViewEncounter isOpen={isViewEncounterOpen} onClose={() => setIsViewEncounterOpen(false)} />
+                <ViewPerson isOpen={isViewPersonOpen} onClose={() => setIsViewPersonOpen(false)} />
               </div>
             );
 };

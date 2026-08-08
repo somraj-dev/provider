@@ -101,7 +101,7 @@ docker compose up frontend backend postgres
 | AI Service | 8000 | FastAPI AI/ML endpoints |
 | PostgreSQL | 5432 | Primary database |
 | Redis | 6379 | Cache and session store |
-| OpenSearch | 9200 | Full-text search engine |
+| elatic search  | 9200 | Full-text search engine |
 
 ## Documentation
 

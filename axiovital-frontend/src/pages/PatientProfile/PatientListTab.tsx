@@ -43,7 +43,7 @@ export const PatientListTab: React.FC<PatientListTabProps> = ({
                       </tr>
                     </thead>
                     <tbody>
-                       {patientDirectoryData.filter(row => {
+                       {patientDirectoryData.filter((row: any) => {
                          if (!searchQuery) return true;
                          const query = searchQuery.toLowerCase();
                          return (
@@ -54,7 +54,7 @@ export const PatientListTab: React.FC<PatientListTabProps> = ({
                            (row as any).visit?.toLowerCase().includes(query) ||
                            (row as any).dept?.toLowerCase().includes(query)
                          );
-                       }).map((row, index) => (
+                       }).map((row: any, index: number) => (
                         <tr 
                           key={index} 
                           onClick={(e) => {
