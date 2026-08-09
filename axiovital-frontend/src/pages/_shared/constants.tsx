@@ -56,19 +56,19 @@ export const getChartDataForSelection = (baseData: any[], selection: string, cha
   if (!selection || selection === 'Quick View' || selection === 'All Results') {
     return baseData;
   }
-  
+
   let hash = 0;
   for (let i = 0; i < selection.length; i++) {
     hash = selection.charCodeAt(i) + ((hash << 5) - hash);
   }
-  
+
   return (baseData || []).map((d, index) => {
     const val = d[chartKey];
     if (typeof val !== 'number') return d;
-    
+
     const factor = 0.2 + Math.abs((Math.sin(index + hash) * 1.3));
     let newVal = val * factor;
-    
+
     if (chartKey === 'success') {
       newVal = Math.min(100, Math.max(0, newVal));
     } else if (chartKey === 'status') {
@@ -78,7 +78,7 @@ export const getChartDataForSelection = (baseData: any[], selection: string, cha
     } else {
       newVal = Math.round(newVal);
     }
-    
+
     return {
       ...d,
       [chartKey]: newVal
@@ -87,6 +87,18 @@ export const getChartDataForSelection = (baseData: any[], selection: string, cha
 };
 
 export const patientDemographics: Record<string, PatientDemographic> = {
+  'AXIO, MOCK': {
+    mrn: '1000245699',
+    axioId: 'AXIO-MOCK-ID',
+    gender: 'Male',
+    age: '30Y 0M',
+    allergies: 'No Known Allergies',
+    dob: '08/08/1996 (30Y)',
+    weight: '70.0 kg (08/08/2026)',
+    height: '175 cm',
+    bloodType: 'O+',
+    healthLife: 'Yes'
+  },
   'TEST, PATIENT ONE': {
     mrn: '1000245699',
     axioId: 'AVX-000123',
@@ -419,6 +431,7 @@ export const mockOrdersData = [
 ];
 
 export const patientDirectoryData = [
+  { name: 'AXIO, MOCK', lengthOfStay: '5.2 Days', mrn: '1000245699', finReqId: '1000245699', age: '30 years', dob: '08/08/96', admittedRequested: '08/08/26 08:00 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'Mock testing', primaryCare: 'Sanders MD, Michael Lawrence', uhid: 'AXIO-MOCK-ID', ageGender: '30 years / Male', phone: '09243657795', visit: 'Inpatient', dept: 'General Medicine', location: '123 Medical Center Way, Vancouver, BC' },
   { name: 'TEST, NEWMERGE ONE', lengthOfStay: '46.7 Days', mrn: '64802090', finReqId: '64802090', age: '56 years', dob: '01/01/61', admittedRequested: '05/29/17 20:00 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'TESTING MERGE ACCOUNTS', primaryCare: 'Sanders MD, Michael Lawrence' },
   { name: 'PHARMDRC, EIGHTMONTH', lengthOfStay: '43.0 Days', mrn: '64802042', finReqId: '64802042', age: '9 months', dob: '09/22/16', admittedRequested: '05/22/17 17:00 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'pain', primaryCare: '' },
   { name: 'UCTEST, CPABBLINGCOMB', lengthOfStay: '120.0 Days', mrn: '64801201', finReqId: '64801201', age: '8 years', dob: '03/14/09', admittedRequested: '03/06/17 15:00 CDT', admittingPhysician: 'Sanders MD, Michael Lawrence', visitReason: 'headache', primaryCare: '' },
