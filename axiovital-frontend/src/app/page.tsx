@@ -54,7 +54,7 @@ import { QualityMeasuresTab } from '@/pages/Clinical/QualityMeasuresTab';
 import { PhysicianHandoffTab } from '@/pages/Clinical/PhysicianHandoffTab';
 import { ReferralTransferTab } from '@/pages/Clinical/ReferralTransferTab';
 import { DischargeListTab } from '@/pages/Clinical/DischargeListTab';
-import { ClinicalDecisionSupportTab } from '@/pages/Clinical/ClinicalDecisionSupportTab';
+
 import { PatientListTab } from '@/pages/PatientProfile/PatientListTab';
 import { ReportsTab } from '@/pages/Reports/ReportsTab';
 import { MedicalReportTab } from '@/pages/Reports/MedicalReportTab';
@@ -1807,6 +1807,11 @@ ${ioVal}`;
           setShowPrescriptionRenewal(false);
           return;
         }
+        // Exit Full Screen
+        if (isFullscreen) {
+          setIsFullscreen(false);
+          return;
+        }
       }
       // Ctrl+S → save shortcut (override browser default)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
@@ -1823,7 +1828,7 @@ ${ioVal}`;
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('click', handleCloseMenu);
     };
-  }, [showPersonSearch, showRescheduleModal, showPrescriptionRenewal]);
+  }, [showPersonSearch, showRescheduleModal, showPrescriptionRenewal, isFullscreen]);
 
   const handlePsSearch = () => {
     let filtered = [...patientDirectoryData];
@@ -2592,13 +2597,7 @@ ${ioVal}`;
         >
           Scheduler
         </button>
-        
-        <button 
-          onClick={() => selectOrOpenTab('ClinicalDecisionSupport', 'Clinical Decision Support', 'cds-tab')}
-          className={`flex items-center gap-1 hover:text-black ${activeTab.type === 'ClinicalDecisionSupport' ? 'font-semibold text-[#002a46]' : ''}`}
-        >
-          Clinical Decision Support
-        </button>
+
         <button 
           onClick={() => selectOrOpenTab('Orders', 'Orders', 'orders-tab')}
           className="flex items-center gap-1 hover:text-black font-semibold text-[#002a46]"
@@ -3125,36 +3124,6 @@ ${ioVal}`;
           )}
 
           {activeTab.type === 'BillingReceipt' && <BillingReceiptTab />}
-
-          {activeTab.type === 'ClinicalDecisionSupport' && (
-            <ClinicalDecisionSupportTab
-              cdsDrugDrug={cdsDrugDrug}
-              setCdsDrugDrug={setCdsDrugDrug}
-              cdsDrugAllergy={cdsDrugAllergy}
-              setCdsDrugAllergy={setCdsDrugAllergy}
-              cdsDuplicateTherapy={cdsDuplicateTherapy}
-              setCdsDuplicateTherapy={setCdsDuplicateTherapy}
-              cdsRenalDosing={cdsRenalDosing}
-              setCdsRenalDosing={setCdsRenalDosing}
-              cdsGeriatric={cdsGeriatric}
-              setCdsGeriatric={setCdsGeriatric}
-              cdsSeverityThreshold={cdsSeverityThreshold}
-              setCdsSeverityThreshold={setCdsSeverityThreshold}
-              cdsSepsisRule={cdsSepsisRule}
-              setCdsSepsisRule={setCdsSepsisRule}
-              cdsRetinopathyRule={cdsRetinopathyRule}
-              setCdsRetinopathyRule={setCdsRetinopathyRule}
-              cdsFluVaccineRule={cdsFluVaccineRule}
-              setCdsFluVaccineRule={setCdsFluVaccineRule}
-              cdsInterruptiveAlerts={cdsInterruptiveAlerts}
-              setCdsInterruptiveAlerts={setCdsInterruptiveAlerts}
-              cdsBannerAlerts={cdsBannerAlerts}
-              setCdsBannerAlerts={setCdsBannerAlerts}
-              cdsSidebarAlerts={cdsSidebarAlerts}
-              setCdsSidebarAlerts={setCdsSidebarAlerts}
-              cdsAuditLogs={cdsAuditLogs}
-            />
-          )}
         </div>
 
       </div>
@@ -3171,16 +3140,7 @@ ${ioVal}`;
         </div>
       )}
 
-      {/* Floating Exit Full Screen Button */}
-      {isFullscreen && (
-        <button 
-          onClick={() => setIsFullscreen(false)}
-          className="fixed top-3 right-3 z-50 bg-[#0f4471] hover:bg-[#0b3355] text-white font-bold px-3.5 py-1.5 rounded shadow-lg border border-[#0d3455] flex items-center gap-1.5 text-[11px] transition-all cursor-pointer animate-in fade-in zoom-in duration-200"
-        >
-          <span>Exit Full Screen</span>
-          <span className="font-mono font-bold">✕</span>
-        </button>
-      )}
+
 
      {/* Reschedule Modal Overlay */}
       {/* Conversation Launcher Modal */}
